@@ -17,6 +17,7 @@ import Courses from '../pages/admin/courseManagement/Courses';
 import OfferCourse from '../pages/admin/courseManagement/OfferCourse';
 import OfferedCourses from '../pages/admin/courseManagement/OfferedCourses';
 import AuditLogs from '../pages/admin/auditLog/AuditLogs';
+import FeeManagement from '../pages/admin/fee/FeeManagement';
 
 export const adminPaths = [
   {
@@ -126,6 +127,16 @@ export const adminPaths = [
         name: 'Offered Courses',
         path: 'offered-courses',
         element: <OfferedCourses />,
+      },
+    ],
+  },
+  {
+    name: 'Fee Management',
+    children: [
+      {
+        name: 'Manage Fees',
+        path: 'fees',
+        element: <FeeManagement />,
       },
     ],
   },

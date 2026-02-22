@@ -9,6 +9,7 @@ import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
 import { SubmissionRoutes } from '../modules/Submission/submission.route';
 import { NotificationRoutes } from '../modules/Notification/notification.route';
 import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
+import { FeeRoutes } from '../modules/Fee/fee.route';
 
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
@@ -98,6 +99,10 @@ const moduleRoutes = [
   {
     path: '/audit-logs',
     route: AuditLogRoutes,
+  },
+  {
+    path: '/fees',
+    route: FeeRoutes,
   },
 ];
 

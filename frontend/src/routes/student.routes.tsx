@@ -4,6 +4,7 @@ import StudentDashboard from '../pages/student/StudentDashboard';
 import StudentAssignments from '../pages/student/assignment/StudentAssignments';
 import StudentResults from '../pages/student/results/StudentResults';
 import StudentAttendance from '../pages/student/attendance/StudentAttendance';
+import StudentFees from '../pages/student/fee/StudentFees';
 
 export const studentPaths = [
   {
@@ -35,5 +36,10 @@ export const studentPaths = [
     name: 'Attendance',
     path: 'attendance',
     element: <StudentAttendance />,
+  },
+  {
+    name: 'Fees',
+    path: 'fees',
+    element: <StudentFees />,
   },
 ];
