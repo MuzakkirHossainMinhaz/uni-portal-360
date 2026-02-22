@@ -16,6 +16,7 @@ const userRole = {
   ADMIN: 'admin',
   FACULTY: 'faculty',
   STUDENT: 'student',
+  SUPER_ADMIN: 'superAdmin',
 };
 
 const Sidebar = () => {
@@ -30,6 +31,7 @@ const Sidebar = () => {
   let sidebarItems;
 
   switch ((user as TUser)!.role) {
+    case userRole.SUPER_ADMIN:
     case userRole.ADMIN:
       sidebarItems = sidebarItemsGenerator(adminPaths, userRole.ADMIN);
       break;

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import seedSuperAdmin from './db';
 import config from './config';
+import { RBACService } from './modules/RBAC/rbac.service';
 
 let server: Server;
 
@@ -11,6 +12,8 @@ async function main() {
     await mongoose.connect(config.database_url as string);
 
     await seedSuperAdmin();
+    await RBACService.seedRBAC(); // Seed RBAC roles and permissions
+    
     server = app.listen(config.port, () => {
       console.log(`app is listening on port ${config.port}`);
     });

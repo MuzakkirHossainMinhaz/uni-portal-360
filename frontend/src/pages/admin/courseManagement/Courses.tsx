@@ -7,6 +7,7 @@ import { useState } from 'react';
 import PHForm from '../../../components/form/PHForm';
 import PHSelect from '../../../components/form/PHSelect';
 import { useGetAllFacultiesQuery } from '../../../redux/features/admin/userManagement.api';
+import PermissionGuard from '../../../components/layout/PermissionGuard';
 
 const Courses = () => {
   // const [params, setParams] = useState<TQueryParam[] | undefined>(undefined);
@@ -34,7 +35,11 @@ const Courses = () => {
       title: 'Action',
       key: 'x',
       render: (item: any) => {
-        return <AddFacultyModal facultyInfo={item} />;
+        return (
+            <PermissionGuard permission="assignFaculties">
+                <AddFacultyModal facultyInfo={item} />
+            </PermissionGuard>
+        );
       },
     },
   ];

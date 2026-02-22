@@ -6,6 +6,7 @@ export type TUser = {
   role: string;
   iat: number;
   exp: number;
+  permissions?: string[];
 };
 
 type TAuthState = {
@@ -27,6 +28,11 @@ const authSlice = createSlice({
       state.user = user;
       state.token = token;
     },
+    setPermissions: (state, action) => {
+        if (state.user) {
+            state.user.permissions = action.payload;
+        }
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -34,9 +40,10 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout } = authSlice.actions;
+export const { setUser, setPermissions, logout } = authSlice.actions;
 
 export default authSlice.reducer;
 
 export const useCurrentToken = (state: RootState) => state.auth.token;
 export const selectCurrentUser = (state: RootState) => state.auth.user;
+export const selectUserPermissions = (state: RootState) => state.auth.user?.permissions || [];

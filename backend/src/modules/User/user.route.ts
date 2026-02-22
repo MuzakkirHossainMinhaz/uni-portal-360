@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express, { NextFunction, Request, Response } from 'express';
 import auth from '../../middlewares/auth';
+import checkPermission from '../../middlewares/checkPermission';
 import validateRequest from '../../middlewares/validateRequest';
 import { upload } from '../../utils/sendImageToCloudinary';
 import { createAdminValidationSchema } from '../Admin/admin.validation';
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post(
   '/create-student',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  checkPermission('createStudent'),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
@@ -27,6 +29,7 @@ router.post(
 router.post(
   '/create-faculty',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  checkPermission('createFaculty'),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
@@ -39,6 +42,7 @@ router.post(
 router.post(
   '/create-admin',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  checkPermission('createAdmin'),
   upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);

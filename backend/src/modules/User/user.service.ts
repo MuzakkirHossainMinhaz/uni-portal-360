@@ -210,6 +210,8 @@ const createAdminIntoDB = async (file: any, password: string, payload: TAdmin) =
   }
 };
 
+import { RBACService } from '../RBAC/rbac.service';
+
 const getMe = async (userId: string, role: string) => {
   let result = null;
   if (role === 'student') {
@@ -223,7 +225,13 @@ const getMe = async (userId: string, role: string) => {
     result = await Faculty.findOne({ id: userId }).populate('user');
   }
 
-  return result;
+  if (role === 'superAdmin') {
+    result = await Admin.findOne({ id: userId }).populate('user');
+  }
+
+  const permissions = await RBACService.getRolePermissions(role);
+
+  return { ...result?.toObject(), permissions };
 };
 
 const changeStatus = async (id: string, payload: { status: string }) => {
