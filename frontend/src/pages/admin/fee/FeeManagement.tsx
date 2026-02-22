@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, Input, InputNumber, Modal, Select, Table, Tag, message, Row, Col } from 'antd';
+import { Button, Modal, Table, Tag, message, Row, Col, Card, Space, Typography, Input } from 'antd';
 import { useState } from 'react';
 import { useCreateFeeMutation, useGetAllFeesQuery } from '../../../redux/features/fee/fee.api';
 import moment from 'moment';
@@ -8,28 +8,57 @@ import PHSelect from '../../../components/form/PHSelect';
 import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
 import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
 import PHDatePicker from '../../../components/form/PHDatePicker';
+import PageHeader from '../../../components/layout/PageHeader';
+import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
+// @ts-ignore
+import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
 
 const FeeManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: fees, isFetching } = useGetAllFeesQuery(undefined);
+  const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
+  const { data: students } = useGetAllStudentsQuery(undefined);
+  const { data: semesters } = useGetAllSemestersQuery(undefined);
   const [createFee] = useCreateFeeMutation();
+
+  const studentOptions = students?.data?.map((item: any) => ({
+    value: item._id,
+    label: `${item.fullName} (${item.id})`,
+  }));
+
+  const semesterOptions = semesters?.data?.map((item: any) => ({
+    value: item._id,
+    label: `${item.name} ${item.year}`,
+  }));
+
+  const handleCreateFee = async (data: any) => {
+    const toastId = message.loading('Creating fee...');
+    try {
+      await createFee(data).unwrap();
+      message.success('Fee created successfully');
+      setIsModalOpen(false);
+    } catch (err) {
+      message.error('Failed to create fee');
+    }
+  };
 
   const columns = [
     {
       title: 'Student ID',
-      dataIndex: ['student', 'id'],
-      key: 'studentId',
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
+      dataIndex: 'student',
+      key: 'student',
+      render: (item: any) => item?.id,
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => `$${amount.toFixed(2)}`,
+      render: (amount: number) => <Typography.Text strong>${amount}</Typography.Text>,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => <Tag color="blue">{type.toUpperCase()}</Tag>,
     },
     {
       title: 'Status',
@@ -37,122 +66,102 @@ const FeeManagement = () => {
       key: 'status',
       render: (status: string) => {
         let color = 'default';
-        if (status === 'PAID') color = 'green';
-        if (status === 'PENDING') color = 'gold';
-        if (status === 'OVERDUE') color = 'red';
-        return <Tag color={color}>{status}</Tag>;
+        if (status === 'Paid') color = 'success';
+        if (status === 'Pending') color = 'warning';
+        if (status === 'Overdue') color = 'error';
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
     },
     {
-      title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
-      render: (date: string) => moment(date).format('YYYY-MM-DD'),
+        title: 'Due Date',
+        dataIndex: 'dueDate',
+        key: 'dueDate',
+        render: (date: string) => moment(date).format('YYYY-MM-DD'),
     },
+    {
+        title: 'Action',
+        key: 'action',
+        render: (item: any) => (
+             item.status === 'Paid' ? (
+                <DownloadReceipt fee={item} />
+             ) : (
+                 <Button size="small" disabled>Unpaid</Button>
+             )
+        )
+    }
   ];
-
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h1>Fee Management</h1>
-        <Button type="primary" onClick={showModal}>Generate Fee</Button>
-      </div>
-      
-      <Table
-        loading={isFetching}
-        columns={columns}
-        dataSource={fees?.data}
-        rowKey="_id"
+      <PageHeader
+        title="Fee Management"
+        subTitle="Track payments, generate invoices, and manage student fees."
+        breadcrumbs={[
+            { title: 'Dashboard', href: '/admin/dashboard' },
+            { title: 'Fee Management' },
+        ]}
       />
 
-      <CreateFeeModal open={isModalOpen} onCancel={handleCancel} />
+      <Card bordered={false}>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+            <Col>
+                 <Space>
+                    <Input placeholder="Search by Student ID" style={{ width: 250 }} />
+                    <Button icon={<FilterOutlined />}>Filter</Button>
+                 </Space>
+            </Col>
+            <Col>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
+                    Generate Fee
+                </Button>
+            </Col>
+        </Row>
+        
+        <Table 
+            loading={isLoading}
+            dataSource={fees?.data} 
+            columns={columns} 
+            rowKey="_id"
+        />
+      </Card>
+
+      <Modal
+        title="Generate Fee"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+      >
+        <PHForm onSubmit={handleCreateFee}>
+          <PHSelect
+            name="student"
+            label="Student"
+            options={studentOptions}
+          />
+          <PHSelect
+            name="academicSemester"
+            label="Semester"
+            options={semesterOptions}
+          />
+          <PHSelect
+            name="type"
+            label="Fee Type"
+            options={[
+                { value: 'Tuition', label: 'Tuition' },
+                { value: 'Library', label: 'Library' },
+                { value: 'Lab', label: 'Lab' },
+                { value: 'Exam', label: 'Exam' },
+                { value: 'Other', label: 'Other' },
+            ]}
+          />
+          <PHInput type="number" name="amount" label="Amount" />
+          <PHDatePicker name="dueDate" label="Due Date" />
+          <Button type="primary" htmlType="submit" block style={{ marginTop: 16 }}>
+            Create Fee
+          </Button>
+        </PHForm>
+      </Modal>
     </div>
   );
-};
-
-const CreateFeeModal = ({ open, onCancel }: { open: boolean; onCancel: () => void }) => {
-    const [createFee] = useCreateFeeMutation();
-    const { data: students } = useGetAllStudentsQuery(undefined);
-    const { data: semesters } = useGetAllSemestersQuery(undefined);
-
-    const studentOptions = students?.data?.map((item: any) => ({
-        value: item._id,
-        label: `${item.name.firstName} ${item.name.lastName} (${item.id})`
-    }));
-
-    const semesterOptions = semesters?.data?.map((item: any) => ({
-        value: item._id,
-        label: `${item.name} ${item.year}`
-    }));
-
-    const feeTypeOptions = [
-        { value: 'TUITION', label: 'Tuition' },
-        { value: 'LIBRARY', label: 'Library' },
-        { value: 'EXAM', label: 'Exam' },
-        { value: 'HOSTEL', label: 'Hostel' },
-        { value: 'MISC', label: 'Miscellaneous' },
-    ];
-
-    const onSubmit = async (data: any) => {
-        const toastId = message.loading('Generating fee...');
-        try {
-            const feeData = {
-                student: data.student,
-                academicSemester: data.academicSemester,
-                type: data.type,
-                amount: Number(data.amount),
-                dueDate: moment(new Date(data.dueDate)).format('YYYY-MM-DD'),
-                description: data.description,
-                status: 'PENDING'
-            };
-
-            await createFee(feeData).unwrap();
-            message.success('Fee generated successfully');
-            onCancel();
-        } catch (error) {
-            message.error('Failed to generate fee');
-        } finally {
-            message.destroy(toastId);
-        }
-    };
-
-    return (
-        <Modal title="Generate Fee" open={open} onCancel={onCancel} footer={null}>
-            <PHForm onSubmit={onSubmit}>
-                <Row gutter={16}>
-                    <Col span={24}>
-                        <PHSelect name="student" label="Student" options={studentOptions} />
-                    </Col>
-                    <Col span={24}>
-                        <PHSelect name="academicSemester" label="Semester" options={semesterOptions} />
-                    </Col>
-                    <Col span={12}>
-                        <PHSelect name="type" label="Fee Type" options={feeTypeOptions} />
-                    </Col>
-                    <Col span={12}>
-                        <PHInput type="number" name="amount" label="Amount" />
-                    </Col>
-                    <Col span={12}>
-                        <PHDatePicker name="dueDate" label="Due Date" />
-                    </Col>
-                    <Col span={24}>
-                        <PHInput type="text" name="description" label="Description" />
-                    </Col>
-                </Row>
-                <div style={{ display: 'flex', justifyContent: 'end' }}>
-                    <Button htmlType="submit" type="primary">Generate</Button>
-                </div>
-            </PHForm>
-        </Modal>
-    );
 };
 
 export default FeeManagement;

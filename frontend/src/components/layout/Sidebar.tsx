@@ -1,4 +1,4 @@
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Typography } from 'antd';
 import { sidebarItemsGenerator } from '../../utils/sidebarItemsGenerator';
 import { adminPaths } from '../../routes/admin.routes';
 import { facultyPaths } from '../../routes/faculty.routes';
@@ -57,11 +57,27 @@ const Sidebar = () => {
           color: 'white',
           height: '4rem',
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
+          padding: '0 16px',
+          gap: 10,
         }}
       >
-        <h1>PH Uni</h1>
+        <img
+          src="/logo.png"
+          alt="Uni Portal 360"
+          style={{ height: 28, width: 28, objectFit: 'contain' }}
+        />
+        <Typography.Text
+          style={{
+            color: 'white',
+            fontWeight: 600,
+            letterSpacing: 0.4,
+            fontSize: 16,
+          }}
+        >
+          Uni Portal 360
+        </Typography.Text>
       </div>
       <Menu
         theme="dark"

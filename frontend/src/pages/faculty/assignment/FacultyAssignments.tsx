@@ -1,6 +1,11 @@
-import { Button, Table } from 'antd';
+import { Button, Card, Table, Tag, Typography, Space } from 'antd';
 import { useGetAllAssignmentsQuery } from '../../../redux/features/assignment/assignment.api';
 import { Link } from 'react-router-dom';
+import PageHeader from '../../../components/layout/PageHeader';
+import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+
+const { Text } = Typography;
 
 const FacultyAssignments = () => {
   const { data: assignments, isLoading } = useGetAllAssignmentsQuery(undefined);
@@ -10,32 +15,34 @@ const FacultyAssignments = () => {
       title: 'Title',
       dataIndex: 'title',
       key: 'title',
+      render: (text: string) => <Text strong>{text}</Text>,
     },
     {
-      title: 'Course',
-      dataIndex: ['offeredCourse', 'course'], // This path might be wrong if populate isn't deep enough
-      key: 'course',
-      render: (text: any, record: any) => {
-          // Since offeredCourse is populated, but offeredCourse.course is an ObjectId (unless deep populated)
-          // Actually, in assignment.service.ts getAllAssignments, we populate 'offeredCourse faculty'.
-          // OfferedCourse model has 'course' ref. Unless we populate 'offeredCourse.course', we only get ID.
-          // Let's assume for now we just show the ID or need to update backend to deep populate.
-          // Or maybe we can rely on section?
-          return record.offeredCourse ? `${record.offeredCourse.section}` : 'N/A';
-      }
+      title: 'Course Section',
+      dataIndex: ['offeredCourse', 'section'],
+      key: 'section',
+      render: (text: any) => text ? <Tag color="blue">{text}</Tag> : 'N/A',
     },
     {
       title: 'Deadline',
       dataIndex: 'deadline',
       key: 'deadline',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (date: string) => {
+          const isExpired = dayjs().isAfter(dayjs(date));
+          return (
+              <Space direction="vertical" size={0}>
+                  <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>
+                  {isExpired ? <Tag color="error">Closed</Tag> : <Tag color="success">Active</Tag>}
+              </Space>
+          );
+      },
     },
     {
       title: 'Action',
       key: 'action',
       render: (text: any, record: any) => (
         <Link to={`/faculty/submissions/${record._id}`}>
-          <Button type="primary">View Submissions</Button>
+          <Button icon={<EyeOutlined />} size="small">View Submissions</Button>
         </Link>
       ),
     },
@@ -43,18 +50,29 @@ const FacultyAssignments = () => {
 
   return (
     <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h1>Assignments</h1>
+      <PageHeader
+        title="Assignments"
+        subTitle="Manage assignments for your courses."
+        breadcrumbs={[
+            { title: 'Dashboard', href: '/faculty/dashboard' },
+            { title: 'Assignments' },
+        ]}
+        extra={
             <Link to="/faculty/create-assignment">
-                <Button type="primary">Create Assignment</Button>
+                <Button type="primary" icon={<PlusOutlined />}>Create Assignment</Button>
             </Link>
-        </div>
-      <Table
-        dataSource={assignments?.data}
-        columns={columns}
-        loading={isLoading}
-        rowKey="_id"
+        }
       />
+
+      <Card bordered={false}>
+          <Table
+            dataSource={assignments?.data}
+            columns={columns}
+            loading={isLoading}
+            rowKey="_id"
+            pagination={{ pageSize: 10 }}
+          />
+      </Card>
     </div>
   );
 };

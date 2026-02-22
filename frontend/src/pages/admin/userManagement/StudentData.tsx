@@ -5,11 +5,17 @@ import {
   Table,
   TableColumnsType,
   TableProps,
+  Card,
+  Input,
+  Row,
+  Col,
 } from 'antd';
 import { useState } from 'react';
 import { TQueryParam, TStudent } from '../../../types';
 import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
 import { Link } from 'react-router-dom';
+import PageHeader from '../../../components/layout/PageHeader';
+import { SearchOutlined } from '@ant-design/icons';
 
 export type TTableData = Pick<
   TStudent,
@@ -19,6 +25,8 @@ export type TTableData = Pick<
 const StudentData = () => {
   const [params, setParams] = useState<TQueryParam[]>([]);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const {
     data: studentData,
     isLoading,
@@ -26,10 +34,9 @@ const StudentData = () => {
   } = useGetAllStudentsQuery([
     { name: 'page', value: page },
     { name: 'sort', value: 'id' },
+    { name: 'searchTerm', value: searchTerm },
     ...params,
   ]);
-
-  console.log({ isLoading, isFetching });
 
   const metaData = studentData?.meta;
 
@@ -49,7 +56,6 @@ const StudentData = () => {
       key: 'name',
       dataIndex: 'fullName',
     },
-
     {
       title: 'Roll No.',
       key: 'id',
@@ -69,14 +75,13 @@ const StudentData = () => {
       title: 'Action',
       key: 'x',
       render: (item) => {
-        console.log(item);
         return (
           <Space>
             <Link to={`/admin/student-data/${item.key}`}>
-              <Button>Details</Button>
+              <Button size="small">Details</Button>
             </Link>
-            <Button>Update</Button>
-            <Button>Block</Button>
+            <Button size="small">Update</Button>
+            <Button size="small" danger>Block</Button>
           </Space>
         );
       },
@@ -106,21 +111,57 @@ const StudentData = () => {
   };
 
   return (
-    <>
-      <Table
-        loading={isFetching}
-        columns={columns}
-        dataSource={tableData}
-        onChange={onChange}
-        pagination={false}
+    <div>
+      <PageHeader
+        title="Student Management"
+        subTitle="Manage student records, enrollments, and profiles."
+        breadcrumbs={[
+            { title: 'Dashboard', href: '/admin/dashboard' },
+            { title: 'User Management' },
+            { title: 'Students' },
+        ]}
       />
-      <Pagination
-        current={page}
-        onChange={(value) => setPage(value)}
-        pageSize={metaData?.limit}
-        total={metaData?.total}
-      />
-    </>
+      
+      <Card bordered={false}>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
+            <Col>
+                <Input 
+                    placeholder="Search students..." 
+                    prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                    style={{ width: 300 }}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                    }}
+                />
+            </Col>
+            <Col>
+                 <Space>
+                    <Button>Filter</Button>
+                    <Link to="/admin/create-student">
+                         <Button type="primary">Add Student</Button>
+                    </Link>
+                 </Space>
+            </Col>
+        </Row>
+
+        <Table
+            loading={isFetching}
+            columns={columns}
+            dataSource={tableData}
+            onChange={onChange}
+            pagination={false}
+        />
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+            <Pagination
+                current={page}
+                onChange={(value) => setPage(value)}
+                pageSize={metaData?.limit}
+                total={metaData?.total}
+                showSizeChanger={false}
+            />
+        </div>
+      </Card>
+    </div>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Button, Modal, Table } from 'antd';
+import { Button, Modal, Table, Card, Row, Col, Input, Space } from 'antd';
 import {
   useAddFacultiesMutation,
   useGetAllCoursesQuery,
@@ -8,10 +8,11 @@ import PHForm from '../../../components/form/PHForm';
 import PHSelect from '../../../components/form/PHSelect';
 import { useGetAllFacultiesQuery } from '../../../redux/features/admin/userManagement.api';
 import PermissionGuard from '../../../components/layout/PermissionGuard';
+import PageHeader from '../../../components/layout/PageHeader';
+import { SearchOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 
 const Courses = () => {
-  // const [params, setParams] = useState<TQueryParam[] | undefined>(undefined);
-
   const { data: courses, isFetching } = useGetAllCoursesQuery(undefined);
 
   const tableData = courses?.data?.map(({ _id, title, prefix, code }) => ({
@@ -41,28 +42,45 @@ const Courses = () => {
             </PermissionGuard>
         );
       },
+      width: '1%',
     },
   ];
 
-  // const onChange: TableProps<TTableData>['onChange'] = (
-  //   _pagination,
-  //   filters,
-  //   _sorter,
-  //   extra
-  // ) => {
-  //   if (extra.action === 'filter') {
-  //     const queryParams: TQueryParam[] = [];
-  //     setParams(queryParams);
-  //   }
-  // };
-
   return (
-    <Table
-      loading={isFetching}
-      columns={columns}
-      dataSource={tableData}
-      // onChange={onChange}
-    />
+    <div>
+      <PageHeader
+        title="Course Management"
+        subTitle="Manage courses and assign faculties."
+        breadcrumbs={[
+            { title: 'Dashboard', href: '/admin/dashboard' },
+            { title: 'Course Management' },
+            { title: 'Courses' },
+        ]}
+      />
+
+      <Card bordered={false}>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 20 }}>
+            <Col>
+                 <Input 
+                    placeholder="Search courses..." 
+                    prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                    style={{ width: 300 }}
+                 />
+            </Col>
+            <Col>
+                 <Link to="/admin/create-course">
+                    <Button type="primary">Create Course</Button>
+                 </Link>
+            </Col>
+        </Row>
+        <Table
+          loading={isFetching}
+          columns={columns}
+          dataSource={tableData}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
+    </div>
   );
 };
 
@@ -82,9 +100,8 @@ const AddFacultyModal = ({ facultyInfo }: { facultyInfo: any }) => {
       data,
     };
 
-    console.log(facultyData);
-
     addFaculties(facultyData);
+    setIsModalOpen(false);
   };
 
   const showModal = () => {
@@ -97,9 +114,9 @@ const AddFacultyModal = ({ facultyInfo }: { facultyInfo: any }) => {
 
   return (
     <>
-      <Button onClick={showModal}>Add Faculty</Button>
+      <Button size="small" onClick={showModal}>Add Faculty</Button>
       <Modal
-        title="Basic Modal"
+        title={`Assign Faculty to ${facultyInfo.title}`}
         open={isModalOpen}
         onCancel={handleCancel}
         footer={null}
@@ -109,9 +126,9 @@ const AddFacultyModal = ({ facultyInfo }: { facultyInfo: any }) => {
             mode="multiple"
             options={facultiesOption}
             name="faculties"
-            label="Faculty"
+            label="Select Faculty"
           />
-          <Button htmlType="submit">Submit</Button>
+          <Button type="primary" htmlType="submit" style={{ marginTop: 16 }}>Submit</Button>
         </PHForm>
       </Modal>
     </>
