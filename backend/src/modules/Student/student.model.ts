@@ -152,6 +152,10 @@ const studentSchema = new Schema<TStudent, StudentModel>(
   },
 );
 
+studentSchema.index({ academicDepartment: 1, isDeleted: 1 });
+studentSchema.index({ academicFaculty: 1, isDeleted: 1 });
+studentSchema.index({ admissionSemester: 1, isDeleted: 1 });
+
 //virtual
 studentSchema.virtual('fullName').get(function () {
   return this?.name?.firstName + this?.name?.middleName + this?.name?.lastName;

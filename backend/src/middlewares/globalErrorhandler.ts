@@ -61,13 +61,13 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     ];
   }
 
-  //ultimate return
   return res.status(statusCode).json({
-    success: false,
+    statusCode,
     message,
-    errorSources,
-    err,
-    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+    error: errorSources,
+    path: req.originalUrl,
+    timestamp: new Date().toISOString(),
+    stack: config.NODE_ENV === 'development' ? err?.stack : undefined,
   });
 };
 

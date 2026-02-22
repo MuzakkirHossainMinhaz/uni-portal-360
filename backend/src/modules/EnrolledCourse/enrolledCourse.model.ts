@@ -100,6 +100,25 @@ const enrolledCourseSchema = new Schema<TEnrolledCourse>({
   },
 });
 
+enrolledCourseSchema.index(
+  {
+    student: 1,
+    course: 1,
+    semesterRegistration: 1,
+  },
+  {
+    unique: true,
+  },
+);
+
+enrolledCourseSchema.index({ student: 1 });
+enrolledCourseSchema.index({ course: 1 });
+enrolledCourseSchema.index({ semesterRegistration: 1 });
+enrolledCourseSchema.index({ academicSemester: 1 });
+enrolledCourseSchema.index({ academicFaculty: 1 });
+enrolledCourseSchema.index({ academicDepartment: 1 });
+enrolledCourseSchema.index({ offeredCourse: 1 });
+
 const EnrolledCourse = mongoose.model<TEnrolledCourse>('EnrolledCourse', enrolledCourseSchema);
 
 export default EnrolledCourse;
