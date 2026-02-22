@@ -9,7 +9,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
       description: 'API documentation for Uni Portal 360 backend',
     },
   },
-  apis: [],
+  apis: ['./src/modules/**/*.route.ts', './src/modules/**/*.controller.ts', './src/modules/**/*.ts'],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);

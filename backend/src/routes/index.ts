@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AdminRoutes } from '../modules/Admin/admin.route';
+import { AttendanceRoutes } from '../modules/Attendance/attendance.route';
 import { AuthRoutes } from '../modules/Auth/auth.route';
 import { CourseRoutes } from '../modules/Course/course.route';
 
@@ -63,6 +64,10 @@ const moduleRoutes = [
   {
     path: '/enrolled-courses',
     route: EnrolledCourseRoutes,
+  },
+  {
+    path: '/attendance',
+    route: AttendanceRoutes,
   },
 ];
 
