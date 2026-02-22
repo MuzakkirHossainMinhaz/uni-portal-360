@@ -19,6 +19,40 @@ router.get('/', auth(USER_ROLE.faculty), EnrolledCourseControllers.getAllEnrolle
 
 router.get('/my-enrolled-courses', auth(USER_ROLE.student), EnrolledCourseControllers.getMyEnrolledCourses);
 
+/**
+ * @openapi
+ * /enrolled-courses/update-enrolled-course-marks:
+ *   patch:
+ *     summary: Update marks for an enrolled course
+ *     tags: [Enrolled Courses]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               semesterRegistration:
+ *                 type: string
+ *               offeredCourse:
+ *                 type: string
+ *               student:
+ *                 type: string
+ *               courseMarks:
+ *                 type: object
+ *                 properties:
+ *                   classTest1:
+ *                     type: number
+ *                   midTerm:
+ *                     type: number
+ *                   classTest2:
+ *                     type: number
+ *                   finalTerm:
+ *                     type: number
+ *     responses:
+ *       200:
+ *         description: Marks updated successfully
+ */
 router.patch(
   '/update-enrolled-course-marks',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty),

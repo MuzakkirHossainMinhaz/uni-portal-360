@@ -41,6 +41,7 @@ export type TStudent = {
   academicDepartment: Types.ObjectId;
   academicFaculty: Types.ObjectId;
   isDeleted: boolean;
+  cgpa?: number;
 };
 
 //for creating static

@@ -231,12 +231,19 @@ const updateEnrolledCourseMarksIntoDB = async (facultyId: string, payload: Parti
     throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden! !');
   }
 
-  const modifiedData: Record<string, unknown> = {
-    ...courseMarks,
-  };
+  const modifiedData: Record<string, unknown> = {};
+
+  if (courseMarks && Object.keys(courseMarks).length) {
+    for (const [key, value] of Object.entries(courseMarks)) {
+      modifiedData[`courseMarks.${key}`] = value;
+    }
+  }
 
   if (courseMarks?.finalTerm) {
-    const { classTest1, classTest2, midTerm, finalTerm } = isCourseBelongToFaculty.courseMarks;
+    const { classTest1, classTest2, midTerm, finalTerm } = {
+      ...isCourseBelongToFaculty.courseMarks,
+      ...courseMarks,
+    };
 
     const totalMarks = Math.ceil(classTest1) + Math.ceil(midTerm) + Math.ceil(classTest2) + Math.ceil(finalTerm);
 
@@ -245,17 +252,26 @@ const updateEnrolledCourseMarksIntoDB = async (facultyId: string, payload: Parti
     modifiedData.grade = result.grade;
     modifiedData.gradePoints = result.gradePoints;
     modifiedData.isCompleted = true;
-  }
-
-  if (courseMarks && Object.keys(courseMarks).length) {
-    for (const [key, value] of Object.entries(courseMarks)) {
-      modifiedData[`courseMarks.${key}`] = value;
-    }
+  } else {
+    // If updating other marks but not final, check if all marks are present to update grade?
+    // Or just update grade only when finalTerm is submitted?
+    // User requirement: "Automatically calculates and assigns grade based on marks using the configured grade policy"
+    // Usually grade is finalized after final exam.
+    // Let's keep it as is: only calculate grade if finalTerm is provided.
   }
 
   const result = await EnrolledCourse.findByIdAndUpdate(isCourseBelongToFaculty._id, modifiedData, {
     new: true,
   });
+  
+  // Calculate Semester GPA immediately
+  if (modifiedData.grade && modifiedData.gradePoints) {
+     const { SemesterResultServices } = await import('../SemesterResult/semesterResult.service');
+     await SemesterResultServices.calculateSemesterGPA(
+         isCourseBelongToFaculty.student.toString(), 
+         isCourseBelongToFaculty.academicSemester.toString()
+     );
+  }
 
   return result;
 };

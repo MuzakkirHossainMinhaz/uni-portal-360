@@ -144,6 +144,10 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       type: Schema.Types.ObjectId,
       ref: 'AcademicFaculty',
     },
+    cgpa: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     toJSON: {
