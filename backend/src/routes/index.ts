@@ -5,6 +5,8 @@ import { AuthRoutes } from '../modules/Auth/auth.route';
 import { CourseRoutes } from '../modules/Course/course.route';
 import { SemesterResultRoutes } from '../modules/SemesterResult/semesterResult.route';
 import { TranscriptRoutes } from '../modules/Transcript/transcript.route';
+import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
+import { SubmissionRoutes } from '../modules/Submission/submission.route';
 
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
@@ -78,6 +80,14 @@ const moduleRoutes = [
   {
     path: '/transcript',
     route: TranscriptRoutes,
+  },
+  {
+    path: '/assignments',
+    route: AssignmentRoutes,
+  },
+  {
+    path: '/submissions',
+    route: SubmissionRoutes,
   },
 ];
 
