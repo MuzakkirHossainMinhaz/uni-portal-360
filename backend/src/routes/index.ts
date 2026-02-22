@@ -10,6 +10,7 @@ import { SubmissionRoutes } from '../modules/Submission/submission.route';
 import { NotificationRoutes } from '../modules/Notification/notification.route';
 import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
 import { FeeRoutes } from '../modules/Fee/fee.route';
+import { AnalyticsRoutes } from '../modules/Analytics/analytics.route';
 
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
@@ -103,6 +104,10 @@ const moduleRoutes = [
   {
     path: '/fees',
     route: FeeRoutes,
+  },
+  {
+    path: '/analytics',
+    route: AnalyticsRoutes,
   },
 ];
 
