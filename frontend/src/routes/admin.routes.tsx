@@ -16,6 +16,7 @@ import CreateCourse from '../pages/admin/courseManagement/CreateCourse';
 import Courses from '../pages/admin/courseManagement/Courses';
 import OfferCourse from '../pages/admin/courseManagement/OfferCourse';
 import OfferedCourses from '../pages/admin/courseManagement/OfferedCourses';
+import AuditLogs from '../pages/admin/auditLog/AuditLogs';
 
 export const adminPaths = [
   {
@@ -125,6 +126,16 @@ export const adminPaths = [
         name: 'Offered Courses',
         path: 'offered-courses',
         element: <OfferedCourses />,
+      },
+    ],
+  },
+  {
+    name: 'System',
+    children: [
+      {
+        name: 'Audit Logs',
+        path: 'audit-logs',
+        element: <AuditLogs />,
       },
     ],
   },

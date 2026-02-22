@@ -8,6 +8,7 @@ import { TranscriptRoutes } from '../modules/Transcript/transcript.route';
 import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
 import { SubmissionRoutes } from '../modules/Submission/submission.route';
 import { NotificationRoutes } from '../modules/Notification/notification.route';
+import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
 
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
@@ -93,6 +94,10 @@ const moduleRoutes = [
   {
     path: '/notifications',
     route: NotificationRoutes,
+  },
+  {
+    path: '/audit-logs',
+    route: AuditLogRoutes,
   },
 ];
 

@@ -4,6 +4,7 @@ import app from './app';
 import seedSuperAdmin from './db';
 import config from './config';
 import { RBACService } from './modules/RBAC/rbac.service';
+import { AuditLogCleanup } from './modules/AuditLog/auditLog.cleanup';
 
 let server: Server;
 
@@ -14,6 +15,9 @@ async function main() {
     await seedSuperAdmin();
     await RBACService.seedRBAC(); // Seed RBAC roles and permissions
     
+    // Initialize scheduled tasks
+    AuditLogCleanup.initAuditLogCleanup();
+
     server = app.listen(config.port, () => {
       console.log(`app is listening on port ${config.port}`);
     });
