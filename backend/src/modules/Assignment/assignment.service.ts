@@ -5,6 +5,9 @@ import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
 import { TAssignment } from './assignment.interface';
 import { Assignment } from './assignment.model';
 
+import { NotificationServices } from '../Notification/notification.service';
+import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
+
 const createAssignment = async (userId: string, payload: TAssignment) => {
   const faculty = await Faculty.findOne({ id: userId });
   if (!faculty) {
@@ -26,6 +29,31 @@ const createAssignment = async (userId: string, payload: TAssignment) => {
     ...payload,
     faculty: faculty._id,
   });
+
+  // Notify enrolled students
+  const enrolledStudents = await EnrolledCourse.find({
+    offeredCourse: payload.offeredCourse,
+    isEnrolled: true
+  }).populate({
+    path: 'student',
+    populate: { path: 'user' }
+  });
+
+  for (const enrollment of enrolledStudents) {
+      const student = enrollment.student as any;
+      if (student && student.user) {
+        await NotificationServices.createNotification({
+            userId: student.user._id,
+            title: 'New Assignment Created',
+            message: `A new assignment "${payload.title}" has been posted for your course.`,
+            type: 'ASSIGNMENT_DUE',
+            priority: 'MEDIUM',
+            read: false,
+            isDeleted: false,
+            actionUrl: '/student/assignments'
+        });
+      }
+  }
 
   return result;
 };

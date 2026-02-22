@@ -6,6 +6,8 @@ import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Student } from '../Student/student.model';
 import { SemesterResult } from './semesterResult.model';
 
+import { NotificationServices } from '../Notification/notification.service';
+
 const calculateSemesterGPA = async (studentId: string, academicSemesterId: string) => {
   const session = await mongoose.startSession();
   try {
@@ -95,6 +97,22 @@ const calculateSemesterGPA = async (studentId: string, academicSemesterId: strin
 
     await session.commitTransaction();
     await session.endSession();
+
+    // Trigger Notification
+    // We need the user ID associated with the student
+    const student = await Student.findById(studentId).populate('user');
+    if (student && student.user) {
+        await NotificationServices.createNotification({
+            userId: (student.user as any)._id,
+            title: 'Results Published',
+            message: `Your results for the semester have been updated. Your new GPA is ${gpa}.`,
+            type: 'RESULT_PUBLISHED',
+            priority: 'HIGH',
+            read: false,
+            isDeleted: false,
+            actionUrl: '/student/results'
+        });
+    }
 
     return semesterResult;
   } catch (err: any) {

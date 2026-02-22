@@ -7,6 +7,7 @@ import { SemesterResultRoutes } from '../modules/SemesterResult/semesterResult.r
 import { TranscriptRoutes } from '../modules/Transcript/transcript.route';
 import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
 import { SubmissionRoutes } from '../modules/Submission/submission.route';
+import { NotificationRoutes } from '../modules/Notification/notification.route';
 
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
@@ -88,6 +89,10 @@ const moduleRoutes = [
   {
     path: '/submissions',
     route: SubmissionRoutes,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
   },
 ];
 
