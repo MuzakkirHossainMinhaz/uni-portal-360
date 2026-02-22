@@ -1,12 +1,14 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Faculty } from '../Faculty/faculty.model';
 import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
 import { TAssignment } from './assignment.interface';
-import { Assignment } from './assignment.model';
-
+import { AssignmentRepository } from './assignment.repository';
 import { NotificationServices } from '../Notification/notification.service';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
+
+const assignmentRepository = new AssignmentRepository();
 
 const createAssignment = async (userId: string, payload: TAssignment) => {
   const faculty = await Faculty.findOne({ id: userId });
@@ -25,12 +27,13 @@ const createAssignment = async (userId: string, payload: TAssignment) => {
     throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized to create assignments for this course');
   }
 
-  const result = await Assignment.create({
+  const result = await assignmentRepository.create({
     ...payload,
     faculty: faculty._id,
   });
 
   // Notify enrolled students
+  // Assuming we have a way to find enrolled students
   const enrolledStudents = await EnrolledCourse.find({
     offeredCourse: payload.offeredCourse,
     isEnrolled: true
@@ -59,18 +62,28 @@ const createAssignment = async (userId: string, payload: TAssignment) => {
 };
 
 const getAllAssignments = async (query: Record<string, unknown>) => {
-  // Allow filtering by offeredCourse
-  const filter: Record<string, unknown> = {};
-  if (query.offeredCourse) {
-    filter.offeredCourse = query.offeredCourse;
-  }
-  
-  const result = await Assignment.find(filter).populate('offeredCourse faculty');
+  const result = await assignmentRepository.findAll(query, ['title', 'description']);
   return result;
 };
 
 const getAssignmentById = async (id: string) => {
-  const result = await Assignment.findById(id).populate('offeredCourse faculty');
+  const result = await assignmentRepository.findById(id);
+  return result;
+};
+
+const updateAssignment = async (id: string, payload: Partial<TAssignment>) => {
+  const result = await assignmentRepository.updateById(id, payload);
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Assignment not found');
+  }
+  return result;
+};
+
+const deleteAssignment = async (id: string) => {
+  const result = await assignmentRepository.updateById(id, { isDeleted: true });
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Assignment not found');
+  }
   return result;
 };
 
@@ -78,4 +91,6 @@ export const AssignmentServices = {
   createAssignment,
   getAllAssignments,
   getAssignmentById,
+  updateAssignment,
+  deleteAssignment,
 };

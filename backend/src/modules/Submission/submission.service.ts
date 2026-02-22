@@ -1,11 +1,14 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { Assignment } from '../Assignment/assignment.model';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Student } from '../Student/student.model';
 import { TSubmission } from './submission.interface';
-import { Submission } from './submission.model';
+import { SubmissionRepository } from './submission.repository';
+
+const submissionRepository = new SubmissionRepository();
 
 const createSubmission = async (userId: string, file: any, payload: TSubmission) => {
   const student = await Student.findOne({ id: userId });
@@ -35,7 +38,7 @@ const createSubmission = async (userId: string, file: any, payload: TSubmission)
   }
 
   // Check duplicate submission
-  const isSubmitted = await Submission.findOne({
+  const isSubmitted = await submissionRepository.model.findOne({
     student: student._id,
     assignment: assignment._id,
   });
@@ -54,7 +57,7 @@ const createSubmission = async (userId: string, file: any, payload: TSubmission)
     throw new AppError(httpStatus.BAD_REQUEST, 'File is required');
   }
 
-  const result = await Submission.create({
+  const result = await submissionRepository.create({
     ...payload,
     assignment: assignment._id,
     student: student._id,
@@ -71,14 +74,14 @@ const getAllSubmissions = async (query: Record<string, unknown>) => {
     if (query.assignment) {
         filter.assignment = query.assignment;
     }
-    const result = await Submission.find(filter)
+    const result = await submissionRepository.model.find(filter)
         .populate('student')
         .populate('assignment');
     return result;
 };
 
 const gradeSubmission = async (id: string, payload: { grade: number; feedback?: string }) => {
-  const submission = await Submission.findById(id);
+  const submission = await submissionRepository.findById(id);
   if (!submission) {
     throw new AppError(httpStatus.NOT_FOUND, 'Submission not found');
   }
@@ -86,13 +89,22 @@ const gradeSubmission = async (id: string, payload: { grade: number; feedback?: 
   submission.grade = payload.grade;
   submission.feedback = payload.feedback;
   submission.isGraded = true;
-  await submission.save();
+  await (submission as any).save();
 
   return submission;
+};
+
+const updateSubmission = async (id: string, payload: Partial<TSubmission>) => {
+  const result = await submissionRepository.updateById(id, payload);
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Submission not found');
+  }
+  return result;
 };
 
 export const SubmissionServices = {
   createSubmission,
   getAllSubmissions,
   gradeSubmission,
+  updateSubmission,
 };

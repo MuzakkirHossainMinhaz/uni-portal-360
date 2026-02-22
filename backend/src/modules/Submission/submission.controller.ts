@@ -38,8 +38,21 @@ const gradeSubmission = catchAsync(async (req, res) => {
   });
 });
 
+const updateSubmission = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await SubmissionServices.updateSubmission(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Submission updated successfully',
+    data: result,
+  });
+});
+
 export const SubmissionControllers = {
   createSubmission,
   getAllSubmissions,
   gradeSubmission,
+  updateSubmission,
 };

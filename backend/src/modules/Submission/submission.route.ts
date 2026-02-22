@@ -33,4 +33,11 @@ router.patch(
   SubmissionControllers.gradeSubmission,
 );
 
+router.patch(
+  '/:id',
+  auth(USER_ROLE.student),
+  validateRequest(SubmissionValidations.updateSubmissionValidationSchema),
+  SubmissionControllers.updateSubmission,
+);
+
 export const SubmissionRoutes = router;

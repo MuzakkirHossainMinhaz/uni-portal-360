@@ -17,7 +17,14 @@ const updateSubmissionGradeValidationSchema = z.object({
   }),
 });
 
+const updateSubmissionValidationSchema = z.object({
+  body: z.object({
+    fileUrl: z.string().optional(),
+  }),
+});
+
 export const SubmissionValidations = {
   createSubmissionValidationSchema,
   updateSubmissionGradeValidationSchema,
+  updateSubmissionValidationSchema,
 };

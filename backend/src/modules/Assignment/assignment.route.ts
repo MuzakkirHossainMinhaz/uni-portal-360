@@ -26,4 +26,17 @@ router.get(
   AssignmentControllers.getAssignmentById,
 );
 
+router.patch(
+  '/:id',
+  auth(USER_ROLE.faculty),
+  validateRequest(AssignmentValidations.updateAssignmentValidationSchema),
+  AssignmentControllers.updateAssignment,
+);
+
+router.delete(
+  '/:id',
+  auth(USER_ROLE.faculty),
+  AssignmentControllers.deleteAssignment,
+);
+
 export const AssignmentRoutes = router;

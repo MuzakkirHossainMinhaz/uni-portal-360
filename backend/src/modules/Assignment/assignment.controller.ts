@@ -38,8 +38,34 @@ const getAssignmentById = catchAsync(async (req, res) => {
   });
 });
 
+const updateAssignment = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await AssignmentServices.updateAssignment(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Assignment updated successfully',
+    data: result,
+  });
+});
+
+const deleteAssignment = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await AssignmentServices.deleteAssignment(id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Assignment deleted successfully',
+    data: result,
+  });
+});
+
 export const AssignmentControllers = {
   createAssignment,
   getAllAssignments,
   getAssignmentById,
+  updateAssignment,
+  deleteAssignment,
 };
