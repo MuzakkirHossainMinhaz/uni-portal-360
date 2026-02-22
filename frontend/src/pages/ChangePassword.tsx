@@ -16,7 +16,7 @@ const ChangePassword = () => {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     console.log(data);
 
-    const res = (await changePassword(data)) as TResponse<any>;
+    const res = (await changePassword(data)) as TResponse<null>;
     console.log(res?.data?.success);
     if (res?.data?.success) {
       dispatch(logout());

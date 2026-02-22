@@ -8,6 +8,37 @@ import { useState } from 'react';
 import PHForm from '../../components/form/PHForm';
 import PHInput from '../../components/form/PHInput';
 
+type FacultyCourseStudent = {
+  _id: string;
+  student: {
+    _id: string;
+    id: string;
+    fullName: string;
+  };
+  semesterRegistration: {
+    _id: string;
+  };
+  offeredCourse: {
+    _id: string;
+  };
+};
+
+type StudentTableRow = {
+  key: string;
+  name: string;
+  roll: string;
+  semesterRegistration: string;
+  student: string;
+  offeredCourse: string;
+};
+
+type MarksFormValues = {
+  classTest1: number | string;
+  classTest2: number | string;
+  midTerm: number | string;
+  finalTerm: number | string;
+};
+
 const MyStudents = () => {
   const { registerSemesterId, courseId } = useParams();
   const { data: facultyCoursesData } = useGetAllFacultyCoursesQuery([
@@ -15,17 +46,15 @@ const MyStudents = () => {
     { name: 'course', value: courseId },
   ]);
 
-  console.log(facultyCoursesData);
-
-  const tableData = facultyCoursesData?.data?.map(
-    ({ _id, student, semesterRegistration, offeredCourse }: any) => ({
+  const tableData: StudentTableRow[] | undefined = facultyCoursesData?.data?.map(
+    ({ _id, student, semesterRegistration, offeredCourse }: FacultyCourseStudent) => ({
       key: _id,
       name: student.fullName,
       roll: student.id,
       semesterRegistration: semesterRegistration._id,
       student: student._id,
       offeredCourse: offeredCourse._id,
-    })
+    }),
   );
 
   const columns = [
@@ -42,25 +71,22 @@ const MyStudents = () => {
     {
       title: 'Action',
       key: 'x',
-      render: (item: any) => {
-        return (
-          <div>
-            <AddMarksModal studentInfo={item} />
-          </div>
-        );
-      },
+      render: (item: StudentTableRow) => (
+        <div>
+          <AddMarksModal studentInfo={item} />
+        </div>
+      ),
     },
   ];
 
   return <Table columns={columns} dataSource={tableData} />;
 };
 
-const AddMarksModal = ({ studentInfo }: { studentInfo: any }) => {
-  console.log(studentInfo);
+const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [addMark] = useAddMarkMutation();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: MarksFormValues) => {
     const studentMark = {
       semesterRegistration: studentInfo.semesterRegistration,
       offeredCourse: studentInfo.offeredCourse,
@@ -73,10 +99,7 @@ const AddMarksModal = ({ studentInfo }: { studentInfo: any }) => {
       },
     };
 
-    console.log(studentMark);
-    const res = await addMark(studentMark);
-
-    console.log(res);
+    await addMark(studentMark);
   };
 
   const showModal = () => {

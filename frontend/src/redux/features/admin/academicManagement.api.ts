@@ -1,16 +1,15 @@
-import {
-  TAcademicDepartment,
-  TAcademicFaculty,
-  TAcademicSemester,
-  TQueryParam,
-  TResponseRedux,
-} from '../../../types';
+import { TAcademicDepartment, TAcademicFaculty, TAcademicSemester, TMeta, TQueryParam, TResponseRedux } from '../../../types';
 
 import { baseApi } from '../../api/baseApi';
 
+type PaginatedResponse<T> = {
+  data?: T;
+  meta?: TMeta;
+};
+
 const academicManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllSemesters: builder.query({
+    getAllSemesters: builder.query<PaginatedResponse<TAcademicSemester[]>, TQueryParam[] | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
 
@@ -33,14 +32,14 @@ const academicManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
-    addAcademicSemester: builder.mutation({
+    addAcademicSemester: builder.mutation<unknown, unknown>({
       query: (data) => ({
         url: '/academic-semesters/create-academic-semester',
         method: 'POST',
         body: data,
       }),
     }),
-    getAcademicFaculties: builder.query({
+    getAcademicFaculties: builder.query<PaginatedResponse<TAcademicFaculty[]>, void>({
       query: () => {
         return { url: '/academic-faculties', method: 'GET' };
       },
@@ -51,14 +50,14 @@ const academicManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
-    addAcademicFaculty: builder.mutation({
+    addAcademicFaculty: builder.mutation<unknown, unknown>({
       query: (data) => ({
         url: '/academic-faculties/create-academic-faculty',
         method: 'POST',
         body: data,
       }),
     }),
-    getAcademicDepartments: builder.query({
+    getAcademicDepartments: builder.query<PaginatedResponse<TAcademicDepartment[]>, void>({
       query: () => {
         return { url: '/academic-departments', method: 'GET' };
       },
@@ -69,7 +68,7 @@ const academicManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
-    addAcademicDepartment: builder.mutation({
+    addAcademicDepartment: builder.mutation<unknown, unknown>({
       query: (data) => ({
         url: '/academic-departments/create-academic-department',
         method: 'POST',

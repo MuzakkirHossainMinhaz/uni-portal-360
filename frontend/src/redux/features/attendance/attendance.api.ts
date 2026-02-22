@@ -1,8 +1,41 @@
+import { TMeta, TResponseRedux } from '../../../types';
 import { baseApi } from '../../api/baseApi';
+
+type PaginatedResponse<T> = {
+  data?: T;
+  meta?: TMeta;
+};
+
+type AttendanceRecord = {
+  _id: string;
+  student: string;
+  offeredCourse: string;
+  date: string;
+  status: 'PRESENT' | 'ABSENT' | 'LATE';
+};
+
+type LowAttendanceStudent = {
+  student: string;
+  offeredCourse: string;
+  percentage: number;
+  studentDetails?: {
+    id: string;
+    fullName: string;
+  };
+  courseDetails?: {
+    course: {
+      title: string;
+    };
+  };
+};
+
+type AttendanceAnalytics = {
+  totalAttendance: number;
+};
 
 const attendanceApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createAttendance: builder.mutation({
+    createAttendance: builder.mutation<AttendanceRecord, unknown>({
       query: (data) => ({
         url: '/attendance',
         method: 'POST',
@@ -10,7 +43,7 @@ const attendanceApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Attendance'],
     }),
-    getMyAttendance: builder.query({
+    getMyAttendance: builder.query<PaginatedResponse<AttendanceRecord[]>, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -25,8 +58,12 @@ const attendanceApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Attendance'],
+      transformResponse: (response: TResponseRedux<AttendanceRecord[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    getAttendanceReport: builder.query({
+    getAttendanceReport: builder.query<PaginatedResponse<AttendanceRecord[]>, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -41,8 +78,12 @@ const attendanceApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Attendance'],
+      transformResponse: (response: TResponseRedux<AttendanceRecord[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    getLowAttendanceStudents: builder.query({
+    getLowAttendanceStudents: builder.query<PaginatedResponse<LowAttendanceStudent[]>, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -57,14 +98,22 @@ const attendanceApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Attendance'],
+      transformResponse: (response: TResponseRedux<LowAttendanceStudent[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    getAttendanceAnalytics: builder.query({
-        query: () => ({
-            url: '/attendance/admin/analytics',
-            method: 'GET'
-        }),
-        providesTags: ['Attendance']
-    })
+    getAttendanceAnalytics: builder.query<PaginatedResponse<AttendanceAnalytics>, void>({
+      query: () => ({
+        url: '/attendance/admin/analytics',
+        method: 'GET',
+      }),
+      providesTags: ['Attendance'],
+      transformResponse: (response: TResponseRedux<AttendanceAnalytics>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
+    }),
   }),
 });
 

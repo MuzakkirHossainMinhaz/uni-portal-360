@@ -1,8 +1,36 @@
+import { TMeta, TResponseRedux } from '../../../types';
 import { baseApi } from '../../api/baseApi';
+
+type FeeStudent = {
+  _id: string;
+  id: string;
+  fullName: string;
+};
+
+type FeeSemester = {
+  _id: string;
+  name: string;
+  year: string;
+};
+
+type AdminFeeItem = {
+  _id: string;
+  student: FeeStudent;
+  academicSemester: FeeSemester;
+  amount: number;
+  type: string;
+  status: 'Paid' | 'Pending' | 'Overdue';
+  dueDate: string;
+};
+
+type PaginatedFees = {
+  data?: AdminFeeItem[];
+  meta?: TMeta;
+};
 
 const feeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllFees: builder.query({
+    getAllFees: builder.query<PaginatedFees, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -17,8 +45,12 @@ const feeApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Fee'],
+      transformResponse: (response: TResponseRedux<AdminFeeItem[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    getMyFees: builder.query({
+    getMyFees: builder.query<PaginatedFees, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -33,8 +65,12 @@ const feeApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Fee'],
+      transformResponse: (response: TResponseRedux<AdminFeeItem[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    createFee: builder.mutation({
+    createFee: builder.mutation<AdminFeeItem, Partial<AdminFeeItem>>({
       query: (data) => ({
         url: '/fees',
         method: 'POST',
@@ -42,14 +78,14 @@ const feeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Fee'],
     }),
-    payFee: builder.mutation({
-        query: ({ id, transactionId }) => ({
-            url: `/fees/${id}/pay`,
-            method: 'PATCH',
-            body: { transactionId }
-        }),
-        invalidatesTags: ['Fee'],
-    })
+    payFee: builder.mutation<AdminFeeItem, { id: string; transactionId: string }>({
+      query: ({ id, transactionId }) => ({
+        url: `/fees/${id}/pay`,
+        method: 'PATCH',
+        body: { transactionId },
+      }),
+      invalidatesTags: ['Fee'],
+    }),
   }),
 });
 

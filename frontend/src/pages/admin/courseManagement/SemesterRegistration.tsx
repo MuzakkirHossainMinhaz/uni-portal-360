@@ -9,7 +9,7 @@ import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicM
 import PHDatePicker from '../../../components/form/PHDatePicker';
 import PHInput from '../../../components/form/PHInput';
 import { useAddRegisteredSemesterMutation } from '../../../redux/features/admin/courseManagement';
-import { TResponse } from '../../../types';
+import { TResponse, TSemester } from '../../../types';
 
 const SemesterRegistration = () => {
   const [addSemester] = useAddRegisteredSemesterMutation();
@@ -34,7 +34,7 @@ const SemesterRegistration = () => {
     console.log(semesterData);
 
     try {
-      const res = (await addSemester(semesterData)) as TResponse<any>;
+      const res = (await addSemester(semesterData)) as TResponse<TSemester>;
       if (res.error) {
         toast.error(res.error.data.message, { id: toastId });
       } else {

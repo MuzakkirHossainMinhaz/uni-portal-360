@@ -8,8 +8,8 @@ import {
 } from 'react-hook-form';
 
 type TFormConfig = {
-  defaultValues?: Record<string, any>;
-  resolver?: any;
+  defaultValues?: Record<string, unknown>;
+  resolver?: ((data: unknown) => unknown) | undefined;
 };
 
 type TFormProps = {

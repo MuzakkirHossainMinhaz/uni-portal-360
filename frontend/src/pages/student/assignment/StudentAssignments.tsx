@@ -8,14 +8,21 @@ import dayjs from 'dayjs';
 
 const { Text, Paragraph } = Typography;
 
+type StudentAssignment = {
+  _id: string;
+  title: string;
+  description?: string;
+  deadline: string;
+};
+
 const StudentAssignments = () => {
   const { data: assignments, isLoading } = useGetAllAssignmentsQuery(undefined);
   const [createSubmission, { isLoading: isSubmitting }] = useCreateSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
-  const [fileList, setFileList] = useState<any[]>([]);
+  const [selectedAssignment, setSelectedAssignment] = useState<StudentAssignment | null>(null);
+  const [fileList, setFileList] = useState<File[]>([]);
 
-  const showSubmitModal = (assignment: any) => {
+  const showSubmitModal = (assignment: StudentAssignment) => {
     setSelectedAssignment(assignment);
     setIsModalVisible(true);
     setFileList([]);
@@ -42,8 +49,8 @@ const StudentAssignments = () => {
       message.success('Assignment submitted successfully');
       setIsModalVisible(false);
       setFileList([]);
-    } catch (err: any) {
-      message.error(err.data?.message || 'Submission failed');
+    } catch {
+      message.error('Submission failed');
     }
   };
 
@@ -51,7 +58,7 @@ const StudentAssignments = () => {
     onRemove: () => {
       setFileList([]);
     },
-    beforeUpload: (file: any) => {
+    beforeUpload: (file: File) => {
       setFileList([file]);
       return false;
     },
@@ -73,7 +80,7 @@ const StudentAssignments = () => {
         grid={{ gutter: 24, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 4 }}
         dataSource={assignments?.data}
         loading={isLoading}
-        renderItem={(item: any) => {
+        renderItem={(item: StudentAssignment) => {
             const deadline = dayjs(item.deadline);
             const isExpired = dayjs().isAfter(deadline);
             const timeLeft = deadline.diff(dayjs(), 'day');

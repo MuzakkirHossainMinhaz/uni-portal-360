@@ -1,8 +1,22 @@
+import { TMeta, TResponseRedux } from '../../../types';
 import { baseApi } from '../../api/baseApi';
+
+type Assignment = {
+  _id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  course: string;
+};
+
+type PaginatedAssignments = {
+  data?: Assignment[];
+  meta?: TMeta;
+};
 
 const assignmentApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createAssignment: builder.mutation({
+    createAssignment: builder.mutation<Assignment, Partial<Assignment>>({
       query: (data) => ({
         url: '/assignments',
         method: 'POST',
@@ -10,7 +24,7 @@ const assignmentApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Assignment'],
     }),
-    getAllAssignments: builder.query({
+    getAllAssignments: builder.query<PaginatedAssignments, Record<string, string> | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
@@ -25,8 +39,12 @@ const assignmentApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['Assignment'],
+      transformResponse: (response: TResponseRedux<Assignment[]>) => ({
+        data: response.data,
+        meta: response.meta,
+      }),
     }),
-    getAssignmentById: builder.query({
+    getAssignmentById: builder.query<Assignment, string>({
       query: (id) => ({
         url: `/assignments/${id}`,
         method: 'GET',

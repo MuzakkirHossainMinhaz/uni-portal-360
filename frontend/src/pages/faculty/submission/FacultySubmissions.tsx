@@ -5,18 +5,24 @@ import { useParams } from 'react-router-dom';
 import { useGetAllSubmissionsQuery, useGradeSubmissionMutation } from '../../../redux/features/submission/submission.api';
 import PageHeader from '../../../components/layout/PageHeader';
 import dayjs from 'dayjs';
+import { TSubmission } from '../../../types/submission.type';
 
 const { Text } = Typography;
+
+type GradeFormValues = {
+  grade: number;
+  feedback?: string;
+};
 
 const FacultySubmissions = () => {
   const { assignmentId } = useParams();
   const { data: submissions, isLoading } = useGetAllSubmissionsQuery({ assignment: assignmentId });
   const [gradeSubmission, { isLoading: isGrading }] = useGradeSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const [form] = Form.useForm();
+  const [selectedSubmission, setSelectedSubmission] = useState<TSubmission | null>(null);
+  const [form] = Form.useForm<GradeFormValues>();
 
-  const showGradeModal = (record: any) => {
+  const showGradeModal = (record: TSubmission) => {
     setSelectedSubmission(record);
     form.setFieldsValue({
       grade: record.grade,
@@ -25,7 +31,7 @@ const FacultySubmissions = () => {
     setIsModalVisible(true);
   };
 
-  const handleGrade = async (values: any) => {
+  const handleGrade = async (values: GradeFormValues) => {
     try {
       await gradeSubmission({
         id: selectedSubmission._id,
@@ -36,8 +42,8 @@ const FacultySubmissions = () => {
       }).unwrap();
       message.success('Submission graded successfully');
       setIsModalVisible(false);
-    } catch (err: any) {
-      message.error(err.data?.message || 'Grading failed');
+    } catch {
+      message.error('Grading failed');
     }
   };
 
@@ -46,7 +52,7 @@ const FacultySubmissions = () => {
       title: 'Student',
       dataIndex: ['student', 'fullName'],
       key: 'studentName',
-      render: (text: string, record: any) => (
+      render: (text: string, record: TSubmission) => (
           <Space>
               <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#0f6ad8' }} />
               <div>
@@ -78,7 +84,7 @@ const FacultySubmissions = () => {
       title: 'Grade',
       dataIndex: 'grade',
       key: 'grade',
-      render: (grade: number) => (
+      render: (grade?: number) => (
           grade !== undefined ? <Tag color="green">{grade}/100</Tag> : <Tag color="warning">Pending</Tag>
       ),
     },
@@ -91,7 +97,7 @@ const FacultySubmissions = () => {
     {
       title: 'Action',
       key: 'action',
-      render: (text: any, record: any) => (
+      render: (_: unknown, record: TSubmission) => (
         <Button type="primary" size="small" icon={<StarOutlined />} onClick={() => showGradeModal(record)}>
           Grade
         </Button>

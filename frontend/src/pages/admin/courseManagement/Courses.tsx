@@ -12,14 +12,27 @@ import PageHeader from '../../../components/layout/PageHeader';
 import { SearchOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
+type CourseTableRow = {
+  key: string;
+  title: string;
+  code: string;
+};
+
+type FacultyOption = {
+  value: string;
+  label: string;
+};
+
 const Courses = () => {
   const { data: courses, isFetching } = useGetAllCoursesQuery(undefined);
 
-  const tableData = courses?.data?.map(({ _id, title, prefix, code }) => ({
-    key: _id,
-    title,
-    code: `${prefix}${code}`,
-  }));
+  const tableData: CourseTableRow[] | undefined = courses?.data?.map(
+    ({ _id, title, prefix, code }) => ({
+      key: _id,
+      title,
+      code: `${prefix}${code}`,
+    }),
+  );
 
   const columns = [
     {
@@ -35,13 +48,11 @@ const Courses = () => {
     {
       title: 'Action',
       key: 'x',
-      render: (item: any) => {
-        return (
-            <PermissionGuard permission="assignFaculties">
-                <AddFacultyModal facultyInfo={item} />
-            </PermissionGuard>
-        );
-      },
+      render: (item: CourseTableRow) => (
+        <PermissionGuard permission="assignFaculties">
+          <AddFacultyModal facultyInfo={item} />
+        </PermissionGuard>
+      ),
       width: '1%',
     },
   ];
@@ -84,17 +95,19 @@ const Courses = () => {
   );
 };
 
-const AddFacultyModal = ({ facultyInfo }: { facultyInfo: any }) => {
+const AddFacultyModal = ({ facultyInfo }: { facultyInfo: CourseTableRow }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: facultiesData } = useGetAllFacultiesQuery(undefined);
   const [addFaculties] = useAddFacultiesMutation();
 
-  const facultiesOption = facultiesData?.data?.map((item: any) => ({
-    value: item._id,
-    label: item.fullName,
-  }));
+  const facultiesOption: FacultyOption[] | undefined = facultiesData?.data?.map(
+    (item: { _id: string; fullName: string }) => ({
+      value: item._id,
+      label: item.fullName,
+    }),
+  );
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: { faculties: string[] }) => {
     const facultyData = {
       courseId: facultyInfo.key,
       data,

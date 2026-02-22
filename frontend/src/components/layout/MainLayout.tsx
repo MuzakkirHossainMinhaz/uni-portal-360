@@ -65,7 +65,7 @@ const MainLayout = () => {
                 <Segmented
                   size="small"
                   value={preference}
-                  onChange={(value) => setPreference(value as any)}
+                  onChange={(value) => setPreference(value as typeof preference)}
                   options={[
                     {
                       label: 'System',

@@ -2,6 +2,15 @@ import { Card, Col, Row, Table, Tag } from 'antd';
 import moment from 'moment';
 import { useGetMyAttendanceQuery } from '../../../redux/features/attendance/attendance.api';
 
+type AttendanceRecord = {
+  status: string;
+  offeredCourse?: {
+    course?: {
+      title?: string;
+    };
+  };
+};
+
 const StudentAttendance = () => {
   const { data: attendanceData, isLoading } = useGetMyAttendanceQuery(undefined);
 
@@ -16,7 +25,8 @@ const StudentAttendance = () => {
       title: 'Course',
       dataIndex: 'offeredCourse',
       key: 'course',
-      render: (item: any) => item?.course?.title || 'N/A',
+      render: (item: AttendanceRecord['offeredCourse']) =>
+        item?.course?.title || 'N/A',
     },
     {
       title: 'Status',
@@ -40,11 +50,15 @@ const StudentAttendance = () => {
     },
   ];
 
-  // Calculate summary stats
-  const totalClasses = attendanceData?.data?.length || 0;
-  const presentCount = attendanceData?.data?.filter((a: any) => a.status === 'Present').length || 0;
-  const absentCount = attendanceData?.data?.filter((a: any) => a.status === 'Absent').length || 0;
-  const lateCount = attendanceData?.data?.filter((a: any) => a.status === 'Late').length || 0;
+  const attendanceList = attendanceData?.data as AttendanceRecord[] | undefined;
+
+  const totalClasses = attendanceList?.length || 0;
+  const presentCount =
+    attendanceList?.filter((a) => a.status === 'Present').length || 0;
+  const absentCount =
+    attendanceList?.filter((a) => a.status === 'Absent').length || 0;
+  const lateCount =
+    attendanceList?.filter((a) => a.status === 'Late').length || 0;
   const attendancePercentage = totalClasses > 0 ? ((presentCount / totalClasses) * 100).toFixed(2) : 0;
 
   return (

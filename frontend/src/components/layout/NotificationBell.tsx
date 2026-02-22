@@ -12,25 +12,33 @@ import { useThemeMode } from '../../theme/ThemeProvider';
 
 const { Text } = Typography;
 
+type NotificationItem = {
+  _id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  actionUrl?: string;
+};
+
 const NotificationBell = () => {
   const { mode } = useThemeMode();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   
-  // Polling for real-time updates (every 30 seconds)
   const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(
     { limit: 10 },
-    { pollingInterval: 30000 } 
+    { pollingInterval: 30000 },
   );
   
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
 
-  const notifications = notificationsData?.data || [];
+  const notifications = (notificationsData?.data || []) as NotificationItem[];
   const unreadCount = notificationsData?.meta?.unreadCount || 0;
 
-  const handleNotificationClick = async (item: any) => {
+  const handleNotificationClick = async (item: NotificationItem) => {
     if (!item.read) {
       await markAsRead(item._id);
     }
@@ -111,7 +119,7 @@ const NotificationBell = () => {
           <List
             itemLayout="horizontal"
             dataSource={notifications}
-            renderItem={(item: any) => (
+            renderItem={(item: NotificationItem) => (
               <List.Item
                 className="notification-item"
                 style={{

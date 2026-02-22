@@ -4,36 +4,54 @@ import {
   useGetAllOfferedCoursesQuery,
 } from '../../redux/features/student/studentCourseManagement.api';
 
-type TCourse = {
-  [index: string]: any;
+type OfferedCourseSection = {
+  section: number;
+  _id: string;
+  days: string[];
+  startTime: string;
+  endTime: string;
+};
+
+type GroupedCourseSections = {
+  [courseTitle: string]: {
+    courseTitle: string;
+    sections: OfferedCourseSection[];
+  };
 };
 
 const OfferedCourse = () => {
   const { data: offeredCourseData } = useGetAllOfferedCoursesQuery(undefined);
   const [enroll] = useEnrolCourseMutation();
 
-  const singleObject = offeredCourseData?.data?.reduce((acc: TCourse, item) => {
-    const key = item.course.title;
-    acc[key] = acc[key] || { courseTitle: key, sections: [] };
-    acc[key].sections.push({
-      section: item.section,
-      _id: item._id,
-      days: item.days,
-      startTime: item.startTime,
-      endTime: item.endTime,
-    });
-    return acc;
-  }, {});
+  const singleObject = offeredCourseData?.data?.reduce<GroupedCourseSections>(
+    (acc, item) => {
+      const key = item.course.title;
+      const existing = acc[key] ?? { courseTitle: key, sections: [] };
+      existing.sections.push({
+        section: item.section,
+        _id: item._id,
+        days: item.days,
+        startTime: item.startTime,
+        endTime: item.endTime,
+      });
+      acc[key] = existing;
+      return acc;
+    },
+    {},
+  );
 
-  const modifiedData = Object.values(singleObject ? singleObject : {});
+  const modifiedData =
+    Object.values(singleObject ?? {}) as {
+      courseTitle: string;
+      sections: OfferedCourseSection[];
+    }[];
 
   const handleEnroll = async (id: string) => {
     const enrollData = {
       offeredCourse: id,
     };
 
-    const res = await enroll(enrollData);
-    console.log(res);
+    await enroll(enrollData);
   };
 
   if (!modifiedData.length) {
@@ -49,7 +67,7 @@ const OfferedCourse = () => {
               <h2>{item.courseTitle}</h2>
             </div>
             <div>
-              {item.sections.map((section: any) => {
+              {item.sections.map((section) => {
                 return (
                   <Row
                     justify="space-between"

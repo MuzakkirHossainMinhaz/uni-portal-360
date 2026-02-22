@@ -1,10 +1,20 @@
-import { TQueryParam, TResponseRedux } from '../../../types';
-import { TOfferedCourse } from '../../../types/studentCourse.type';
+import { TMeta, TQueryParam, TResponseRedux } from '../../../types';
+import { TOfferedCourse, TStudentEnrolledCourseSchedule } from '../../../types/studentCourse.type';
 import { baseApi } from '../../api/baseApi';
+
+type PaginatedOfferedCourses = {
+  data?: TOfferedCourse[];
+  meta?: TMeta;
+};
+
+type PaginatedEnrolledCourses = {
+  data?: TStudentEnrolledCourseSchedule[];
+  meta?: TMeta;
+};
 
 const studentCourseApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllOfferedCourses: builder.query({
+    getAllOfferedCourses: builder.query<PaginatedOfferedCourses, TQueryParam[] | undefined>({
       query: (args) => {
         console.log(args);
         const params = new URLSearchParams();
@@ -28,7 +38,7 @@ const studentCourseApi = baseApi.injectEndpoints({
         };
       },
     }),
-    getAllEnrolledCourses: builder.query({
+    getAllEnrolledCourses: builder.query<PaginatedEnrolledCourses, TQueryParam[] | undefined>({
       query: (args) => {
         console.log(args);
         const params = new URLSearchParams();
@@ -45,14 +55,14 @@ const studentCourseApi = baseApi.injectEndpoints({
         };
       },
       providesTags: ['offeredCourse'],
-      transformResponse: (response: TResponseRedux<any>) => {
+      transformResponse: (response: TResponseRedux<TStudentEnrolledCourseSchedule[]>) => {
         return {
           data: response.data,
           meta: response.meta,
         };
       },
     }),
-    enrolCourse: builder.mutation({
+    enrolCourse: builder.mutation<unknown, unknown>({
       query: (data) => ({
         url: '/enrolled-courses/create-enrolled-course',
         method: 'POST',

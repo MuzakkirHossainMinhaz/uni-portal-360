@@ -65,10 +65,13 @@ const OfferCourse = () => {
     label: item.title,
   }));
 
-  const facultiesOptions = facultiesData?.data?.faculties?.map((item: any) => ({
-    value: item._id,
-    label: item.fullName,
-  }));
+  const facultiesOptions =
+    facultiesData?.data?.faculties?.map(
+      (item: { _id: string; fullName: string }) => ({
+        value: item._id,
+        label: item.fullName,
+      }),
+    ) ?? [];
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     const offeredCourseData = {

@@ -21,7 +21,8 @@ const FacultyAssignments = () => {
       title: 'Course Section',
       dataIndex: ['offeredCourse', 'section'],
       key: 'section',
-      render: (text: any) => text ? <Tag color="blue">{text}</Tag> : 'N/A',
+      render: (text?: string | number) =>
+        text ? <Tag color="blue">{text}</Tag> : 'N/A',
     },
     {
       title: 'Deadline',
@@ -40,7 +41,7 @@ const FacultyAssignments = () => {
     {
       title: 'Action',
       key: 'action',
-      render: (text: any, record: any) => (
+      render: (_: unknown, record: { _id: string }) => (
         <Link to={`/faculty/submissions/${record._id}`}>
           <Button icon={<EyeOutlined />} size="small">View Submissions</Button>
         </Link>

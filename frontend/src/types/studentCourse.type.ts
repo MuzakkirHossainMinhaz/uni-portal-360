@@ -1,3 +1,10 @@
+import type { TCourse } from './courseManagement.type';
+
+type TOfferedCourseEnrolledCourse = {
+  _id: string;
+  course: string;
+};
+
 export type TOfferedCourse = {
   _id: string;
   semesterRegistration: string;
@@ -14,20 +21,20 @@ export type TOfferedCourse = {
   createdAt: string;
   updatedAt: string;
   __v: number;
-  enrolledCourses: any[];
-  completedCourses: any[];
-  completedCourseIds: any[];
+  enrolledCourses: TOfferedCourseEnrolledCourse[];
+  completedCourses: TOfferedCourseEnrolledCourse[];
+  completedCourseIds: string[];
   isPreRequisitesFulFilled: boolean;
   isAlreadyEnrolled: boolean;
 };
 
-export type TCourse = {
+export type TStudentEnrolledCourseSchedule = {
   _id: string;
-  title: string;
-  prefix: string;
-  code: number;
-  credits: number;
-  preRequisiteCourses: any[];
-  isDeleted: boolean;
-  __v: number;
+  course: {
+    title: string;
+  };
+  offeredCourse: {
+    section: number;
+    days: string[];
+  };
 };

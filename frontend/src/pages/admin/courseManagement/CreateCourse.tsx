@@ -4,11 +4,8 @@ import { Button, Col, Flex } from 'antd';
 import PHSelect from '../../../components/form/PHSelect';
 import { toast } from 'sonner';
 import PHInput from '../../../components/form/PHInput';
-import {
-  useAddCourseMutation,
-  useGetAllCoursesQuery,
-} from '../../../redux/features/admin/courseManagement';
-import { TResponse } from '../../../types';
+import { useAddCourseMutation, useGetAllCoursesQuery } from '../../../redux/features/admin/courseManagement';
+import { TCourse, TResponse } from '../../../types';
 
 const CreateCourse = () => {
   const [createCourse] = useAddCourseMutation();
@@ -28,7 +25,7 @@ const CreateCourse = () => {
       credits: Number(data.credits),
       isDeleted: false,
       preRequisiteCourses: data.preRequisiteCourses
-        ? data.preRequisiteCourses?.map((item: any) => ({
+        ? data.preRequisiteCourses?.map((item: string) => ({
             course: item,
             isDeleted: false,
           }))
@@ -38,7 +35,7 @@ const CreateCourse = () => {
     console.log(courseData);
 
     try {
-      const res = (await createCourse(courseData)) as TResponse<any>;
+      const res = (await createCourse(courseData)) as TResponse<TCourse>;
       if (res.error) {
         toast.error(res.error.data.message, { id: toastId });
       } else {

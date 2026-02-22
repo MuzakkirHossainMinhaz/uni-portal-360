@@ -40,7 +40,26 @@ const styles = StyleSheet.create({
   },
 });
 
-const FeeReceiptDocument = ({ fee }: { fee: any }) => (
+type FeeReceipt = {
+  _id: string;
+  transactionId: string;
+  paidDate: string;
+  student?: {
+    name?: {
+      firstName?: string;
+      lastName?: string;
+    };
+    id?: string;
+  };
+  type: string;
+  academicSemester?: {
+    name?: string;
+    year?: string;
+  };
+  amount: number;
+};
+
+const FeeReceiptDocument = ({ fee }: { fee: FeeReceipt }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <Text style={styles.header}>University Portal 360</Text>
@@ -91,7 +110,7 @@ const FeeReceiptDocument = ({ fee }: { fee: any }) => (
   </Document>
 );
 
-export const DownloadReceipt = ({ fee }: { fee: any }) => (
+export const DownloadReceipt = ({ fee }: { fee: FeeReceipt }) => (
   <PDFDownloadLink document={<FeeReceiptDocument fee={fee} />} fileName={`receipt_${fee._id}.pdf`}>
     {({ loading }) => (
       <Button size="small" disabled={loading}>

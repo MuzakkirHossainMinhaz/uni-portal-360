@@ -2,11 +2,21 @@ import { Table, Tag, Input, Select, DatePicker, Space } from 'antd';
 import { useState } from 'react';
 import { useGetAuditLogsQuery } from '../../../redux/features/admin/auditLog/auditLog.api';
 import moment from 'moment';
+import { TAuditLog } from '../../../types/auditLog.type';
 
 const { RangePicker } = DatePicker;
 
+type AuditLogQueryParams = {
+  page: number;
+  limit: number;
+  action?: string;
+  severity?: string;
+  startDate?: string;
+  endDate?: string;
+};
+
 const AuditLogs = () => {
-  const [params, setParams] = useState<any>({ page: 1, limit: 10 });
+  const [params, setParams] = useState<AuditLogQueryParams>({ page: 1, limit: 10 });
   const { data: auditLogs, isFetching } = useGetAuditLogsQuery(params);
 
   const columns = [
@@ -20,7 +30,8 @@ const AuditLogs = () => {
       title: 'User',
       dataIndex: 'userId',
       key: 'userId',
-      render: (user: any) => user?.email || 'Unknown',
+      render: (user: TAuditLog['userId']) =>
+        typeof user === 'object' && user && 'email' in user ? user.email : 'Unknown',
     },
     {
       title: 'Action',
@@ -59,7 +70,7 @@ const AuditLogs = () => {
     }
   ];
 
-  const handleTableChange = (pagination: any) => {
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
     setParams({
       ...params,
       page: pagination.current,
@@ -67,7 +78,7 @@ const AuditLogs = () => {
     });
   };
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: keyof AuditLogQueryParams, value: string | undefined) => {
     setParams({
       ...params,
       page: 1,

@@ -21,3 +21,12 @@ export type TCourse = {
   preRequisiteCourses: { course: string | null; isDeleted: boolean }[];
   isDeleted: boolean;
 };
+
+export type TCourseFaculty = {
+  _id: string;
+  course: string;
+  faculties: {
+    _id: string;
+    fullName: string;
+  }[];
+};

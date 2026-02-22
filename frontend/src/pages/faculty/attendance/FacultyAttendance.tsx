@@ -1,4 +1,4 @@
-import { Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar } from 'antd';
+import { Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar, Form, message } from 'antd';
 import { useState } from 'react';
 import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -7,16 +7,26 @@ import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
+type FacultyCourse = {
+  _id: string;
+  course: {
+    title: string;
+  };
+  section: string;
+  days: string[];
+};
+
 const FacultyAttendance = () => {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
   const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
 
-  const courseOptions = facultyCourses?.data?.map((item: any) => ({
-    value: item._id,
-    label: `${item.course.title} (${item.section})`,
-    desc: item.days.join(', '),
-  }));
+  const courseOptions =
+    facultyCourses?.data?.map((item: FacultyCourse) => ({
+      value: item._id,
+      label: `${item.course.title} (${item.section})`,
+      desc: item.days.join(', '),
+    })) ?? [];
 
   const columns = [
       {

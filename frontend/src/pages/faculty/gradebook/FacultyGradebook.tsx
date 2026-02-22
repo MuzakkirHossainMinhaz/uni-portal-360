@@ -2,36 +2,64 @@ import { Button, Form, InputNumber, Modal, Select, Table, message } from 'antd';
 import { useState } from 'react';
 import { useGetFacultyCoursesQuery, useUpdateEnrolledCourseMarksMutation } from '../../../redux/features/faculty/facultyCourses.api';
 
+type CourseMarks = {
+  classTest1: number;
+  midTerm: number;
+  classTest2: number;
+  finalTerm: number;
+};
+
+type FacultyCourseEnrollment = {
+  _id: string;
+  student: {
+    _id: string;
+    id: string;
+    fullName: string;
+  };
+  course: {
+    title: string;
+  };
+  offeredCourse: {
+    _id: string;
+    section: string;
+  };
+  semesterRegistration: {
+    _id: string;
+  };
+  courseMarks: CourseMarks;
+  grade?: string;
+};
+
+type MarksFormValues = CourseMarks;
+
 const FacultyGradebook = () => {
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
-  const [form] = Form.useForm();
+  const [editingStudent, setEditingStudent] = useState<FacultyCourseEnrollment | null>(null);
+  const [form] = Form.useForm<MarksFormValues>();
 
   const { data: facultyCourses, isLoading } = useGetFacultyCoursesQuery(undefined);
   const [updateMarks, { isLoading: isUpdating }] = useUpdateEnrolledCourseMarksMutation();
 
-  // Filter courses to get unique offered courses (simplified for demo)
-  // Ideally, we might want a separate API to just list "My Courses" vs "Enrolled Students in Course X"
-  // Here we filter the flat list of enrollments by offeredCourse ID to simulate a course selector.
-  
-  // Grouping by offeredCourse
-  const uniqueCourses = facultyCourses?.data?.reduce((acc: any[], curr: any) => {
-      if (!acc.find(item => item.offeredCourse._id === curr.offeredCourse._id)) {
-          acc.push(curr);
+  const uniqueCourses =
+    facultyCourses?.data?.reduce<FacultyCourseEnrollment[]>((acc, curr: FacultyCourseEnrollment) => {
+      if (!acc.find((item) => item.offeredCourse._id === curr.offeredCourse._id)) {
+        acc.push(curr);
       }
       return acc;
-  }, []) || [];
+    }, []) || [];
 
-  const courseOptions = uniqueCourses.map((item: any) => ({
+  const courseOptions = uniqueCourses.map((item) => ({
     value: item.offeredCourse._id,
     label: `${item.course.title} (${item.offeredCourse.section})`,
   }));
 
-  // Filter students for selected course
-  const students = facultyCourses?.data?.filter((item: any) => item.offeredCourse._id === selectedCourse);
+  const students =
+    facultyCourses?.data?.filter(
+      (item: FacultyCourseEnrollment) => item.offeredCourse._id === selectedCourse,
+    ) || [];
 
-  const handleUpdateMarks = async (values: any) => {
+  const handleUpdateMarks = async (values: MarksFormValues) => {
     const payload = {
       semesterRegistration: editingStudent.semesterRegistration._id,
       offeredCourse: editingStudent.offeredCourse._id,
@@ -49,12 +77,12 @@ const FacultyGradebook = () => {
       message.success('Marks updated successfully');
       setIsModalVisible(false);
       setEditingStudent(null);
-    } catch (err: any) {
-      message.error(err.data?.message || 'Failed to update marks');
+    } catch {
+      message.error('Failed to update marks');
     }
   };
 
-  const showEditModal = (record: any) => {
+  const showEditModal = (record: FacultyCourseEnrollment) => {
     setEditingStudent(record);
     form.setFieldsValue({
       classTest1: record.courseMarks.classTest1,
@@ -104,7 +132,7 @@ const FacultyGradebook = () => {
     {
       title: 'Action',
       key: 'action',
-      render: (text: any, record: any) => (
+      render: (_: unknown, record: FacultyCourseEnrollment) => (
         <Button type="primary" onClick={() => showEditModal(record)}>
           Update Marks
         </Button>

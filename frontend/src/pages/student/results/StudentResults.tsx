@@ -3,6 +3,17 @@ import { useGetMySemesterResultsQuery } from '../../../redux/features/student/se
 import { selectCurrentUser } from '../../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../../redux/hooks';
 
+type SemesterResult = {
+  _id: string;
+  academicSemester: {
+    name: string;
+    year: string;
+  };
+  totalCredits: number;
+  gpa: number;
+  completedCourses: string[];
+};
+
 const StudentResults = () => {
   const { data: semesterResults, isLoading } = useGetMySemesterResultsQuery(undefined);
   const user = useAppSelector(selectCurrentUser);
@@ -43,7 +54,8 @@ const StudentResults = () => {
       title: 'Semester',
       dataIndex: ['academicSemester', 'name'],
       key: 'semester',
-      render: (text: string, record: any) => `${text} ${record.academicSemester.year}`,
+      render: (text: string, record: SemesterResult) =>
+        `${text} ${record.academicSemester.year}`,
     },
     {
       title: 'Credits',
@@ -64,7 +76,7 @@ const StudentResults = () => {
       title: 'Completed Courses',
       dataIndex: 'completedCourses',
       key: 'completedCourses',
-      render: (courses: any[]) => courses.length,
+      render: (courses: string[]) => courses.length,
     },
   ];
 

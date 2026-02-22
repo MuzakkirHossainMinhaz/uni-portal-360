@@ -33,17 +33,18 @@ const RegisteredSemesters = () => {
 
   console.log(semesterId);
 
-  const tableData = semesterData?.data?.map(
-    ({ _id, academicSemester, startDate, endDate, status }) => ({
-      key: _id,
-      name: `${academicSemester.name} ${academicSemester.year}`,
-      startDate: moment(new Date(startDate)).format('MMMM'),
-      endDate: moment(new Date(endDate)).format('MMMM'),
-      status,
-    })
-  );
+  const tableData =
+    semesterData?.data?.map(
+      ({ _id, academicSemester, startDate, endDate, status }) => ({
+        key: _id,
+        name: `${academicSemester.name} ${academicSemester.year}`,
+        startDate: moment(new Date(startDate)).format('MMMM'),
+        endDate: moment(new Date(endDate)).format('MMMM'),
+        status,
+      }),
+    ) ?? [];
 
-  const handleStatusUpdate = (data: any) => {
+  const handleStatusUpdate = (data: { key: string }) => {
     const updateData = {
       id: semesterId,
       data: {

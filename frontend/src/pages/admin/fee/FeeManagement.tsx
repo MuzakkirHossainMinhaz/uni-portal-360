@@ -12,6 +12,28 @@ import PageHeader from '../../../components/layout/PageHeader';
 import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
 
+type FeeStudent = {
+  _id: string;
+  id: string;
+  fullName: string;
+};
+
+type FeeSemester = {
+  _id: string;
+  name: string;
+  year: string;
+};
+
+type AdminFeeItem = {
+  _id: string;
+  student: FeeStudent;
+  academicSemester: FeeSemester;
+  amount: number;
+  type: string;
+  status: 'Paid' | 'Pending' | 'Overdue';
+  dueDate: string;
+};
+
 const FeeManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
@@ -19,17 +41,25 @@ const FeeManagement = () => {
   const { data: semesters } = useGetAllSemestersQuery(undefined);
   const [createFee] = useCreateFeeMutation();
 
-  const studentOptions = students?.data?.map((item: any) => ({
-    value: item._id,
-    label: `${item.fullName} (${item.id})`,
-  }));
+  const studentOptions =
+    students?.data?.map((item: FeeStudent) => ({
+      value: item._id,
+      label: `${item.fullName} (${item.id})`,
+    })) ?? [];
 
-  const semesterOptions = semesters?.data?.map((item: any) => ({
-    value: item._id,
-    label: `${item.name} ${item.year}`,
-  }));
+  const semesterOptions =
+    semesters?.data?.map((item: FeeSemester) => ({
+      value: item._id,
+      label: `${item.name} ${item.year}`,
+    })) ?? [];
 
-  const handleCreateFee = async (data: any) => {
+  const handleCreateFee = async (data: {
+    student: string;
+    academicSemester: string;
+    type: string;
+    amount: number;
+    dueDate: string;
+  }) => {
     const hide = message.loading('Creating fee...', 0);
     try {
       await createFee(data).unwrap();
@@ -47,7 +77,7 @@ const FeeManagement = () => {
       title: 'Student ID',
       dataIndex: 'student',
       key: 'student',
-      render: (item: any) => item?.id,
+      render: (item: FeeStudent) => item?.id,
     },
     {
       title: 'Amount',
@@ -65,7 +95,7 @@ const FeeManagement = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => {
+      render: (status: AdminFeeItem['status']) => {
         let color = 'default';
         if (status === 'Paid') color = 'success';
         if (status === 'Pending') color = 'warning';
@@ -82,13 +112,14 @@ const FeeManagement = () => {
     {
         title: 'Action',
         key: 'action',
-        render: (item: any) => (
-             item.status === 'Paid' ? (
-                <DownloadReceipt fee={item} />
-             ) : (
-                 <Button size="small" disabled>Unpaid</Button>
-             )
-        )
+        render: (item: AdminFeeItem) =>
+          item.status === 'Paid' ? (
+            <DownloadReceipt fee={item} />
+          ) : (
+            <Button size="small" disabled>
+              Unpaid
+            </Button>
+          ),
     }
   ];
 

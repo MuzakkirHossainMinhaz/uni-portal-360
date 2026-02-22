@@ -5,21 +5,35 @@ import { useGetAllFacultyCoursesQuery } from '../../redux/features/faculty/facul
 import { useNavigate } from 'react-router-dom';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
 
+type FacultyCourse = {
+  academicSemester: {
+    name: string;
+    year: string;
+  };
+  semesterRegistration: {
+    _id: string;
+  };
+  course: {
+    _id: string;
+    title: string;
+  };
+};
+
 const MyCourses = () => {
   const { data: facultyCoursesData } = useGetAllFacultyCoursesQuery(undefined);
   const navigate = useNavigate();
 
-  console.log(facultyCoursesData);
+  const semesterOptions =
+    facultyCoursesData?.data?.map((item: FacultyCourse) => ({
+      label: `${item.academicSemester.name} ${item.academicSemester.year}`,
+      value: item.semesterRegistration._id,
+    })) ?? [];
 
-  const semesterOptions = facultyCoursesData?.data?.map((item: any) => ({
-    label: `${item.academicSemester.name} ${item.academicSemester.year}`,
-    value: item.semesterRegistration._id,
-  }));
-
-  const courseOptions = facultyCoursesData?.data?.map((item: any) => ({
-    label: item.course.title,
-    value: item.course._id,
-  }));
+  const courseOptions =
+    facultyCoursesData?.data?.map((item: FacultyCourse) => ({
+      label: item.course.title,
+      value: item.course._id,
+    })) ?? [];
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     navigate(`/faculty/courses/${data.semesterRegistration}/${data.course}`);

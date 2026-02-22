@@ -5,15 +5,32 @@ import PHForm from '../../../components/form/PHForm';
 import PHInput from '../../../components/form/PHInput';
 import PHSelect from '../../../components/form/PHSelect';
 import { Controller } from 'react-hook-form';
+import type { Dayjs } from 'dayjs';
+
+type FacultyCourseItem = {
+  offeredCourse: {
+    _id: string;
+    section: string;
+  };
+  course: {
+    title: string;
+  };
+};
+
+type AssignmentFormValues = {
+  title: string;
+  offeredCourse: string;
+  description?: string;
+  deadline?: Dayjs;
+};
 
 const CreateAssignment = () => {
   const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
   const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
 
-  // Deduplicate courses based on offeredCourse._id
-  const uniqueCoursesMap = new Map();
+  const uniqueCoursesMap = new Map<string, { value: string; label: string }>();
   if (facultyCourses?.data) {
-    facultyCourses.data.forEach((item: any) => {
+    facultyCourses.data.forEach((item: FacultyCourseItem) => {
         if (!uniqueCoursesMap.has(item.offeredCourse._id)) {
             uniqueCoursesMap.set(item.offeredCourse._id, {
                 value: item.offeredCourse._id,
@@ -24,7 +41,7 @@ const CreateAssignment = () => {
   }
   const courseOptions = Array.from(uniqueCoursesMap.values());
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AssignmentFormValues) => {
     const key = 'assignmentCreate';
     message.loading({ content: 'Creating assignment...', key });
     try {
@@ -37,8 +54,8 @@ const CreateAssignment = () => {
 
       await createAssignment(assignmentData).unwrap();
       message.success({ content: 'Assignment created successfully', key, duration: 2 });
-    } catch (err: any) {
-      message.error({ content: err.data?.message || 'Something went wrong', key, duration: 2 });
+    } catch {
+      message.error({ content: 'Something went wrong', key, duration: 2 });
     }
   };
 

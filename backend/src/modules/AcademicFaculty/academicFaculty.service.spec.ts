@@ -23,12 +23,15 @@ describe('AcademicFacultyServices', () => {
   });
 
   it('getAllAcademicFacultiesFromDB_withValidQuery_returnsMetaAndResult', async () => {
-    const instanceMock = {
+    const instanceMock: Pick<
+      InstanceType<typeof AcademicFacultyRepository>,
+      'findAll' | 'create' | 'findById' | 'updateById'
+    > = {
       findAll: jest.fn().mockResolvedValue({ meta, data }),
       create: jest.fn(),
       findById: jest.fn(),
       updateById: jest.fn(),
-    } as any;
+    };
 
     MockedAcademicFacultyRepository.mockImplementation(() => instanceMock);
 
@@ -41,4 +44,3 @@ describe('AcademicFacultyServices', () => {
     });
   });
 });
-

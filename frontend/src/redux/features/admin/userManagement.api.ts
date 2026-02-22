@@ -1,10 +1,15 @@
-import { TQueryParam, TResponseRedux, TStudent } from '../../../types';
+import { TMeta, TQueryParam, TResponseRedux, TStudent } from '../../../types';
 
 import { baseApi } from '../../api/baseApi';
 
+type PaginatedStudents = {
+  data?: TStudent[];
+  meta?: TMeta;
+};
+
 const userManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllStudents: builder.query({
+    getAllStudents: builder.query<PaginatedStudents, TQueryParam[] | undefined>({
       query: (args) => {
         console.log(args);
         const params = new URLSearchParams();
@@ -28,7 +33,7 @@ const userManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
-    getAllFaculties: builder.query({
+    getAllFaculties: builder.query<PaginatedStudents, TQueryParam[] | undefined>({
       query: (args) => {
         console.log(args);
         const params = new URLSearchParams();
@@ -52,14 +57,14 @@ const userManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
-    addStudent: builder.mutation({
+    addStudent: builder.mutation<TStudent, unknown>({
       query: (data) => ({
         url: '/users/create-student',
         method: 'POST',
         body: data,
       }),
     }),
-    changePassword: builder.mutation({
+    changePassword: builder.mutation<null, { oldPassword: string; newPassword: string }>({
       query: (data) => ({
         url: '/auth/change-password',
         method: 'POST',
