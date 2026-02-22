@@ -17,4 +17,10 @@ router.get(
   AnalyticsControllers.getEnrollmentTrends,
 );
 
+router.get(
+  '/pass-rate',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  AnalyticsControllers.getPassRateAnalytics,
+);
+
 export const AnalyticsRoutes = router;

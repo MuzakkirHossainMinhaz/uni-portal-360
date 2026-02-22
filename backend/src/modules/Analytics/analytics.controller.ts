@@ -25,7 +25,19 @@ const getEnrollmentTrends = catchAsync(async (req, res) => {
   });
 });
 
+const getPassRateAnalytics = catchAsync(async (req, res) => {
+  const result = await AnalyticsServices.getPassRateAnalytics();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Pass rate analytics retrieved successfully',
+    data: result,
+  });
+});
+
 export const AnalyticsControllers = {
   getDashboardStats,
   getEnrollmentTrends,
+  getPassRateAnalytics,
 };
