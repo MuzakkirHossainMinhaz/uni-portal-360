@@ -1,4 +1,4 @@
-import { Card, Col, Row, Statistic, Select, Spin, Alert, DatePicker, Space, Skeleton, Typography } from 'antd';
+import { Card, Col, Row, Statistic, Select, Alert, DatePicker, Space, Skeleton, Typography } from 'antd';
 import {
   UserOutlined,
   ReadOutlined,

@@ -4,6 +4,29 @@ import AppError from '../../errors/AppError';
 import { SemesterResult } from '../SemesterResult/semesterResult.model';
 import { Student } from '../Student/student.model';
 
+type PopulatedDepartment = {
+  title?: string;
+};
+
+type PopulatedFaculty = {
+  title?: string;
+};
+
+type PopulatedSemester = {
+  name?: string;
+  year?: string;
+};
+
+type CompletedCourse = {
+  course: {
+    code?: string;
+    title: string;
+    credits: number;
+  };
+  gradePoints: number;
+  grade: string;
+};
+
 const generateTranscript = async (studentId: string): Promise<PDFKit.PDFDocument> => {
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
@@ -14,7 +37,6 @@ const generateTranscript = async (studentId: string): Promise<PDFKit.PDFDocument
 };
 
 const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: string) => {
-    // 1. Fetch Student Data
   const student = await Student.findOne({ id: studentId })
     .populate('admissionSemester')
     .populate('academicDepartment')
@@ -24,7 +46,6 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     throw new AppError(httpStatus.NOT_FOUND, 'Student not found');
   }
 
-  // 2. Fetch Academic History (Semester Results)
   const semesterResults = await SemesterResult.find({ student: student._id })
     .populate('academicSemester')
     .populate({
@@ -33,13 +54,12 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
         path: 'course',
       },
     })
-    .sort({ 'academicSemester.year': 1, 'academicSemester.startMonth': 1 }); // Sort chronologically
+    .sort({ 'academicSemester.year': 1, 'academicSemester.startMonth': 1 });
 
   if (!semesterResults.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'No academic records found for this student');
   }
   
-  // --- Header ---
   doc
     .fontSize(20)
     .text('OFFICIAL ACADEMIC TRANSCRIPT', { align: 'center', underline: true })
@@ -49,18 +69,19 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     .fontSize(12)
     .text(`Student Name: ${student.fullName}`)
     .text(`Student ID: ${student.id}`)
-    .text(`Department: ${(student.academicDepartment as any)?.title}`)
-    .text(`Faculty: ${(student.academicFaculty as any)?.title}`)
+    .text(
+      `Department: ${(student.academicDepartment as PopulatedDepartment | null)?.title ?? 'N/A'}`,
+    )
+    .text(`Faculty: ${(student.academicFaculty as PopulatedFaculty | null)?.title ?? 'N/A'}`)
     .text(`Date Issued: ${new Date().toLocaleDateString()}`)
     .moveDown();
 
   doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown();
 
-  // --- Semester Results ---
   for (const result of semesterResults) {
-    const semesterName = `${(result.academicSemester as any).name} ${(result.academicSemester as any).year}`;
+    const semesterInfo = result.academicSemester as PopulatedSemester | null;
+    const semesterName = `${semesterInfo?.name ?? ''} ${semesterInfo?.year ?? ''}`.trim();
     
-    // Semester Header
     doc
       .fontSize(14)
       .font('Helvetica-Bold')
@@ -68,7 +89,6 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
       .font('Helvetica')
       .fontSize(10);
 
-    // Table Header
     const tableTop = doc.y + 10;
     const col1 = 50; // Code
     const col2 = 150; // Title
@@ -85,16 +105,15 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
 
     let yPosition = tableTop + 20;
 
-    // Courses List
-    for (const enrolledCourse of (result.completedCourses as any[])) {
-       // Check for page break
+    for (const enrolledCourse of result.completedCourses as CompletedCourse[]) {
+      // Check for page break
        if (yPosition > 700) {
            doc.addPage();
            yPosition = 50;
        }
 
-       const courseDetails = enrolledCourse.course;
-       
+      const courseDetails = enrolledCourse.course;
+      
        doc
         .text(courseDetails.code || 'N/A', col1, yPosition)
         .text(courseDetails.title.substring(0, 45) || 'N/A', col2, yPosition)
@@ -105,7 +124,6 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
        yPosition += 15;
     }
     
-    // Semester Summary
     yPosition += 10;
     doc
         .font('Helvetica-Bold')
@@ -117,7 +135,6 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     doc.y = yPosition + 30; // Update cursor for next loop
   }
 
-  // --- Final Summary ---
   doc.moveDown();
   doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown();
   
@@ -135,5 +152,5 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
 
 export const TranscriptServices = {
   generateTranscript,
-  generateTranscriptContent
+  generateTranscriptContent,
 };

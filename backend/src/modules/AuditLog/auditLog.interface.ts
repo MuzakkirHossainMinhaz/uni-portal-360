@@ -5,11 +5,11 @@ export type TAuditLog = {
   action: string;
   entityType: string;
   entityId?: string;
-  oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
+  oldValues?: Record<string, unknown>;
+  newValues?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   status: 'SUCCESS' | 'FAILURE';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };

@@ -13,6 +13,11 @@ body {
   color: #e2e8f0;
 }
 
+body[data-theme='light'] {
+  background: #f3f4f6;
+  color: #111827;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -29,4 +34,9 @@ body {
   background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
   border-radius: 16px;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.8);
+}
+
+body[data-theme='light'] .app-shell-content {
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
 }

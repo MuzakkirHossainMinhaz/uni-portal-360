@@ -1,22 +1,16 @@
-import { Button, Card, Col, DatePicker, Form, Row, Select, Table, message, Empty, Typography, Space, Badge, Avatar } from 'antd';
-import moment from 'moment';
+import { Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar } from 'antd';
 import { useState } from 'react';
-import { useGetAllOfferedCoursesQuery } from '../../../redux/features/admin/courseManagement';
-import { useCreateAttendanceMutation } from '../../../redux/features/attendance/attendance.api';
 import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import PageHeader from '../../../components/layout/PageHeader';
-import { CalendarOutlined, BookOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
 const FacultyAttendance = () => {
-  const [form] = Form.useForm();
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
-  
+
   const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
-  const [createAttendance, { isLoading: isSubmitting }] = useCreateAttendanceMutation();
 
   const courseOptions = facultyCourses?.data?.map((item: any) => ({
     value: item._id,
@@ -24,11 +18,6 @@ const FacultyAttendance = () => {
     desc: item.days.join(', '),
   }));
 
-  const handleFinish = async (values: any) => {
-      message.success('Attendance submitted successfully');
-  };
-
-  // Mock columns for the placeholder table
   const columns = [
       {
           title: 'Student Name',

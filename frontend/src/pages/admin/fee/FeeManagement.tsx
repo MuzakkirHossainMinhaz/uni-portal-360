@@ -10,7 +10,6 @@ import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicM
 import PHDatePicker from '../../../components/form/PHDatePicker';
 import PageHeader from '../../../components/layout/PageHeader';
 import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
-// @ts-ignore
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
 
 const FeeManagement = () => {
@@ -31,13 +30,15 @@ const FeeManagement = () => {
   }));
 
   const handleCreateFee = async (data: any) => {
-    const toastId = message.loading('Creating fee...');
+    const hide = message.loading('Creating fee...', 0);
     try {
       await createFee(data).unwrap();
       message.success('Fee created successfully');
       setIsModalOpen(false);
-    } catch (err) {
+    } catch {
       message.error('Failed to create fee');
+    } finally {
+      hide();
     }
   };
 

@@ -29,7 +29,6 @@ const StudentData = () => {
 
   const {
     data: studentData,
-    isLoading,
     isFetching,
   } = useGetAllStudentsQuery([
     { name: 'page', value: page },

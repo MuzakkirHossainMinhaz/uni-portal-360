@@ -1,4 +1,5 @@
 import { Permission, Role, RolePermission } from './rbac.model';
+import { logger } from '../../utils/logger';
 
 const ROLES = ['admin', 'faculty', 'student', 'superAdmin', 'registrar'];
 
@@ -113,7 +114,6 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 const seedRBAC = async () => {
   try {
-    // 1. Seed Permissions
     for (const permName of PERMISSIONS) {
       await Permission.updateOne(
         { name: permName },
@@ -121,9 +121,8 @@ const seedRBAC = async () => {
         { upsert: true }
       );
     }
-    console.log('Permissions seeded');
+    logger.info('Permissions seeded');
 
-    // 2. Seed Roles
     for (const roleName of ROLES) {
       await Role.updateOne(
         { name: roleName },
@@ -131,9 +130,8 @@ const seedRBAC = async () => {
         { upsert: true }
       );
     }
-    console.log('Roles seeded');
+    logger.info('Roles seeded');
 
-    // 3. Seed RolePermissions
     for (const [roleName, permissions] of Object.entries(ROLE_PERMISSIONS)) {
       const role = await Role.findOne({ name: roleName });
       if (!role) continue;
@@ -149,14 +147,13 @@ const seedRBAC = async () => {
         );
       }
     }
-    console.log('RolePermissions seeded');
+    logger.info('RolePermissions seeded');
   } catch (error) {
-    console.error('Error seeding RBAC:', error);
+    logger.error('Error seeding RBAC', error);
   }
 };
 
 const hasPermission = async (roleName: string, permissionName: string): Promise<boolean> => {
-    // SuperAdmin has all permissions
     if (roleName === 'superAdmin') return true;
 
     const role = await Role.findOne({ name: roleName });
@@ -174,7 +171,6 @@ const hasPermission = async (roleName: string, permissionName: string): Promise<
 };
 
 const getRolePermissions = async (roleName: string): Promise<string[]> => {
-    // SuperAdmin has all permissions
     if (roleName === 'superAdmin') {
         const allPermissions = await Permission.find({});
         return allPermissions.map(p => p.name);
@@ -184,8 +180,16 @@ const getRolePermissions = async (roleName: string): Promise<string[]> => {
     if (!role) return [];
 
     const rolePermissions = await RolePermission.find({ roleId: role._id }).populate('permissionId');
-    
-    return rolePermissions.map((rp: any) => rp.permissionId.name);
+
+    return rolePermissions.map((rp) => {
+      if (!rp.permissionId) {
+        return '';
+      }
+      if (typeof rp.permissionId === 'string') {
+        return rp.permissionId;
+      }
+      return rp.permissionId.name;
+    }).filter(Boolean);
 };
 
 export const RBACService = {

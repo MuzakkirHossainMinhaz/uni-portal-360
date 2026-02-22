@@ -1,7 +1,6 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
-import { AcademicSemester } from '../AcademicSemester/academicSemester.model';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Student } from '../Student/student.model';
 import { SemesterResult } from './semesterResult.model';
@@ -31,7 +30,8 @@ const calculateSemesterGPA = async (studentId: string, academicSemesterId: strin
 
     // 2. Calculate GPA
     for (const course of enrolledCourses) {
-      const credit = (course.course as any).credits;
+      const courseDetails = course.course as { credits?: number } | null;
+      const credit = courseDetails?.credits;
       const gradePoints = course.gradePoints;
 
       // Only count credits if gradePoints > 0 (passed)
@@ -101,28 +101,31 @@ const calculateSemesterGPA = async (studentId: string, academicSemesterId: strin
     // Trigger Notification
     // We need the user ID associated with the student
     const student = await Student.findById(studentId).populate('user');
-    if (student && student.user) {
-        await NotificationServices.createNotification({
-            userId: (student.user as any)._id,
-            title: 'Results Published',
-            message: `Your results for the semester have been updated. Your new GPA is ${gpa}.`,
-            type: 'RESULT_PUBLISHED',
-            priority: 'HIGH',
-            read: false,
-            isDeleted: false,
-            actionUrl: '/student/results'
-        });
+    if (student && student.user && typeof student.user === 'object' && '_id' in student.user) {
+      await NotificationServices.createNotification({
+        userId: (student.user as { _id: mongoose.Types.ObjectId })._id,
+        title: 'Results Published',
+        message: `Your results for the semester have been updated. Your new GPA is ${gpa}.`,
+        type: 'RESULT_PUBLISHED',
+        priority: 'HIGH',
+        read: false,
+        isDeleted: false,
+        actionUrl: '/student/results',
+      });
     }
 
     return semesterResult;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(httpStatus.BAD_REQUEST, err.message);
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      err instanceof Error ? err.message : 'Failed to calculate semester GPA',
+    );
   }
 };
 
-const getMySemesterResults = async (studentId: string, query: Record<string, unknown>) => {
+const getMySemesterResults = async (studentId: string, _query: Record<string, unknown>) => {
     const result = await SemesterResult.find({ student: studentId })
         .populate('academicSemester')
         .sort({ createdAt: -1 }); // Most recent first

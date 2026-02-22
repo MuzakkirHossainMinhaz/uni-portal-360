@@ -77,7 +77,7 @@ const deleteAdminFromDB = async (id: string) => {
   } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student', err);
   }
 };
 

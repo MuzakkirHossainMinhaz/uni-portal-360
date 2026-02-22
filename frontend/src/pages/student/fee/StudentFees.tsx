@@ -1,5 +1,4 @@
-import { Button, Card, Col, Modal, Row, Statistic, Table, Tag, message } from 'antd';
-import { useState } from 'react';
+import { Button, Card, Col, Row, Statistic, Table, Tag, message } from 'antd';
 import { useGetMyFeesQuery, usePayFeeMutation } from '../../../redux/features/fee/fee.api';
 import moment from 'moment';
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
@@ -10,12 +9,11 @@ const StudentFees = () => {
 
   const handlePay = async (id: string) => {
     try {
-        // Simulate payment gateway
-        const transactionId = `TXN-${Math.floor(Math.random() * 1000000)}`;
-        await payFee({ id, transactionId: transactionId }).unwrap();
-        message.success('Fee paid successfully');
-    } catch (error) {
-        message.error('Payment failed');
+      const transactionId = `TXN-${Math.floor(Math.random() * 1000000)}`;
+      await payFee({ id, transactionId }).unwrap();
+      message.success('Fee paid successfully');
+    } catch {
+      message.error('Payment failed');
     }
   };
 
@@ -42,10 +40,10 @@ const StudentFees = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        let color = 'default';
-        if (status === 'PAID') color = 'green';
-        if (status === 'PENDING') color = 'gold';
-        if (status === 'OVERDUE') color = 'red';
+        let color: string = 'default';
+        if (status === 'PAID') color = 'success';
+        if (status === 'PENDING') color = 'warning';
+        if (status === 'OVERDUE') color = 'error';
         return <Tag color={color}>{status}</Tag>;
       },
     },
@@ -79,7 +77,13 @@ const StudentFees = () => {
       <Row gutter={16} style={{ marginBottom: 24 }}>
         <Col span={8}>
           <Card>
-            <Statistic title="Pending Dues" value={pendingAmount} precision={2} prefix="$" valueStyle={{ color: '#cf1322' }} />
+            <Statistic
+              title="Pending Dues"
+              value={pendingAmount}
+              precision={2}
+              prefix="$"
+              valueStyle={{ color: '#0f6ad8', fontWeight: 600 }}
+            />
           </Card>
         </Col>
       </Row>

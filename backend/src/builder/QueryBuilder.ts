@@ -17,7 +17,7 @@ class QueryBuilder<T> {
           (field) =>
             ({
               [field]: { $regex: searchTerm, $options: 'i' },
-            }) as any,
+            }) as Record<string, unknown>,
         ),
       });
     }
@@ -33,7 +33,7 @@ class QueryBuilder<T> {
 
     excludeFields.forEach((el) => delete queryObj[el]);
 
-    this.modelQuery = this.modelQuery.find(queryObj as any);
+    this.modelQuery = this.modelQuery.find(queryObj as Record<string, unknown>);
 
     return this;
   }

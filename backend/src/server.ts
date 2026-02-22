@@ -5,6 +5,7 @@ import seedSuperAdmin from './db';
 import config from './config';
 import { RBACService } from './modules/RBAC/rbac.service';
 import { AuditLogCleanup } from './modules/AuditLog/auditLog.cleanup';
+import { logger } from './utils/logger';
 
 let server: Server;
 
@@ -19,17 +20,17 @@ async function main() {
     AuditLogCleanup.initAuditLogCleanup();
 
     server = app.listen(config.port, () => {
-      console.log(`app is listening on port ${config.port}`);
+      logger.info(`app is listening on port ${config.port}`);
     });
   } catch (err) {
-    console.log(err);
+    logger.error('Error starting application', err);
   }
 }
 
 main();
 
 process.on('unhandledRejection', (err) => {
-  console.log(`😈 unahandledRejection is detected , shutting down ...`, err);
+  logger.error('Unhandled rejection detected, shutting down', err);
   if (server) {
     server.close(() => {
       process.exit(1);
@@ -38,7 +39,7 @@ process.on('unhandledRejection', (err) => {
   process.exit(1);
 });
 
-process.on('uncaughtException', () => {
-  console.log(`😈 uncaughtException is detected , shutting down ...`);
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught exception detected, shutting down', err);
   process.exit(1);
 });

@@ -23,7 +23,6 @@ const Login = () => {
   const [login] = useLoginMutation();
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     const toastId = toast.loading('Logging in');
 
     try {
@@ -42,7 +41,7 @@ const Login = () => {
       } else {
         navigate(`/${user.role}/dashboard`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Something went wrong', { id: toastId, duration: 2000 });
     }
   };

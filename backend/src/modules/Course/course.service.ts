@@ -101,7 +101,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
     const result = await Course.findById(id).populate('preRequisiteCourses.course');
 
     return result;
-  } catch (err) {
+  } catch {
     await session.abortTransaction();
     await session.endSession();
     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to update course');

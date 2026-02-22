@@ -7,6 +7,7 @@ import { sendEmail } from '../../utils/sendEmail';
 import { User } from '../User/user.model';
 import { TLoginUser } from './auth.interface';
 import { createToken, verifyToken } from './auth.utils';
+import { logger } from '../../utils/logger';
 
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exist
@@ -186,7 +187,7 @@ const forgetPassword = async (userId: string) => {
 
   sendEmail(user.email, resetUILink);
 
-  console.log(resetUILink);
+  logger.info('Password reset link generated', { userId: user.id });
 };
 
 const resetPassword = async (payload: { id: string; newPassword: string }, token: string) => {
@@ -212,10 +213,7 @@ const resetPassword = async (payload: { id: string; newPassword: string }, token
 
   const decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
 
-  //localhost:3000?id=A-0001&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJBLTAwMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDI4NTA2MTcsImV4cCI6MTcwMjg1MTIxN30.-T90nRaz8-KouKki1DkCSMAbsHyb9yDi0djZU3D6QO4
-
   if (payload.id !== decoded.userId) {
-    console.log(payload.id, decoded.userId);
     throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
   }
 

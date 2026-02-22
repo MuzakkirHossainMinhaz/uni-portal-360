@@ -1,7 +1,3 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
@@ -9,7 +5,7 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import rateLimit from 'express-rate-limit';
-// @ts-ignore
+// @ts-expect-error - xss-clean has no TypeScript types
 import xss from 'xss-clean';
 import swaggerUi from 'swagger-ui-express';
 import globalErrorHandler from './middlewares/globalErrorhandler';

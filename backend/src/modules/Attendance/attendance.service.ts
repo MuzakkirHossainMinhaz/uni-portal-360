@@ -76,10 +76,13 @@ const createAttendanceIntoDB = async (payload: {
     await session.endSession();
 
     return result;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(httpStatus.BAD_REQUEST, err.message);
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      err instanceof Error ? err.message : 'Failed to create attendance records',
+    );
   }
 };
 
@@ -178,5 +181,4 @@ export const AttendanceServices = {
   getLowAttendanceStudents,
   getAttendanceAnalytics
 };
-
 

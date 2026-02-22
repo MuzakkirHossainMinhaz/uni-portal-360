@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -131,10 +130,10 @@ const createEnrolledCourseIntoDB = async (userId: string, payload: TEnrolledCour
     await session.endSession();
 
     return result;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw err;
   }
 };
 

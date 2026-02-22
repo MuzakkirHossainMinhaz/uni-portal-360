@@ -2,6 +2,7 @@ import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import multer from 'multer';
 import config from '../config';
+import { logger } from './logger';
 
 cloudinary.config({
   cloud_name: config.cloudinary_cloud_name,
@@ -19,9 +20,9 @@ export const sendImageToCloudinary = (imageName: string, path: string): Promise<
       // delete a file asynchronously
       fs.unlink(path, (err) => {
         if (err) {
-          console.log(err);
+          logger.error('Error deleting file after upload', err);
         } else {
-          console.log('File is deleted.');
+          logger.info('Temporary upload file deleted');
         }
       });
     });

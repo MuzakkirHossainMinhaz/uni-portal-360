@@ -1,20 +1,19 @@
 import { AuditLog } from './auditLog.model';
 import { TAuditLog } from './auditLog.interface';
+import { logger } from '../../utils/logger';
 
 const createAuditLog = async (payload: Partial<TAuditLog>) => {
-  // Use a fire-and-forget approach or queueing system in production
-  // For now, we await but catch errors so main flow isn't interrupted
   try {
     await AuditLog.create(payload);
   } catch (error) {
-    console.error('Failed to create audit log:', error);
+    logger.error('Failed to create audit log', error);
   }
 };
 
 const getAuditLogs = async (query: Record<string, unknown>) => {
   const { page = 1, limit = 20, userId, entityType, action, startDate, endDate, severity } = query;
-  
-  const filter: Record<string, any> = {};
+
+  const filter: Record<string, unknown> = {};
 
   if (userId) filter.userId = userId;
   if (entityType) filter.entityType = entityType;

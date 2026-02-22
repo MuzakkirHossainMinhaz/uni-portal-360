@@ -1,5 +1,4 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Faculty } from '../Faculty/faculty.model';
 import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
@@ -7,6 +6,7 @@ import { TAssignment } from './assignment.interface';
 import { AssignmentRepository } from './assignment.repository';
 import { NotificationServices } from '../Notification/notification.service';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
+import { Types } from 'mongoose';
 
 const assignmentRepository = new AssignmentRepository();
 
@@ -43,19 +43,19 @@ const createAssignment = async (userId: string, payload: TAssignment) => {
   });
 
   for (const enrollment of enrolledStudents) {
-      const student = enrollment.student as any;
-      if (student && student.user) {
-        await NotificationServices.createNotification({
-            userId: student.user._id,
-            title: 'New Assignment Created',
-            message: `A new assignment "${payload.title}" has been posted for your course.`,
-            type: 'ASSIGNMENT_DUE',
-            priority: 'MEDIUM',
-            read: false,
-            isDeleted: false,
-            actionUrl: '/student/assignments'
-        });
-      }
+    const studentDoc = enrollment.student as { user?: { _id: Types.ObjectId } } | null;
+    if (studentDoc?.user?._id) {
+      await NotificationServices.createNotification({
+        userId: studentDoc.user._id,
+        title: 'New Assignment Created',
+        message: `A new assignment "${payload.title}" has been posted for your course.`,
+        type: 'ASSIGNMENT_DUE',
+        priority: 'MEDIUM',
+        read: false,
+        isDeleted: false,
+        actionUrl: '/student/assignments',
+      });
+    }
   }
 
   return result;

@@ -1,4 +1,3 @@
-import { NextFunction, Request, Response } from 'express';
 import { AuditLogService } from '../modules/AuditLog/auditLog.service';
 import httpStatus from 'http-status';
 import catchAsync from '../utils/catchAsync';

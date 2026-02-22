@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -167,12 +166,12 @@ const deleteSemesterRegistrationFromDB = async (id: string) => {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete semester registration !');
     }
 
-    const deletedSemisterRegistration = await SemesterRegistration.findByIdAndDelete(id, {
+    const deletedSemesterRegistration = await SemesterRegistration.findByIdAndDelete(id, {
       session,
       new: true,
     });
 
-    if (!deletedSemisterRegistration) {
+    if (!deletedSemesterRegistration) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete semester registration !');
     }
 
@@ -180,10 +179,10 @@ const deleteSemesterRegistrationFromDB = async (id: string) => {
     await session.endSession();
 
     return null;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw err;
   }
 };
 

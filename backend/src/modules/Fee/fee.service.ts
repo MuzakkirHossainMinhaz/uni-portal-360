@@ -1,11 +1,10 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Student } from '../Student/student.model';
 import { Fee } from './fee.model';
 import { TFee } from './fee.interface';
 import { NotificationServices } from '../Notification/notification.service';
-import { User } from '../User/user.model';
+import { Types } from 'mongoose';
 
 const createFee = async (payload: TFee) => {
   const student = await Student.findById(payload.student).populate('user');
@@ -16,9 +15,10 @@ const createFee = async (payload: TFee) => {
   const result = await Fee.create(payload);
 
   // Notify student
-  if (student.user) {
+  if (student.user && typeof student.user === 'object' && '_id' in student.user) {
+    const userObjectId = (student.user as { _id: Types.ObjectId })._id;
     await NotificationServices.createNotification({
-      userId: (student.user as any)._id,
+      userId: userObjectId,
       title: 'New Fee Generated',
       message: `A new fee of ${payload.amount} for ${payload.type} has been generated. Due date: ${new Date(payload.dueDate).toLocaleDateString()}`,
       type: 'GENERAL',
@@ -34,7 +34,7 @@ const createFee = async (payload: TFee) => {
 
 const getAllFees = async (query: Record<string, unknown>) => {
   const { studentId, status, type, page = 1, limit = 10 } = query;
-  const filter: Record<string, any> = {};
+  const filter: Record<string, unknown> = {};
 
   if (studentId) {
       // If studentId is passed (likely the 'id' string e.g. 2026...), resolve to _id
@@ -42,8 +42,13 @@ const getAllFees = async (query: Record<string, unknown>) => {
       if (student) filter.student = student._id;
   }
   
-  if (status) filter.status = status;
-  if (type) filter.type = type;
+  if (status) {
+    filter.status = status;
+  }
+
+  if (type) {
+    filter.type = type;
+  }
 
   const skip = (Number(page) - 1) * Number(limit);
 
@@ -73,10 +78,15 @@ const getMyFees = async (userId: string, query: Record<string, unknown>) => {
     }
 
     const { status, type, page = 1, limit = 10 } = query;
-    const filter: Record<string, any> = { student: student._id };
+    const filter: Record<string, unknown> = { student: student._id };
 
-    if (status) filter.status = status;
-    if (type) filter.type = type;
+    if (status) {
+      filter.status = status;
+    }
+
+    if (type) {
+      filter.type = type;
+    }
 
     const skip = (Number(page) - 1) * Number(limit);
 

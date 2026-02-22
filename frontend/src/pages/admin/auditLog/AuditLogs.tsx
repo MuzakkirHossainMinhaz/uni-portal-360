@@ -1,4 +1,4 @@
-import { Table, Tag, Input, Select, DatePicker, Space, Button } from 'antd';
+import { Table, Tag, Input, Select, DatePicker, Space } from 'antd';
 import { useState } from 'react';
 import { useGetAuditLogsQuery } from '../../../redux/features/admin/auditLog/auditLog.api';
 import moment from 'moment';

@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import config from '../../config';
@@ -16,8 +14,9 @@ import { Student } from '../Student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
 import { generateAdminId, generateFacultyId, generateStudentId } from './user.utils';
+import { Express } from 'express';
 
-const createStudentIntoDB = async (file: any, password: string, payload: TStudent) => {
+const createStudentIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TStudent) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -82,14 +81,14 @@ const createStudentIntoDB = async (file: any, password: string, payload: TStuden
     await session.endSession();
 
     return newStudent;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw err;
   }
 };
 
-const createFacultyIntoDB = async (file: any, password: string, payload: TFaculty) => {
+const createFacultyIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TFaculty) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -148,14 +147,14 @@ const createFacultyIntoDB = async (file: any, password: string, payload: TFacult
     await session.endSession();
 
     return newFaculty;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw err;
   }
 };
 
-const createAdminIntoDB = async (file: any, password: string, payload: TAdmin) => {
+const createAdminIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TAdmin) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -203,10 +202,10 @@ const createAdminIntoDB = async (file: any, password: string, payload: TAdmin) =
     await session.endSession();
 
     return newAdmin;
-  } catch (err: any) {
+  } catch (err) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error(err);
+    throw err;
   }
 };
 

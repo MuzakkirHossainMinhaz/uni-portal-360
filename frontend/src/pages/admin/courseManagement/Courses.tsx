@@ -1,4 +1,4 @@
-import { Button, Modal, Table, Card, Row, Col, Input, Space } from 'antd';
+import { Button, Modal, Table, Card, Row, Col, Input } from 'antd';
 import {
   useAddFacultiesMutation,
   useGetAllCoursesQuery,

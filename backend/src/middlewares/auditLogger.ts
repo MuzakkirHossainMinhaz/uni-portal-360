@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AuditLogService } from '../modules/AuditLog/auditLog.service';
 import { TAuditLog } from '../modules/AuditLog/auditLog.interface';
 import { Types } from 'mongoose';
+import { logger } from '../utils/logger';
 
 export const auditLogger = (action: string, entityType: string, severity: TAuditLog['severity'] = 'LOW') => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -15,7 +16,7 @@ export const auditLogger = (action: string, entityType: string, severity: TAudit
     res.on('finish', () => {
         // Only log if user is authenticated
         if (req.user && req.user.userId) {
-            let entityId = req.params.id;
+            const entityId = req.params.id;
 
             const logData: Partial<TAuditLog> = {
                 userId: new Types.ObjectId(req.user.userId),
@@ -40,7 +41,9 @@ export const auditLogger = (action: string, entityType: string, severity: TAudit
                 logData.newValues = safeBody;
             }
 
-            AuditLogService.createAuditLog(logData).catch(console.error);
+            AuditLogService.createAuditLog(logData).catch((error) => {
+              logger.error('Failed to create audit log from middleware', error);
+            });
         }
     });
 

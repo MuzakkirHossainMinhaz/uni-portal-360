@@ -1,5 +1,4 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { Assignment } from '../Assignment/assignment.model';
@@ -7,10 +6,11 @@ import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Student } from '../Student/student.model';
 import { TSubmission } from './submission.interface';
 import { SubmissionRepository } from './submission.repository';
+import { Express } from 'express';
 
 const submissionRepository = new SubmissionRepository();
 
-const createSubmission = async (userId: string, file: any, payload: TSubmission) => {
+const createSubmission = async (userId: string, file: Express.Multer.File | undefined, payload: TSubmission) => {
   const student = await Student.findOne({ id: userId });
   if (!student) {
     throw new AppError(httpStatus.NOT_FOUND, 'Student not found');
@@ -47,15 +47,14 @@ const createSubmission = async (userId: string, file: any, payload: TSubmission)
     throw new AppError(httpStatus.CONFLICT, 'You have already submitted this assignment');
   }
 
-  let fileUrl = '';
-  if (file) {
-    const imageName = `${assignment._id}-${student.id}`;
-    const path = file.path;
-    const { secure_url } = await sendImageToCloudinary(imageName, path);
-    fileUrl = secure_url as string;
-  } else {
+  if (!file) {
     throw new AppError(httpStatus.BAD_REQUEST, 'File is required');
   }
+
+  const imageName = `${assignment._id}-${student.id}`;
+  const path = file.path;
+  const { secure_url } = await sendImageToCloudinary(imageName, path);
+  const fileUrl = secure_url as string;
 
   const result = await submissionRepository.create({
     ...payload,
@@ -89,7 +88,7 @@ const gradeSubmission = async (id: string, payload: { grade: number; feedback?: 
   submission.grade = payload.grade;
   submission.feedback = payload.feedback;
   submission.isGraded = true;
-  await (submission as any).save();
+  await submission.save();
 
   return submission;
 };

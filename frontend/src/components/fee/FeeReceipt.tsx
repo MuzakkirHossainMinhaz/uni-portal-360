@@ -93,7 +93,7 @@ const FeeReceiptDocument = ({ fee }: { fee: any }) => (
 
 export const DownloadReceipt = ({ fee }: { fee: any }) => (
   <PDFDownloadLink document={<FeeReceiptDocument fee={fee} />} fileName={`receipt_${fee._id}.pdf`}>
-    {({ blob, url, loading, error }) => (
+    {({ loading }) => (
       <Button size="small" disabled={loading}>
         {loading ? 'Loading...' : 'Download Receipt'}
       </Button>

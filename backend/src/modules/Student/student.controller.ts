@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { StudentServices } from './student.service';
+import { logger } from '../../utils/logger';
 
 const getSingleStudent = catchAsync(async (req, res) => {
   const { id } = req.params;
@@ -18,7 +19,7 @@ const getSingleStudent = catchAsync(async (req, res) => {
 
 const getAllStudents: RequestHandler = catchAsync(async (req, res) => {
   const result = await StudentServices.getAllStudentsFromDB(req.query);
-  console.log({ result });
+  logger.info('Retrieved students', { total: result.meta.total });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

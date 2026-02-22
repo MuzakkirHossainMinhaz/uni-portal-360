@@ -17,10 +17,16 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': 'off', // turned off to allow typescript-eslint rule
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    files: ['src/utils/logger.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ];

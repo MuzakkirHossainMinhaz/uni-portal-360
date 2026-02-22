@@ -1,4 +1,4 @@
-import { Card, Col, Progress, Row, Statistic, Table, Tabs } from 'antd';
+import { Card, Col, Row, Statistic, Table, Tabs } from 'antd';
 import { useGetAttendanceAnalyticsQuery, useGetLowAttendanceStudentsQuery } from '../../../redux/features/attendance/attendance.api';
 
 const AdminAttendanceDashboard = () => {
