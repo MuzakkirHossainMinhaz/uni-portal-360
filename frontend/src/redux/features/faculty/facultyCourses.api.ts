@@ -1,16 +1,13 @@
-import { TQueryParam, TResponseRedux } from '../../../types';
 import { baseApi } from '../../api/baseApi';
 
-const facultyCourseApi = baseApi.injectEndpoints({
+const facultyCoursesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllFacultyCourses: builder.query({
+    getFacultyCourses: builder.query({
       query: (args) => {
-        console.log(args);
         const params = new URLSearchParams();
-
         if (args) {
-          args.forEach((item: TQueryParam) => {
-            params.append(item.name, item.value as string);
+          Object.keys(args).forEach((key) => {
+            params.append(key, args[key]);
           });
         }
         return {
@@ -19,24 +16,17 @@ const facultyCourseApi = baseApi.injectEndpoints({
           params: params,
         };
       },
-      providesTags: ['offeredCourse'],
-      transformResponse: (response: TResponseRedux<any>) => {
-        return {
-          data: response.data,
-          meta: response.meta,
-        };
-      },
+      providesTags: ['EnrolledCourse'],
     }),
-
-    addMark: builder.mutation({
+    updateEnrolledCourseMarks: builder.mutation({
       query: (data) => ({
         url: '/enrolled-courses/update-enrolled-course-marks',
         method: 'PATCH',
         body: data,
       }),
+      invalidatesTags: ['EnrolledCourse'],
     }),
   }),
 });
 
-export const { useGetAllFacultyCoursesQuery, useAddMarkMutation } =
-  facultyCourseApi;
+export const { useGetFacultyCoursesQuery, useUpdateEnrolledCourseMarksMutation } = facultyCoursesApi;
