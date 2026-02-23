@@ -4,8 +4,8 @@ import {
   useGetAllCoursesQuery,
 } from '../../../redux/features/admin/courseManagement';
 import { useState } from 'react';
-import PHForm from '../../../components/form/PHForm';
-import PHSelect from '../../../components/form/PHSelect';
+import UniForm from '../../../components/form/UniForm';
+import UniSelect from '../../../components/form/UniSelect';
 import { useGetAllFacultiesQuery } from '../../../redux/features/admin/userManagement.api';
 import PermissionGuard from '../../../components/layout/PermissionGuard';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -135,15 +135,15 @@ const AddFacultyModal = ({ facultyInfo }: { facultyInfo: CourseTableRow }) => {
         onCancel={handleCancel}
         footer={null}
       >
-        <PHForm onSubmit={handleSubmit}>
-          <PHSelect
+        <UniForm onSubmit={handleSubmit}>
+          <UniSelect
             mode="multiple"
             options={facultiesOption}
             name="faculties"
             label="Select Faculty"
           />
           <Button type="primary" htmlType="submit" style={{ marginTop: 16 }}>Submit</Button>
-        </PHForm>
+        </UniForm>
       </Modal>
     </>
   );

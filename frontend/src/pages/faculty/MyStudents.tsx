@@ -5,8 +5,8 @@ import {
 } from '../../redux/features/faculty/facultyCourses.api';
 import { Button, Modal, Table, message } from 'antd';
 import { useState } from 'react';
-import PHForm from '../../components/form/PHForm';
-import PHInput from '../../components/form/PHInput';
+import UniForm from '../../components/form/UniForm';
+import UniInput from '../../components/form/UniInput';
 
 type FacultyCourseStudent = {
   _id: string;
@@ -132,15 +132,15 @@ const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
         onCancel={handleCancel}
         footer={null}
       >
-        <PHForm onSubmit={handleSubmit}>
-          <PHInput type="text" name="classTest1" label="Class Test 1" />
-          <PHInput type="text" name="classTest2" label="Class Test 2" />
-          <PHInput type="text" name="midTerm" label="Midterm" />
-          <PHInput type="text" name="finalTerm" label="Final" />
+        <UniForm onSubmit={handleSubmit}>
+          <UniInput type="text" name="classTest1" label="Class Test 1" />
+          <UniInput type="text" name="classTest2" label="Class Test 2" />
+          <UniInput type="text" name="midTerm" label="Midterm" />
+          <UniInput type="text" name="finalTerm" label="Final" />
           <Button htmlType="submit" loading={isLoading}>
             Submit
           </Button>
-        </PHForm>
+        </UniForm>
       </Modal>
     </>
   );

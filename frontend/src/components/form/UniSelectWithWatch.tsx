@@ -2,7 +2,7 @@ import { Form, Select } from 'antd';
 import { useEffect } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
-type TPHSelectProps = {
+type TSelectProps = {
   label: string;
   name: string;
   options: { value: string; label: string; disabled?: boolean }[] | undefined;
@@ -11,14 +11,7 @@ type TPHSelectProps = {
   onValueChange: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const PHSelectWithWatch = ({
-  label,
-  name,
-  options,
-  disabled,
-  mode,
-  onValueChange,
-}: TPHSelectProps) => {
+const UniSelectWithWatch = ({ label, name, options, disabled, mode, onValueChange }: TSelectProps) => {
   const method = useFormContext();
   const inputValue = useWatch({
     control: method.control,
@@ -34,14 +27,7 @@ const PHSelectWithWatch = ({
       name={name}
       render={({ field, fieldState: { error } }) => (
         <Form.Item label={label}>
-          <Select
-            mode={mode}
-            style={{ width: '100%' }}
-            {...field}
-            options={options}
-            size="large"
-            disabled={disabled}
-          />
+          <Select mode={mode} style={{ width: '100%' }} {...field} options={options} size="large" disabled={disabled} />
           {error && <small style={{ color: 'red' }}>{error.message}</small>}
         </Form.Item>
       )}
@@ -49,4 +35,4 @@ const PHSelectWithWatch = ({
   );
 };
 
-export default PHSelectWithWatch;
+export default UniSelectWithWatch;

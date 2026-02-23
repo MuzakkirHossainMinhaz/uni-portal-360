@@ -45,6 +45,8 @@ Create a `.env` file in `backend/`:
 NODE_ENV=development
 PORT=5000
 
+BCRYPT_SALT_ROUNDS=10
+
 DATABASE_URL=mongodb://localhost:27017/uni-portal-360
 
 JWT_ACCESS_SECRET=dev_access_secret
@@ -52,11 +54,11 @@ JWT_ACCESS_EXPIRES_IN=1d
 JWT_REFRESH_SECRET=dev_refresh_secret
 JWT_REFRESH_EXPIRES_IN=365d
 
-BCRYPT_SALT_ROUNDS=10
+CLOUDINARY_CLOUD_NAME=put_your_coudinary_cloud_name
+CLOUDINARY_API_KEY=put_your_coudinary_api_key
+CLOUDINARY_API_SECRET=put_your_coudinary_api_secret
 
-RESET_PASS_UI_LINK=http://localhost:5173/reset-password
-
-SUPER_ADMIN_PASSWORD=superadmin123
+RESET_PASS_UI_LINK=http://localhost:3000/reset-password
 ```
 
 You can change values later, but these are good defaults for local testing.
@@ -86,7 +88,7 @@ npm install
 npm run dev
 ```
 
-The frontend runs on `http://localhost:5173`.
+The frontend runs on `http://localhost:3000`.
 
 ---
 
@@ -94,7 +96,7 @@ The frontend runs on `http://localhost:5173`.
 
 Open the browser at:
 
-- `http://localhost:5173`
+- `http://localhost:3000`
 
 Log in with:
 

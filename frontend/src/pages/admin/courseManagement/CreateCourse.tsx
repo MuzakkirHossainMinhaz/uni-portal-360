@@ -1,9 +1,9 @@
 import { FieldValues, SubmitHandler } from 'react-hook-form';
-import PHForm from '../../../components/form/PHForm';
+import UniForm from '../../../components/form/UniForm';
 import { Button, Col, Flex } from 'antd';
-import PHSelect from '../../../components/form/PHSelect';
+import UniSelect from '../../../components/form/UniSelect';
 import { toast } from 'sonner';
-import PHInput from '../../../components/form/PHInput';
+import UniInput from '../../../components/form/UniInput';
 import { useAddCourseMutation, useGetAllCoursesQuery } from '../../../redux/features/admin/courseManagement';
 import { TCourse, TResponse } from '../../../types';
 
@@ -49,19 +49,19 @@ const CreateCourse = () => {
   return (
     <Flex justify="center" align="center">
       <Col span={6}>
-        <PHForm onSubmit={onSubmit}>
-          <PHInput type="text" name="title" label="Title" />
-          <PHInput type="text" name="prefix" label="Prefix" />
-          <PHInput type="text" name="code" label="Code" />
-          <PHInput type="text" name="credits" label="Credits" />
-          <PHSelect
+        <UniForm onSubmit={onSubmit}>
+          <UniInput type="text" name="title" label="Title" />
+          <UniInput type="text" name="prefix" label="Prefix" />
+          <UniInput type="text" name="code" label="Code" />
+          <UniInput type="text" name="credits" label="Credits" />
+          <UniSelect
             mode="multiple"
             options={preRequisiteCoursesOptions}
             name="preRequisiteCourses"
             label="preRequisiteCourses"
           />
           <Button htmlType="submit">Submit</Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Flex>
   );

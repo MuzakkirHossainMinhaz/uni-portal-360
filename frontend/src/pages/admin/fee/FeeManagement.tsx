@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { SubmitHandler } from 'react-hook-form';
 import { useCreateFeeMutation, useGetAllFeesQuery } from '../../../redux/features/fee/fee.api';
 import moment from 'moment';
-import PHForm from '../../../components/form/PHForm';
-import PHInput from '../../../components/form/PHInput';
-import PHSelect from '../../../components/form/PHSelect';
+import UniForm from '../../../components/form/UniForm';
+import UniInput from '../../../components/form/UniInput';
+import UniSelect from '../../../components/form/UniSelect';
 import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
 import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
-import PHDatePicker from '../../../components/form/PHDatePicker';
+import UniDatePicker from '../../../components/form/UniDatePicker';
 import PageHeader from '../../../components/layout/PageHeader';
 import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
@@ -166,18 +166,18 @@ const FeeManagement = () => {
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
-        <PHForm<CreateFeeFormValues> onSubmit={handleCreateFee}>
-          <PHSelect
+        <UniForm<CreateFeeFormValues> onSubmit={handleCreateFee}>
+          <UniSelect
             name="student"
             label="Student"
             options={studentOptions}
           />
-          <PHSelect
+          <UniSelect
             name="academicSemester"
             label="Semester"
             options={semesterOptions}
           />
-          <PHSelect
+          <UniSelect
             name="type"
             label="Fee Type"
             options={[
@@ -188,12 +188,12 @@ const FeeManagement = () => {
                 { value: 'Other', label: 'Other' },
             ]}
           />
-          <PHInput type="number" name="amount" label="Amount" />
-          <PHDatePicker name="dueDate" label="Due Date" />
+          <UniInput type="number" name="amount" label="Amount" />
+          <UniDatePicker name="dueDate" label="Due Date" />
           <Button type="primary" htmlType="submit" block style={{ marginTop: 16 }}>
             Create Fee
           </Button>
-        </PHForm>
+        </UniForm>
       </Modal>
     </div>
   );

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ConfigProvider, theme as antdTheme } from 'antd';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 type ThemeMode = 'light' | 'dark';
 type ThemePreference = 'system' | ThemeMode;
@@ -77,8 +77,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         colorPrimary: '#0f6ad8',
         colorInfo: '#0f6ad8',
         borderRadius: 8,
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, \"Segoe UI\", sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, \"Segoe UI\", sans-serif',
         colorBgLayout: mode === 'dark' ? '#020617' : '#f5f5f5',
       },
       components: {
@@ -107,7 +106,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           ? [antdTheme.darkAlgorithm, antdTheme.compactAlgorithm]
           : [antdTheme.defaultAlgorithm, antdTheme.compactAlgorithm],
     }),
-    [mode]
+    [mode],
   );
 
   const value = useMemo(
@@ -116,7 +115,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       preference,
       setPreference,
     }),
-    [mode, preference]
+    [mode, preference],
   );
 
   return (
@@ -137,4 +136,3 @@ export const useThemeMode = () => {
 };
 
 export default ThemeProvider;
-

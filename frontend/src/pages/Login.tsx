@@ -1,24 +1,19 @@
 import { Button, Col, Image, Row, Typography } from 'antd';
 import { FieldValues } from 'react-hook-form';
-import { useLoginMutation } from '../redux/features/auth/authApi';
-import { useAppDispatch } from '../redux/hooks';
-import { TUser, setUser } from '../redux/features/auth/authSlice';
-import { verifyToken } from '../utils/verifyToken';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import PHForm from '../components/form/PHForm';
-import PHInput from '../components/form/PHInput';
+import UniForm from '../components/form/UniForm';
+import UniInput from '../components/form/UniInput';
+import { useLoginMutation } from '../redux/features/auth/authApi';
+import { TUser, setUser } from '../redux/features/auth/authSlice';
+import { useAppDispatch } from '../redux/hooks';
+import { verifyToken } from '../utils/verifyToken';
 
 const { Title, Paragraph, Text } = Typography;
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-
-  const defaultValues = {
-    userId: '2026010016',
-    password: 'student123',
-  };
 
   const [login] = useLoginMutation();
 
@@ -57,8 +52,7 @@ const Login = () => {
       style={{
         minHeight: '100vh',
         padding: '32px 16px',
-        background:
-          'radial-gradient(circle at top left, #0b1120 0, #020617 40%, #020617 100%)',
+        background: 'radial-gradient(circle at top left, #0b1120 0, #020617 40%, #020617 100%)',
       }}
       gutter={[48, 48]}
     >
@@ -75,17 +69,9 @@ const Login = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24, gap: 16 }}>
-            <Image
-              src="/logo.png"
-              alt="Uni Portal 360"
-              preview={false}
-              width={52}
-            />
+            <Image src="/logo.png" alt="Uni Portal 360" preview={false} width={52} />
             <div>
-              <Title
-                level={3}
-                style={{ margin: 0, color: '#e5e7eb', letterSpacing: 0.4 }}
-              >
+              <Title level={3} style={{ margin: 0, color: '#e5e7eb', letterSpacing: 0.4 }}>
                 Uni Portal 360
               </Title>
               <Paragraph
@@ -100,23 +86,16 @@ const Login = () => {
               </Paragraph>
             </div>
           </div>
-          <PHForm onSubmit={onSubmit} defaultValues={defaultValues}>
-            <PHInput type="text" name="userId" label="User ID" />
-            <PHInput type="password" name="password" label="Password" />
-            <Button
-              htmlType="submit"
-              type="primary"
-              size="large"
-              block
-              style={{ marginTop: 8 }}
-            >
+          <UniForm onSubmit={onSubmit}>
+            <UniInput type="text" name="userId" label="User ID" />
+            <UniInput type="password" name="password" label="Password" />
+            <Button htmlType="submit" type="primary" size="large" block style={{ marginTop: 8 }}>
               Sign in
             </Button>
-          </PHForm>
+          </UniForm>
           <div style={{ marginTop: 16 }}>
             <Text style={{ color: '#6b7280', fontSize: 12 }}>
-              Use your university credentials to access dashboards, courses, and
-              analytics.
+              Use your university credentials to access dashboards, courses, and analytics.
             </Text>
           </div>
         </div>

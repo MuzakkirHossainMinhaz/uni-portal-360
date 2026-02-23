@@ -1,5 +1,5 @@
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,25 +12,25 @@ export default defineConfig({
       output: {
         manualChunks: {
           // React core
-          "react-vendor": ["react", "react-dom", "react/jsx-runtime"],
+          'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
 
           // Ant Design core (largest dependency)
-          "antd-core": ["antd"],
+          'antd-core': ['antd'],
 
           // Ant Design icons (separate chunk as it's large)
-          "antd-icons": ["@ant-design/icons"],
+          'antd-icons': ['@ant-design/icons'],
 
           // Redux libraries
-          "redux-vendor": ["@reduxjs/toolkit", "react-redux", "redux-persist"],
+          'redux-vendor': ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
 
           // Router
-          "router-vendor": ["react-router-dom"],
+          'router-vendor': ['react-router-dom'],
 
           // Form libraries
-          "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
 
           // Other utilities
-          "utils-vendor": ["moment", "jwt-decode", "sonner"],
+          'utils-vendor': ['moment', 'jwt-decode', 'sonner'],
         },
       },
     },

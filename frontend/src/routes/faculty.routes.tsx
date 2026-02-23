@@ -3,9 +3,9 @@ import MyCourses from '../pages/faculty/MyCourses';
 import MyStudents from '../pages/faculty/MyStudents';
 import CreateAssignment from '../pages/faculty/assignment/CreateAssignment';
 import FacultyAssignments from '../pages/faculty/assignment/FacultyAssignments';
-import FacultySubmissions from '../pages/faculty/submission/FacultySubmissions';
-import FacultyGradebook from '../pages/faculty/gradebook/FacultyGradebook';
 import FacultyAttendance from '../pages/faculty/attendance/FacultyAttendance';
+import FacultyGradebook from '../pages/faculty/gradebook/FacultyGradebook';
+import FacultySubmissions from '../pages/faculty/submission/FacultySubmissions';
 
 export const facultyPaths = [
   {

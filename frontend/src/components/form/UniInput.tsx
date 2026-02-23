@@ -8,20 +8,14 @@ type TInputProps = {
   disabled?: boolean;
 };
 
-const PHInput = ({ type, name, label, disabled }: TInputProps) => {
+const UniInput = ({ type, name, label, disabled }: TInputProps) => {
   return (
     <div style={{ marginBottom: '20px' }}>
       <Controller
         name={name}
         render={({ field }) => (
           <Form.Item label={label}>
-            <Input
-              {...field}
-              type={type}
-              id={name}
-              size="large"
-              disabled={disabled}
-            />
+            <Input {...field} type={type} id={name} size="large" disabled={disabled} />
           </Form.Item>
         )}
       />
@@ -29,4 +23,4 @@ const PHInput = ({ type, name, label, disabled }: TInputProps) => {
   );
 };
 
-export default PHInput;
+export default UniInput;

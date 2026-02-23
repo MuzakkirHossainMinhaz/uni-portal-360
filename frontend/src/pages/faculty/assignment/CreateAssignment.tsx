@@ -1,9 +1,9 @@
 import { Button, Col, Row, DatePicker, message, Form } from 'antd';
 import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import { useCreateAssignmentMutation } from '../../../redux/features/assignment/assignment.api';
-import PHForm from '../../../components/form/PHForm';
-import PHInput from '../../../components/form/PHInput';
-import PHSelect from '../../../components/form/PHSelect';
+import UniForm from '../../../components/form/UniForm';
+import UniInput from '../../../components/form/UniInput';
+import UniSelect from '../../../components/form/UniSelect';
 import { Controller, SubmitHandler } from 'react-hook-form';
 import type { Dayjs } from 'dayjs';
 
@@ -65,13 +65,13 @@ const CreateAssignment = () => {
   return (
     <Row justify="center">
       <Col span={24}>
-        <PHForm<AssignmentFormValues> onSubmit={onSubmit}>
+        <UniForm<AssignmentFormValues> onSubmit={onSubmit}>
           <Row gutter={20}>
             <Col span={24} md={12} lg={8}>
-              <PHInput type="text" name="title" label="Assignment Title" />
+              <UniInput type="text" name="title" label="Assignment Title" />
             </Col>
             <Col span={24} md={12} lg={8}>
-              <PHSelect
+              <UniSelect
                 options={courseOptions}
                 name="offeredCourse"
                 label="Course"
@@ -89,13 +89,13 @@ const CreateAssignment = () => {
                 />
             </Col>
             <Col span={24}>
-              <PHInput type="text" name="description" label="Description" />
+              <UniInput type="text" name="description" label="Description" />
             </Col>
           </Row>
           <Button htmlType="submit" type="primary" loading={isCreating}>
             Create Assignment
           </Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Row>
   );

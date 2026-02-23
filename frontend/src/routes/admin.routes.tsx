@@ -1,23 +1,23 @@
-import AdminDashboard from '../pages/admin/AdminDashboard';
-import CreateAdmin from '../pages/admin/userManagement/CreateAdmin';
-import CreateFaculty from '../pages/admin/userManagement/CreateFaculty';
-import CreateStudent from '../pages/admin/userManagement/CreateStudent';
 import AcademicDepartment from '../pages/admin/academicManagement/AcademicDepartment';
 import AcademicFaculty from '../pages/admin/academicManagement/AcademicFaculty';
 import AcademicSemester from '../pages/admin/academicManagement/AcademicSemester';
 import CreateAcademicDepartment from '../pages/admin/academicManagement/CreateAcademicDepartment';
 import CreateAcademicFaculty from '../pages/admin/academicManagement/CreateAcademicFaculty';
 import CreateAcademicSemester from '../pages/admin/academicManagement/CreateAcademicSemester';
-import StudentData from '../pages/admin/userManagement/StudentData';
-import StudentDetails from '../pages/admin/userManagement/StudentDetails';
-import SemesterRegistration from '../pages/admin/courseManagement/SemesterRegistration';
-import RegisteredSemesters from '../pages/admin/courseManagement/RegisteredSemesters';
-import CreateCourse from '../pages/admin/courseManagement/CreateCourse';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import AuditLogs from '../pages/admin/auditLog/AuditLogs';
 import Courses from '../pages/admin/courseManagement/Courses';
+import CreateCourse from '../pages/admin/courseManagement/CreateCourse';
 import OfferCourse from '../pages/admin/courseManagement/OfferCourse';
 import OfferedCourses from '../pages/admin/courseManagement/OfferedCourses';
-import AuditLogs from '../pages/admin/auditLog/AuditLogs';
+import RegisteredSemesters from '../pages/admin/courseManagement/RegisteredSemesters';
+import SemesterRegistration from '../pages/admin/courseManagement/SemesterRegistration';
 import FeeManagement from '../pages/admin/fee/FeeManagement';
+import CreateAdmin from '../pages/admin/userManagement/CreateAdmin';
+import CreateFaculty from '../pages/admin/userManagement/CreateFaculty';
+import CreateStudent from '../pages/admin/userManagement/CreateStudent';
+import StudentData from '../pages/admin/userManagement/StudentData';
+import StudentDetails from '../pages/admin/userManagement/StudentDetails';
 
 export const adminPaths = [
   {

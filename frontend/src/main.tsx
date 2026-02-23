@@ -1,13 +1,13 @@
+import 'antd/dist/reset.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import 'antd/dist/reset.css';
-import './index.css';
-import { RouterProvider } from 'react-router-dom';
-import router from './routes/routes.tsx';
 import { Provider } from 'react-redux';
-import { persistor, store } from './redux/store.ts';
+import { RouterProvider } from 'react-router-dom';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Toaster } from 'sonner';
+import './index.css';
+import { persistor, store } from './redux/store.ts';
+import router from './routes/routes.tsx';
 import ThemeProvider from './theme/ThemeProvider';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -20,5 +20,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       </PersistGate>
       <Toaster richColors position="top-right" />
     </Provider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

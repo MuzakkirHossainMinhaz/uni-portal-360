@@ -1,6 +1,6 @@
 import { Button, Row } from 'antd';
-import PHForm from '../components/form/PHForm';
-import PHInput from '../components/form/PHInput';
+import UniForm from '../components/form/UniForm';
+import UniInput from '../components/form/UniInput';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
 import { useChangePasswordMutation } from '../redux/features/admin/userManagement.api';
 import { useAppDispatch } from '../redux/hooks';
@@ -25,11 +25,11 @@ const ChangePassword = () => {
 
   return (
     <Row justify="center" align="middle" style={{ height: '100vh' }}>
-      <PHForm onSubmit={onSubmit}>
-        <PHInput type="text" name="oldPassword" label="Old Password" />
-        <PHInput type="text" name="newPassword" label="New Password" />
+      <UniForm onSubmit={onSubmit}>
+        <UniInput type="text" name="oldPassword" label="Old Password" />
+        <UniInput type="text" name="newPassword" label="New Password" />
         <Button htmlType="submit">Login</Button>
-      </PHForm>
+      </UniForm>
     </Row>
   );
 };

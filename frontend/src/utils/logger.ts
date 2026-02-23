@@ -39,4 +39,3 @@ export const logger = {
   warn: (message: string, ...meta: unknown[]) => log('warn', message, ...meta),
   error: (message: string, ...meta: unknown[]) => log('error', message, ...meta),
 };
-

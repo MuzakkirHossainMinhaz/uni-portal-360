@@ -1,12 +1,9 @@
 import { SubmitHandler } from 'react-hook-form';
-import PHForm from '../../../components/form/PHForm';
+import UniForm from '../../../components/form/UniForm';
 import { Button, Col, Flex } from 'antd';
-import PHSelect from '../../../components/form/PHSelect';
+import UniSelect from '../../../components/form/UniSelect';
 import { semesterOptions } from '../../../constants/semester';
 import { monthOptions } from '../../../constants/global';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import { academicSemesterSchema } from '../../../schemas/academicManagement.schema';
 import { useAddAcademicSemesterMutation } from '../../../redux/features/admin/academicManagement.api';
 import { toast } from 'sonner';
 import { TResponse } from '../../../types/global';
@@ -56,21 +53,20 @@ const CreateAcademicSemester = () => {
   return (
     <Flex justify="center" align="center">
       <Col span={6}>
-        <PHForm
+        <UniForm
           onSubmit={onSubmit}
-          resolver={zodResolver(academicSemesterSchema)}
         >
-          <PHSelect label="Name" name="name" options={semesterOptions} />
-          <PHSelect label="Year" name="year" options={yearOptions} />
-          <PHSelect
+          <UniSelect label="Name" name="name" options={semesterOptions} />
+          <UniSelect label="Year" name="year" options={yearOptions} />
+          <UniSelect
             label="Start Month"
             name="startMonth"
             options={monthOptions}
           />
-          <PHSelect label="End Month" name="endMonth" options={monthOptions} />
+          <UniSelect label="End Month" name="endMonth" options={monthOptions} />
 
           <Button htmlType="submit">Submit</Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Flex>
   );

@@ -1,10 +1,10 @@
 import { Controller, FieldValues, SubmitHandler } from 'react-hook-form';
-import PHForm from '../../../components/form/PHForm';
-import PHInput from '../../../components/form/PHInput';
+import UniForm from '../../../components/form/UniForm';
+import UniInput from '../../../components/form/UniInput';
 import { Button, Col, Divider, Form, Input, Row } from 'antd';
-import PHSelect from '../../../components/form/PHSelect';
+import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
-import PHDatePicker from '../../../components/form/PHDatePicker';
+import UniDatePicker from '../../../components/form/UniDatePicker';
 import {
   useGetAcademicDepartmentsQuery,
   useGetAllSemestersQuery,
@@ -130,26 +130,26 @@ const CreateStudent = () => {
   return (
     <Row justify="center">
       <Col span={24}>
-        <PHForm onSubmit={onSubmit} defaultValues={studentDefaultValues}>
+        <UniForm onSubmit={onSubmit} defaultValues={studentDefaultValues}>
           <Divider>Personal Info.</Divider>
           <Row gutter={8}>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="name.firstName" label="First Name" />
+              <UniInput type="text" name="name.firstName" label="First Name" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="name.middleName" label="Middle Name" />
+              <UniInput type="text" name="name.middleName" label="Middle Name" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="name.lastName" label="Last Name" />
+              <UniInput type="text" name="name.lastName" label="Last Name" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHSelect options={genderOptions} name="gender" label="Gender" />
+              <UniSelect options={genderOptions} name="gender" label="Gender" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHDatePicker name="dateOfBirth" label="Date of birth" />
+              <UniDatePicker name="dateOfBirth" label="Date of birth" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHSelect
+              <UniSelect
                 options={bloodGroupOptions}
                 name="bloogGroup"
                 label="Blood group"
@@ -174,27 +174,27 @@ const CreateStudent = () => {
           <Divider>Contact Info.</Divider>
           <Row gutter={8}>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="email" label="Email" />
+              <UniInput type="text" name="email" label="Email" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="contactNo" label="Contact" />
+              <UniInput type="text" name="contactNo" label="Contact" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="emergencyContactNo"
                 label="Emergency Contact"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="presentAddress"
                 label="Present Address"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="permanentAddress"
                 label="Permanent Address"
@@ -204,42 +204,42 @@ const CreateStudent = () => {
           <Divider>Guardian</Divider>
           <Row gutter={8}>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.fatherName"
                 label="Father Name"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.fatherOccupation"
                 label="Father Occupation"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.fatherContactNo"
                 label="Father ContactNo"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.motherName"
                 label="Mother Name"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.motherOccupation"
                 label="Mother Occupation"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="guardian.motherContactNo"
                 label="Mother ContactNo"
@@ -249,24 +249,24 @@ const CreateStudent = () => {
           <Divider>Local Guardian</Divider>
           <Row gutter={8}>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput type="text" name="localGuardian.name" label="Name" />
+              <UniInput type="text" name="localGuardian.name" label="Name" />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="localGuardian.occupation"
                 label="Occupation"
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="localGuardian.contactNo"
                 label="Contact No."
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHInput
+              <UniInput
                 type="text"
                 name="localGuardian.address"
                 label="Address"
@@ -276,7 +276,7 @@ const CreateStudent = () => {
           <Divider>Academic Info.</Divider>
           <Row gutter={8}>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHSelect
+              <UniSelect
                 options={semesterOptions}
                 disabled={sIsLoading}
                 name="admissionSemester"
@@ -284,7 +284,7 @@ const CreateStudent = () => {
               />
             </Col>
             <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
-              <PHSelect
+              <UniSelect
                 options={departmentOptions}
                 disabled={dIsLoading}
                 name="academicDepartment"
@@ -294,7 +294,7 @@ const CreateStudent = () => {
           </Row>
 
           <Button htmlType="submit">Submit</Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Row>
   );

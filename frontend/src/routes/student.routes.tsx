@@ -2,9 +2,9 @@ import MySchedule from '../pages/student/MySchedule';
 import OfferedCourse from '../pages/student/OfferedCourse';
 import StudentDashboard from '../pages/student/StudentDashboard';
 import StudentAssignments from '../pages/student/assignment/StudentAssignments';
-import StudentResults from '../pages/student/results/StudentResults';
 import StudentAttendance from '../pages/student/attendance/StudentAttendance';
 import StudentFees from '../pages/student/fee/StudentFees';
+import StudentResults from '../pages/student/results/StudentResults';
 
 export const studentPaths = [
   {

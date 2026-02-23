@@ -17,4 +17,3 @@ export type TAuditLog = {
   oldValues?: Record<string, unknown>;
   newValues?: Record<string, unknown>;
 };
-

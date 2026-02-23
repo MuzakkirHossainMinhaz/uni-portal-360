@@ -1,11 +1,11 @@
-import { Button, Layout, Row, Col, Typography, Space, Avatar, Segmented, Tooltip } from 'antd';
-import Sidebar from './Sidebar';
-import { useAppDispatch } from '../../redux/hooks';
-import { logout } from '../../redux/features/auth/authSlice';
-import { Outlet } from 'react-router-dom';
-import NotificationBell from './NotificationBell';
 import { DesktopOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { Avatar, Button, Col, Layout, Row, Segmented, Space, Tooltip, Typography } from 'antd';
+import { Outlet } from 'react-router-dom';
+import { logout } from '../../redux/features/auth/authSlice';
+import { useAppDispatch } from '../../redux/hooks';
 import { useThemeMode } from '../../theme/ThemeProvider';
+import NotificationBell from './NotificationBell';
+import Sidebar from './Sidebar';
 
 const { Header, Content } = Layout;
 const { Text } = Typography;
@@ -32,12 +32,7 @@ const MainLayout = () => {
           }}
         >
           <Space size={8}>
-            <Avatar
-              src="/logo.png"
-              alt="Uni Portal 360"
-              size={32}
-              style={{ backgroundColor: 'transparent' }}
-            />
+            <Avatar src="/logo.png" alt="Uni Portal 360" size={32} style={{ backgroundColor: 'transparent' }} />
             <div>
               <Text
                 style={{

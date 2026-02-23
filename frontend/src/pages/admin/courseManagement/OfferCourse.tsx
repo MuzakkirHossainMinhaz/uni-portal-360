@@ -1,11 +1,11 @@
 import { Button, Col, Flex } from 'antd';
-import PHForm from '../../../components/form/PHForm';
+import UniForm from '../../../components/form/UniForm';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
-import PHSelect from '../../../components/form/PHSelect';
-import PHSelectWithWatch from '../../../components/form/PHSelectWithWatch';
+import UniSelect from '../../../components/form/UniSelect';
+import UniSelectWithWatch from '../../../components/form/UniSelectWithWatch';
 
 import { useState } from 'react';
-import PHInput from '../../../components/form/PHInput';
+import UniInput from '../../../components/form/UniInput';
 
 import moment from 'moment';
 import {
@@ -19,7 +19,7 @@ import {
   useGetAcademicFacultiesQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import { weekDaysOptions } from '../../../constants/global';
-import PHTimePicker from '../../../components/form/PHTimePicker';
+import UniTimePicker from '../../../components/form/UniTimePicker';
 
 const OfferCourse = () => {
   const [courseId, setCourseId] = useState('');
@@ -89,47 +89,47 @@ const OfferCourse = () => {
   return (
     <Flex justify="center" align="center">
       <Col span={6}>
-        <PHForm onSubmit={onSubmit}>
-          <PHSelect
+        <UniForm onSubmit={onSubmit}>
+          <UniSelect
             name="semesterRegistration"
             label="Semester Registrations"
             options={semesterRegistrationOptions}
           />
-          <PHSelect
+          <UniSelect
             name="academicFaculty"
             label="Academic Faculty"
             options={academicFacultyOptions}
           />
-          <PHSelect
+          <UniSelect
             name="academicDepartment"
             label="Academic Department"
             options={academicDepartmentOptions}
           />
-          <PHSelectWithWatch
+          <UniSelectWithWatch
             onValueChange={setCourseId}
             options={courseOptions}
             name="course"
             label="Course"
           />
-          <PHSelect
+          <UniSelect
             disabled={!courseId || fetchingFaculties}
             name="faculty"
             label="Faculty"
             options={facultiesOptions}
           />
-          <PHInput type="text" name="section" label="Section" />
-          <PHInput type="text" name="maxCapacity" label="Max Capacity" />
-          <PHSelect
+          <UniInput type="text" name="section" label="Section" />
+          <UniInput type="text" name="maxCapacity" label="Max Capacity" />
+          <UniSelect
             mode="multiple"
             options={weekDaysOptions}
             name="days"
             label="Days"
           />
-          <PHTimePicker name="startTime" label="Start Time" />
-          <PHTimePicker name="endTime" label="End Time" />
+          <UniTimePicker name="startTime" label="Start Time" />
+          <UniTimePicker name="endTime" label="End Time" />
 
           <Button htmlType="submit">Submit</Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Flex>
   );

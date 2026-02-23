@@ -1,12 +1,6 @@
 import { Form } from 'antd';
 import { ReactNode } from 'react';
-import {
-  FieldValues,
-  FormProvider,
-  SubmitHandler,
-  useForm,
-  Resolver,
-} from 'react-hook-form';
+import { FieldValues, FormProvider, Resolver, SubmitHandler, useForm } from 'react-hook-form';
 
 type TFormConfig<TFieldValues extends FieldValues = FieldValues> = {
   defaultValues?: Record<string, unknown>;
@@ -18,7 +12,7 @@ type TFormProps<TFieldValues extends FieldValues = FieldValues> = {
   children: ReactNode;
 } & TFormConfig<TFieldValues>;
 
-const PHForm = <TFieldValues extends FieldValues = FieldValues>({
+const UniForm = <TFieldValues extends FieldValues = FieldValues>({
   onSubmit,
   children,
   defaultValues,
@@ -50,4 +44,4 @@ const PHForm = <TFieldValues extends FieldValues = FieldValues>({
   );
 };
 
-export default PHForm;
+export default UniForm;

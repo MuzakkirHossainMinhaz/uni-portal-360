@@ -1,13 +1,13 @@
 import { FieldValues, SubmitHandler } from 'react-hook-form';
-import PHForm from '../../../components/form/PHForm';
+import UniForm from '../../../components/form/UniForm';
 import { Button, Col, Flex } from 'antd';
-import PHSelect from '../../../components/form/PHSelect';
+import UniSelect from '../../../components/form/UniSelect';
 import { semesterStatusOptions } from '../../../constants/semester';
 
 import { toast } from 'sonner';
 import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
-import PHDatePicker from '../../../components/form/PHDatePicker';
-import PHInput from '../../../components/form/PHInput';
+import UniDatePicker from '../../../components/form/UniDatePicker';
+import UniInput from '../../../components/form/UniInput';
 import { useAddRegisteredSemesterMutation } from '../../../redux/features/admin/courseManagement';
 import { TResponse, TSemester } from '../../../types';
 
@@ -48,25 +48,25 @@ const SemesterRegistration = () => {
   return (
     <Flex justify="center" align="center">
       <Col span={6}>
-        <PHForm onSubmit={onSubmit}>
-          <PHSelect
+        <UniForm onSubmit={onSubmit}>
+          <UniSelect
             label="Academic Semester"
             name="academicSemester"
             options={academicSemesterOptions}
           />
 
-          <PHSelect
+          <UniSelect
             name="status"
             label="Status"
             options={semesterStatusOptions}
           />
-          <PHDatePicker name="startDate" label="Start Date" />
-          <PHDatePicker name="endDate" label="End Date" />
-          <PHInput type="text" name="minCredit" label="Min Credit" />
-          <PHInput type="text" name="maxCredit" label="Max Credit" />
+          <UniDatePicker name="startDate" label="Start Date" />
+          <UniDatePicker name="endDate" label="End Date" />
+          <UniInput type="text" name="minCredit" label="Min Credit" />
+          <UniInput type="text" name="maxCredit" label="Max Credit" />
 
           <Button htmlType="submit">Submit</Button>
-        </PHForm>
+        </UniForm>
       </Col>
     </Flex>
   );
