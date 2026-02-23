@@ -7,7 +7,7 @@ import { AnalyticsRoutes } from '../modules/Analytics/analytics.route';
 import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
 import { AttendanceRoutes } from '../modules/Attendance/attendance.route';
 import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
-import { AuthRoutes } from '../modules/Auth/auth.route';
+import { AuthRoutes } from '../modules/auth/auth.route';
 import { CourseRoutes } from '../modules/Course/course.route';
 import { EnrolledCourseRoutes } from '../modules/EnrolledCourse/enrolledCourse.route';
 import { FacultyRoutes } from '../modules/Faculty/faculty.route';

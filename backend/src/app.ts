@@ -33,7 +33,13 @@ app.use(limiter);
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors({ origin: [config.cors_origin as string], credentials: true }));
+const isProduction = config.NODE_ENV === 'PRODUCTION' || config.NODE_ENV === 'production';
+app.use(
+  cors({
+    origin: isProduction ? (config.cors_origin as string) : true,
+    credentials: true,
+  }),
+);
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

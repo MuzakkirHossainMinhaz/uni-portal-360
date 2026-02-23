@@ -6,16 +6,23 @@ type TInputProps = {
   name: string;
   label?: string;
   disabled?: boolean;
+  required?: boolean;
 };
 
-const UniInput = ({ type, name, label, disabled }: TInputProps) => {
+const UniInput = ({ type, name, label, disabled, required }: TInputProps) => {
+  const isPassword = type === 'password';
+
   return (
-    <div style={{ marginBottom: '20px' }}>
+    <div style={{ marginBottom: '12px' }}>
       <Controller
         name={name}
         render={({ field }) => (
-          <Form.Item label={label}>
-            <Input {...field} type={type} id={name} size="large" disabled={disabled} />
+          <Form.Item label={label} required={required}>
+            {isPassword ? (
+              <Input.Password {...field} id={name} size="large" disabled={disabled} />
+            ) : (
+              <Input {...field} type={type} id={name} size="large" disabled={disabled} />
+            )}
           </Form.Item>
         )}
       />
