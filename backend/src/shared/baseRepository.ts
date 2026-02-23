@@ -16,10 +16,7 @@ export type TPaginatedResult<T> = {
 
 export interface IReadonlyRepository<T> {
   findById(id: string): Promise<T | null>;
-  findAll(
-    query: Record<string, unknown>,
-    searchableFields?: string[],
-  ): Promise<TPaginatedResult<T>>;
+  findAll(query: Record<string, unknown>, searchableFields?: string[]): Promise<TPaginatedResult<T>>;
 }
 
 export interface IWriteonlyRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
@@ -27,15 +24,14 @@ export interface IWriteonlyRepository<T, TCreate = Partial<T>, TUpdate = Partial
   updateById(id: string, payload: TUpdate): Promise<T | null>;
 }
 
-export type IBaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> =
-  IReadonlyRepository<T> & IWriteonlyRepository<T, TCreate, TUpdate>;
+export type IBaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> = IReadonlyRepository<T> &
+  IWriteonlyRepository<T, TCreate, TUpdate>;
 
-export abstract class BaseRepository<
+export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> implements IBaseRepository<
   T,
-  TCreate = Partial<T>,
-  TUpdate = Partial<T>,
-> implements IBaseRepository<T, TCreate, TUpdate>
-{
+  TCreate,
+  TUpdate
+> {
   protected model: Model<T>;
 
   protected constructor(model: Model<T>) {
@@ -47,10 +43,7 @@ export abstract class BaseRepository<
     return result;
   }
 
-  async findAll(
-    query: Record<string, unknown>,
-    searchableFields: string[] = [],
-  ): Promise<TPaginatedResult<T>> {
+  async findAll(query: Record<string, unknown>, searchableFields: string[] = []): Promise<TPaginatedResult<T>> {
     const qb = new QueryBuilder<T>(this.model.find(), query)
       .search(searchableFields)
       .filter()

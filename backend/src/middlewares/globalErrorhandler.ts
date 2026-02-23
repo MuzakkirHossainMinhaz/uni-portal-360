@@ -9,7 +9,7 @@ import handleZodError from '../errors/handleZodError';
 import { TErrorSources } from '../interface/error';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  //setting default values
+  // Setting Default Values
   let statusCode = 500;
   let message = 'Something went wrong!';
   let errorSources: TErrorSources = [
@@ -70,13 +70,13 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
 
 export default globalErrorHandler;
 
-//pattern
+// Pattern
 /*
-success
-message
-errorSources:[
-  path:'',
-  message:''
-]
-stack
+  success
+  message
+  errorSources:[
+    path:'',
+    message:''
+  ]
+  stack
 */

@@ -15,4 +15,3 @@ const swaggerOptions: swaggerJsdoc.Options = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 export default swaggerSpec;
-

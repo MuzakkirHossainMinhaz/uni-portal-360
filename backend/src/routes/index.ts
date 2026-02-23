@@ -1,25 +1,24 @@
 import { Router } from 'express';
-import { AdminRoutes } from '../modules/Admin/admin.route';
-import { AttendanceRoutes } from '../modules/Attendance/attendance.route';
-import { AuthRoutes } from '../modules/Auth/auth.route';
-import { CourseRoutes } from '../modules/Course/course.route';
-import { SemesterResultRoutes } from '../modules/SemesterResult/semesterResult.route';
-import { TranscriptRoutes } from '../modules/Transcript/transcript.route';
-import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
-import { SubmissionRoutes } from '../modules/Submission/submission.route';
-import { NotificationRoutes } from '../modules/Notification/notification.route';
-import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
-import { FeeRoutes } from '../modules/Fee/fee.route';
-import { AnalyticsRoutes } from '../modules/Analytics/analytics.route';
-
 import { AcademicDepartmentRoutes } from '../modules/AcademicDepartment/academicDepartment.route';
 import { AcademicFacultyRoutes } from '../modules/AcademicFaculty/academicFaculty.route';
 import { AcademicSemesterRoutes } from '../modules/AcademicSemester/academicSemester.route';
+import { AdminRoutes } from '../modules/Admin/admin.route';
+import { AnalyticsRoutes } from '../modules/Analytics/analytics.route';
+import { AssignmentRoutes } from '../modules/Assignment/assignment.route';
+import { AttendanceRoutes } from '../modules/Attendance/attendance.route';
+import { AuditLogRoutes } from '../modules/AuditLog/auditLog.route';
+import { AuthRoutes } from '../modules/Auth/auth.route';
+import { CourseRoutes } from '../modules/Course/course.route';
 import { EnrolledCourseRoutes } from '../modules/EnrolledCourse/enrolledCourse.route';
 import { FacultyRoutes } from '../modules/Faculty/faculty.route';
+import { FeeRoutes } from '../modules/Fee/fee.route';
+import { NotificationRoutes } from '../modules/Notification/notification.route';
 import { offeredCourseRoutes } from '../modules/OfferedCourse/OfferedCourse.route';
 import { semesterRegistrationRoutes } from '../modules/SemesterRegistration/semesterRegistration.route';
+import { SemesterResultRoutes } from '../modules/SemesterResult/semesterResult.route';
 import { StudentRoutes } from '../modules/Student/student.route';
+import { SubmissionRoutes } from '../modules/Submission/submission.route';
+import { TranscriptRoutes } from '../modules/Transcript/transcript.route';
 import { UserRoutes } from '../modules/User/user.route';
 
 const router = Router();
