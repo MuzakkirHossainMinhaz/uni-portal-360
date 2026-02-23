@@ -65,9 +65,13 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     .text('OFFICIAL ACADEMIC TRANSCRIPT', { align: 'center', underline: true })
     .moveDown();
 
+  const studentName = `${student.name.firstName} ${student.name.middleName ?? ''} ${student.name.lastName}`
+    .replace(/\s+/g, ' ')
+    .trim();
+
   doc
     .fontSize(12)
-    .text(`Student Name: ${student.fullName}`)
+    .text(`Student Name: ${studentName}`)
     .text(`Student ID: ${student.id}`)
     .text(
       `Department: ${(student.academicDepartment as PopulatedDepartment | null)?.title ?? 'N/A'}`,
@@ -105,7 +109,7 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
 
     let yPosition = tableTop + 20;
 
-    for (const enrolledCourse of result.completedCourses as CompletedCourse[]) {
+    for (const enrolledCourse of result.completedCourses as unknown as CompletedCourse[]) {
       // Check for page break
        if (yPosition > 700) {
            doc.addPage();
@@ -147,7 +151,8 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     .fontSize(10)
     .font('Helvetica')
     .moveDown(2)
-    .text('This is a computer-generated document. No signature is required.', { align: 'center', color: 'gray' });
+    .fillColor('gray')
+    .text('This is a computer-generated document. No signature is required.', { align: 'center' });
 };
 
 export const TranscriptServices = {

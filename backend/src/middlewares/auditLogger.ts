@@ -16,7 +16,8 @@ export const auditLogger = (action: string, entityType: string, severity: TAudit
     res.on('finish', () => {
         // Only log if user is authenticated
         if (req.user && req.user.userId) {
-            const entityId = req.params.id;
+            const rawEntityId = req.params.id;
+            const entityId = Array.isArray(rawEntityId) ? rawEntityId[0] : rawEntityId;
 
             const logData: Partial<TAuditLog> = {
                 userId: new Types.ObjectId(req.user.userId),

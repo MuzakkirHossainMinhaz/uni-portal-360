@@ -40,7 +40,8 @@ const getMyFees = catchAsync(async (req, res) => {
 });
 
 const payFee = catchAsync(async (req, res) => {
-    const { id } = req.params;
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
     const result = await FeeServices.payFee(id, req.body);
 
     sendResponse(res, {

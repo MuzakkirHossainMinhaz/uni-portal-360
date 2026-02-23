@@ -1,4 +1,4 @@
-import { FieldValues, SubmitHandler } from 'react-hook-form';
+import { SubmitHandler } from 'react-hook-form';
 import PHForm from '../../../components/form/PHForm';
 import { Button, Col, Flex } from 'antd';
 import PHSelect from '../../../components/form/PHSelect';
@@ -21,7 +21,14 @@ const yearOptions = [0, 1, 2, 3, 4].map((number) => ({
 const CreateAcademicSemester = () => {
   const [addAcademicSemester] = useAddAcademicSemesterMutation();
 
-  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+  type AcademicSemesterFormValues = {
+    name: string;
+    year: string;
+    startMonth: string;
+    endMonth: string;
+  };
+
+  const onSubmit: SubmitHandler<AcademicSemesterFormValues> = async (data) => {
     const toastId = toast.loading('Creating...');
 
     const name = semesterOptions[Number(data?.name) - 1]?.label;

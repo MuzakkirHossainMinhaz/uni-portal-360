@@ -27,7 +27,7 @@ const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   
   const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(
-    { limit: 10 },
+    { limit: '10' },
     { pollingInterval: 30000 },
   );
   

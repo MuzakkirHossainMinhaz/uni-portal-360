@@ -6,6 +6,7 @@ import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Student } from '../Student/student.model';
 import { TSubmission } from './submission.interface';
 import { SubmissionRepository } from './submission.repository';
+import { Submission } from './submission.model';
 import { Express } from 'express';
 
 const submissionRepository = new SubmissionRepository();
@@ -38,7 +39,7 @@ const createSubmission = async (userId: string, file: Express.Multer.File | unde
   }
 
   // Check duplicate submission
-  const isSubmitted = await submissionRepository.model.findOne({
+  const isSubmitted = await Submission.findOne({
     student: student._id,
     assignment: assignment._id,
   });
@@ -68,19 +69,19 @@ const createSubmission = async (userId: string, file: Express.Multer.File | unde
 };
 
 const getAllSubmissions = async (query: Record<string, unknown>) => {
-    // Basic filtering
-    const filter: Record<string, unknown> = {};
-    if (query.assignment) {
-        filter.assignment = query.assignment;
-    }
-    const result = await submissionRepository.model.find(filter)
-        .populate('student')
-        .populate('assignment');
-    return result;
+  // Basic filtering
+  const filter: Record<string, unknown> = {};
+  if (query.assignment) {
+    filter.assignment = query.assignment;
+  }
+  const result = await Submission.find(filter)
+    .populate('student')
+    .populate('assignment');
+  return result;
 };
 
 const gradeSubmission = async (id: string, payload: { grade: number; feedback?: string }) => {
-  const submission = await submissionRepository.findById(id);
+  const submission = await Submission.findById(id);
   if (!submission) {
     throw new AppError(httpStatus.NOT_FOUND, 'Submission not found');
   }

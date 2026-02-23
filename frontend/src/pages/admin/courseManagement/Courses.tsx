@@ -11,6 +11,7 @@ import PermissionGuard from '../../../components/layout/PermissionGuard';
 import PageHeader from '../../../components/layout/PageHeader';
 import { SearchOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { FieldValues, SubmitHandler } from 'react-hook-form';
 
 type CourseTableRow = {
   key: string;
@@ -107,10 +108,10 @@ const AddFacultyModal = ({ facultyInfo }: { facultyInfo: CourseTableRow }) => {
     }),
   );
 
-  const handleSubmit = (data: { faculties: string[] }) => {
+  const handleSubmit: SubmitHandler<FieldValues> = (data) => {
     const facultyData = {
       courseId: facultyInfo.key,
-      data,
+      data: (data.faculties || []) as string[],
     };
 
     addFaculties(facultyData);

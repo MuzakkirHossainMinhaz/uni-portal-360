@@ -18,15 +18,21 @@ type FacultyCourse = {
 
 const FacultyAttendance = () => {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
 
   const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
 
   const courseOptions =
-    facultyCourses?.data?.map((item: FacultyCourse) => ({
-      value: item._id,
-      label: `${item.course.title} (${item.section})`,
-      desc: item.days.join(', '),
-    })) ?? [];
+    facultyCourses?.data?.map((item) => {
+      const course = (item as unknown as FacultyCourse).course;
+      const section = (item as unknown as FacultyCourse).section;
+      const days = (item as unknown as FacultyCourse).days;
+      return {
+        value: (item as unknown as FacultyCourse)._id,
+        label: `${course.title} (${section})`,
+        desc: days.join(', '),
+      };
+    }) ?? [];
 
   const columns = [
       {
@@ -91,10 +97,10 @@ const FacultyAttendance = () => {
                     </Form.Item>
                     <Form.Item label="Date">
                         <DatePicker 
-                            style={{ width: '100%' }} 
-                            defaultValue={dayjs()}
-                            onChange={(date, dateString) => setSelectedDate(dateString as string)}
-                            size="large"
+                          style={{ width: '100%' }} 
+                          defaultValue={dayjs()}
+                          onChange={(_, dateString) => setSelectedDate(dateString as string)}
+                          size="large"
                         />
                     </Form.Item>
                     
@@ -114,7 +120,18 @@ const FacultyAttendance = () => {
               <Card 
                 title={selectedCourse ? "Student List" : "Attendance Sheet"} 
                 bordered={false}
-                extra={selectedCourse && <Button type="primary" onClick={() => message.success('Saved')}>Save Attendance</Button>}
+                extra={
+                  selectedCourse && (
+                    <Button
+                      type="primary"
+                      onClick={() =>
+                        message.success(`Saved attendance for ${selectedDate}`)
+                      }
+                    >
+                      Save Attendance
+                    </Button>
+                  )
+                }
                 style={{ minHeight: 400 }}
               >
                 {selectedCourse ? (

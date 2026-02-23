@@ -1,11 +1,10 @@
-import config from '../config';
 import { USER_ROLE } from '../modules/User/user.constant';
 import { User } from '../modules/User/user.model';
 
 const superUser = {
-  id: '0001',
-  email: 'abedinforhan@gmail.com',
-  password: config.super_admin_password,
+  id: 'SA-0001',
+  email: 'superadmin@uni-portal-360.com',
+  password: '123456',
   needsPasswordChange: false,
   role: USER_ROLE.superAdmin,
   status: 'in-progress',

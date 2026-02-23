@@ -41,8 +41,11 @@ const FacultyGradebook = () => {
   const { data: facultyCourses, isLoading } = useGetFacultyCoursesQuery(undefined);
   const [updateMarks, { isLoading: isUpdating }] = useUpdateEnrolledCourseMarksMutation();
 
+  const enrollmentData =
+    (facultyCourses?.data as unknown as FacultyCourseEnrollment[]) || [];
+
   const uniqueCourses =
-    facultyCourses?.data?.reduce<FacultyCourseEnrollment[]>((acc, curr: FacultyCourseEnrollment) => {
+    enrollmentData.reduce<FacultyCourseEnrollment[]>((acc, curr) => {
       if (!acc.find((item) => item.offeredCourse._id === curr.offeredCourse._id)) {
         acc.push(curr);
       }
@@ -55,11 +58,14 @@ const FacultyGradebook = () => {
   }));
 
   const students =
-    facultyCourses?.data?.filter(
-      (item: FacultyCourseEnrollment) => item.offeredCourse._id === selectedCourse,
-    ) || [];
+    enrollmentData.filter((item) => item.offeredCourse._id === selectedCourse) ||
+    [];
 
   const handleUpdateMarks = async (values: MarksFormValues) => {
+    if (!editingStudent) {
+      return;
+    }
+
     const payload = {
       semesterRegistration: editingStudent.semesterRegistration._id,
       offeredCourse: editingStudent.offeredCourse._id,

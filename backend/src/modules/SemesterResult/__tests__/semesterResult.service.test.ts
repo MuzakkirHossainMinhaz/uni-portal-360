@@ -68,7 +68,9 @@ describe('SemesterResultServices', () => {
         abortTransaction: jest.fn(),
         endSession: jest.fn(),
       };
-      jest.spyOn(mongoose, 'startSession').mockResolvedValue(mockSession);
+      jest
+        .spyOn(mongoose, 'startSession')
+        .mockResolvedValue(mockSession as unknown as mongoose.ClientSession);
 
       const result = await SemesterResultServices.calculateSemesterGPA(
         mockStudentId,

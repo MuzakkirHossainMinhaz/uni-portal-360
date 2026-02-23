@@ -1,6 +1,7 @@
 import { AcademicFacultySearchableFields } from './academicFaculty.constant';
 import { TAcademicFaculty } from './academicFaculty.interface';
 import { AcademicFacultyRepository } from './academicFaculty.repository';
+import { AcademicFaculty } from './academicFaculty.model';
 
 const academicFacultyRepository = new AcademicFacultyRepository();
 

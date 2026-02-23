@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom';
 import {
-  useAddMarkMutation,
-  useGetAllFacultyCoursesQuery,
+  useGetFacultyCoursesQuery,
+  useUpdateEnrolledCourseMarksMutation,
 } from '../../redux/features/faculty/facultyCourses.api';
-import { Button, Modal, Table } from 'antd';
+import { Button, Modal, Table, message } from 'antd';
 import { useState } from 'react';
 import PHForm from '../../components/form/PHForm';
 import PHInput from '../../components/form/PHInput';
@@ -41,13 +41,20 @@ type MarksFormValues = {
 
 const MyStudents = () => {
   const { registerSemesterId, courseId } = useParams();
-  const { data: facultyCoursesData } = useGetAllFacultyCoursesQuery([
-    { name: 'semesterRegistration', value: registerSemesterId },
-    { name: 'course', value: courseId },
-  ]);
+  const { data: facultyCoursesData } = useGetFacultyCoursesQuery(
+    registerSemesterId && courseId
+      ? [
+          { name: 'semesterRegistration', value: registerSemesterId },
+          { name: 'course', value: courseId },
+        ]
+      : undefined,
+  );
 
-  const tableData: StudentTableRow[] | undefined = facultyCoursesData?.data?.map(
-    ({ _id, student, semesterRegistration, offeredCourse }: FacultyCourseStudent) => ({
+  const studentsData =
+    (facultyCoursesData?.data as unknown as FacultyCourseStudent[]) || [];
+
+  const tableData: StudentTableRow[] | undefined = studentsData.map(
+    ({ _id, student, semesterRegistration, offeredCourse }) => ({
       key: _id,
       name: student.fullName,
       roll: student.id,
@@ -84,7 +91,7 @@ const MyStudents = () => {
 
 const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [addMark] = useAddMarkMutation();
+  const [updateMarks, { isLoading }] = useUpdateEnrolledCourseMarksMutation();
 
   const handleSubmit = async (data: MarksFormValues) => {
     const studentMark = {
@@ -99,7 +106,13 @@ const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
       },
     };
 
-    await addMark(studentMark);
+    try {
+      await updateMarks(studentMark).unwrap();
+      message.success('Marks added successfully');
+      setIsModalOpen(false);
+    } catch {
+      message.error('Failed to add marks');
+    }
   };
 
   const showModal = () => {
@@ -124,7 +137,9 @@ const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
           <PHInput type="text" name="classTest2" label="Class Test 2" />
           <PHInput type="text" name="midTerm" label="Midterm" />
           <PHInput type="text" name="finalTerm" label="Final" />
-          <Button htmlType="submit">Submit</Button>
+          <Button htmlType="submit" loading={isLoading}>
+            Submit
+          </Button>
         </PHForm>
       </Modal>
     </>

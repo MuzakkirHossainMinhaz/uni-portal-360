@@ -1,4 +1,4 @@
-import { TMeta, TResponseRedux } from '../../../types';
+import { TMeta, TQueryParam, TResponseRedux } from '../../../types';
 import { baseApi } from '../../api/baseApi';
 
 type FacultyEnrolledCourse = {
@@ -16,12 +16,14 @@ type PaginatedFacultyCourses = {
 
 const facultyCoursesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getFacultyCourses: builder.query<PaginatedFacultyCourses, Record<string, string> | undefined>({
+    getFacultyCourses: builder.query<PaginatedFacultyCourses, TQueryParam[] | undefined>({
       query: (args) => {
         const params = new URLSearchParams();
         if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
+          args.forEach((item: TQueryParam) => {
+            if (item.value !== undefined && item.value !== null) {
+              params.append(item.name, String(item.value));
+            }
           });
         }
         return {

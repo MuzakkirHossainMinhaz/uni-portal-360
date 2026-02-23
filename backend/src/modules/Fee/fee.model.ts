@@ -58,14 +58,12 @@ feeSchema.index({ student: 1, status: 1 });
 feeSchema.index({ dueDate: 1 });
 
 // Middleware to filter deleted
-feeSchema.pre('find', function (next) {
+feeSchema.pre('find', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
-feeSchema.pre('findOne', function (next) {
+feeSchema.pre('findOne', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
 export const Fee = model<TFee>('Fee', feeSchema);

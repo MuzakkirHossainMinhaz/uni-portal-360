@@ -33,7 +33,10 @@ describe('AcademicFacultyServices', () => {
       updateById: jest.fn(),
     };
 
-    MockedAcademicFacultyRepository.mockImplementation(() => instanceMock);
+    MockedAcademicFacultyRepository.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      (_model?: unknown) => instanceMock as unknown as AcademicFacultyRepository,
+    );
 
     const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB(query);
 

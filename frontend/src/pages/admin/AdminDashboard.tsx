@@ -107,7 +107,7 @@ const AdminDashboard = () => {
                 <Skeleton loading={statsLoading} active avatar paragraph={{ rows: 1 }}>
                     <Statistic
                     title={<Text type="secondary">Total Faculty</Text>}
-                    value={stats?.totalFaculty}
+                    value={stats?.totalFaculties}
                     prefix={<TeamOutlined style={{ color: '#fa8c16', backgroundColor: '#fff7e6', padding: 8, borderRadius: '50%' }} />}
                     valueStyle={{ fontWeight: 'bold', color: '#fa8c16' }}
                     />

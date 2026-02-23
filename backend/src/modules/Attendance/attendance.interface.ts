@@ -1,9 +1,11 @@
+import { Types } from 'mongoose';
+
 export type TAttendanceStatus = 'Present' | 'Absent' | 'Late';
 
 export type TAttendance = {
-  student: string; // ObjectId
-  offeredCourse: string; // ObjectId
-  semesterRegistration: string; // ObjectId
+  student: Types.ObjectId;
+  offeredCourse: Types.ObjectId;
+  semesterRegistration: Types.ObjectId;
   date: Date;
   status: TAttendanceStatus;
   remark?: string;

@@ -282,15 +282,16 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
   const result = await OfferedCourse.aggregate([...aggregationQuery, ...paginationQuery]);
 
   const total = (await OfferedCourse.aggregate(aggregationQuery)).length;
-
-  const totalPage = Math.ceil(result.length / limit);
+  const totalPages = Math.ceil(total / limit) || 1;
+  const hasNext = page < totalPages;
 
   return {
     meta: {
       page,
       limit,
       total,
-      totalPage,
+      totalPages,
+      hasNext,
     },
     result,
   };

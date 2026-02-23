@@ -1,5 +1,6 @@
 import { Button, Modal, Table, Tag, message, Row, Col, Card, Space, Typography, Input } from 'antd';
 import { useState } from 'react';
+import { SubmitHandler } from 'react-hook-form';
 import { useCreateFeeMutation, useGetAllFeesQuery } from '../../../redux/features/fee/fee.api';
 import moment from 'moment';
 import PHForm from '../../../components/form/PHForm';
@@ -53,13 +54,15 @@ const FeeManagement = () => {
       label: `${item.name} ${item.year}`,
     })) ?? [];
 
-  const handleCreateFee = async (data: {
+  type CreateFeeFormValues = {
     student: string;
     academicSemester: string;
     type: string;
     amount: number;
     dueDate: string;
-  }) => {
+  };
+
+  const handleCreateFee: SubmitHandler<CreateFeeFormValues> = async (data) => {
     const hide = message.loading('Creating fee...', 0);
     try {
       await createFee(data).unwrap();
@@ -163,7 +166,7 @@ const FeeManagement = () => {
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
-        <PHForm onSubmit={handleCreateFee}>
+        <PHForm<CreateFeeFormValues> onSubmit={handleCreateFee}>
           <PHSelect
             name="student"
             label="Student"

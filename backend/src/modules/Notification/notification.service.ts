@@ -26,12 +26,16 @@ const getUserNotifications = async (userId: string, query: Record<string, unknow
 
   const total = await Notification.countDocuments({ userId: user._id, isDeleted: false });
   const unreadCount = await Notification.countDocuments({ userId: user._id, read: false, isDeleted: false });
+  const totalPages = Math.ceil(total / limit) || 1;
+  const hasNext = page < totalPages;
 
   return {
     meta: {
       page,
       limit,
       total,
+      totalPages,
+      hasNext,
       unreadCount,
     },
     data: result,

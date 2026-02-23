@@ -4,7 +4,7 @@ import { useCreateAssignmentMutation } from '../../../redux/features/assignment/
 import PHForm from '../../../components/form/PHForm';
 import PHInput from '../../../components/form/PHInput';
 import PHSelect from '../../../components/form/PHSelect';
-import { Controller } from 'react-hook-form';
+import { Controller, SubmitHandler } from 'react-hook-form';
 import type { Dayjs } from 'dayjs';
 
 type FacultyCourseItem = {
@@ -30,18 +30,21 @@ const CreateAssignment = () => {
 
   const uniqueCoursesMap = new Map<string, { value: string; label: string }>();
   if (facultyCourses?.data) {
-    facultyCourses.data.forEach((item: FacultyCourseItem) => {
-        if (!uniqueCoursesMap.has(item.offeredCourse._id)) {
-            uniqueCoursesMap.set(item.offeredCourse._id, {
-                value: item.offeredCourse._id,
-                label: `${item.course.title} (${item.offeredCourse.section})`,
-            });
-        }
+    facultyCourses.data.forEach((item) => {
+      const source = item as unknown as FacultyCourseItem;
+      const course = source.course;
+      const offeredCourse = source.offeredCourse;
+      if (!uniqueCoursesMap.has(offeredCourse._id)) {
+        uniqueCoursesMap.set(offeredCourse._id, {
+          value: offeredCourse._id,
+          label: `${course.title} (${offeredCourse.section})`,
+        });
+      }
     });
   }
   const courseOptions = Array.from(uniqueCoursesMap.values());
 
-  const onSubmit = async (data: AssignmentFormValues) => {
+  const onSubmit: SubmitHandler<AssignmentFormValues> = async (data) => {
     const key = 'assignmentCreate';
     message.loading({ content: 'Creating assignment...', key });
     try {
@@ -62,7 +65,7 @@ const CreateAssignment = () => {
   return (
     <Row justify="center">
       <Col span={24}>
-        <PHForm onSubmit={onSubmit}>
+        <PHForm<AssignmentFormValues> onSubmit={onSubmit}>
           <Row gutter={20}>
             <Col span={24} md={12} lg={8}>
               <PHInput type="text" name="title" label="Assignment Title" />

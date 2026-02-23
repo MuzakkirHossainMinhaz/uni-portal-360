@@ -3,7 +3,6 @@ import PHForm from '../components/form/PHForm';
 import PHInput from '../components/form/PHInput';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
 import { useChangePasswordMutation } from '../redux/features/admin/userManagement.api';
-import { TResponse } from '../types';
 import { useAppDispatch } from '../redux/hooks';
 import { logout } from '../redux/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
@@ -14,14 +13,14 @@ const ChangePassword = () => {
   const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-    console.log(data);
+    const payload = {
+      oldPassword: data.oldPassword as string,
+      newPassword: data.newPassword as string,
+    };
 
-    const res = (await changePassword(data)) as TResponse<null>;
-    console.log(res?.data?.success);
-    if (res?.data?.success) {
-      dispatch(logout());
-      navigate('/login');
-    }
+    await changePassword(payload).unwrap();
+    dispatch(logout());
+    navigate('/login');
   };
 
   return (

@@ -1,7 +1,7 @@
-import { Permission, Role, RolePermission } from './rbac.model';
 import { logger } from '../../utils/logger';
+import { Permission, Role, RolePermission } from './rbac.model';
 
-const ROLES = ['admin', 'faculty', 'student', 'superAdmin', 'registrar'];
+const ROLES = ['superAdmin', 'admin', 'registrar', 'faculty', 'student'];
 
 const PERMISSIONS = [
   // User Management
@@ -17,7 +17,7 @@ const PERMISSIONS = [
   'deleteAdmin',
   'updateAdmin',
   'getAdmin',
-  
+
   // Academic Management
   'createAcademicSemester',
   'updateAcademicSemester',
@@ -28,7 +28,7 @@ const PERMISSIONS = [
   'createAcademicFaculty',
   'updateAcademicFaculty',
   'getAcademicFaculty',
-  
+
   // Course Management
   'createCourse',
   'updateCourse',
@@ -36,31 +36,31 @@ const PERMISSIONS = [
   'getCourse',
   'assignFaculties',
   'removeFaculties',
-  
+
   // Offered Course
   'createOfferedCourse',
   'updateOfferedCourse',
   'deleteOfferedCourse',
   'getOfferedCourse',
-  
+
   // Semester Registration
   'createSemesterRegistration',
   'updateSemesterRegistration',
   'deleteSemesterRegistration',
   'getSemesterRegistration',
-  
+
   // Enrollment
   'enrollCourse',
   'withdrawCourse',
   'getMyEnrolledCourses',
-  
+
   // Assignment & Grading
   'createAssignment',
   'submitAssignment',
   'gradeAssignment',
   'viewAssignment',
   'viewSubmission',
-  
+
   // Results
   'viewResult',
   'publishResult',
@@ -69,25 +69,62 @@ const PERMISSIONS = [
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   superAdmin: PERMISSIONS, // All permissions
   admin: [
-    'createStudent', 'deleteStudent', 'updateStudent', 'getStudent',
-    'createFaculty', 'deleteFaculty', 'updateFaculty', 'getFaculty',
-    'createAdmin', 'deleteAdmin', 'updateAdmin', 'getAdmin',
-    'createAcademicSemester', 'updateAcademicSemester', 'getAcademicSemester',
-    'createAcademicDepartment', 'updateAcademicDepartment', 'getAcademicDepartment',
-    'createAcademicFaculty', 'updateAcademicFaculty', 'getAcademicFaculty',
-    'createCourse', 'updateCourse', 'deleteCourse', 'getCourse',
-    'assignFaculties', 'removeFaculties',
-    'createOfferedCourse', 'updateOfferedCourse', 'deleteOfferedCourse', 'getOfferedCourse',
-    'createSemesterRegistration', 'updateSemesterRegistration', 'deleteSemesterRegistration', 'getSemesterRegistration',
+    'createStudent',
+    'deleteStudent',
+    'updateStudent',
+    'getStudent',
+    'createFaculty',
+    'deleteFaculty',
+    'updateFaculty',
+    'getFaculty',
+    'createAdmin',
+    'deleteAdmin',
+    'updateAdmin',
+    'getAdmin',
+    'createAcademicSemester',
+    'updateAcademicSemester',
+    'getAcademicSemester',
+    'createAcademicDepartment',
+    'updateAcademicDepartment',
+    'getAcademicDepartment',
+    'createAcademicFaculty',
+    'updateAcademicFaculty',
+    'getAcademicFaculty',
+    'createCourse',
+    'updateCourse',
+    'deleteCourse',
+    'getCourse',
+    'assignFaculties',
+    'removeFaculties',
+    'createOfferedCourse',
+    'updateOfferedCourse',
+    'deleteOfferedCourse',
+    'getOfferedCourse',
+    'createSemesterRegistration',
+    'updateSemesterRegistration',
+    'deleteSemesterRegistration',
+    'getSemesterRegistration',
     'publishResult',
   ],
   registrar: [
-    'createAcademicSemester', 'updateAcademicSemester', 'getAcademicSemester',
-    'createAcademicDepartment', 'updateAcademicDepartment', 'getAcademicDepartment',
-    'createAcademicFaculty', 'updateAcademicFaculty', 'getAcademicFaculty',
-    'createCourse', 'updateCourse', 'getCourse',
-    'createOfferedCourse', 'updateOfferedCourse', 'getOfferedCourse',
-    'createSemesterRegistration', 'updateSemesterRegistration', 'getSemesterRegistration',
+    'createAcademicSemester',
+    'updateAcademicSemester',
+    'getAcademicSemester',
+    'createAcademicDepartment',
+    'updateAcademicDepartment',
+    'getAcademicDepartment',
+    'createAcademicFaculty',
+    'updateAcademicFaculty',
+    'getAcademicFaculty',
+    'createCourse',
+    'updateCourse',
+    'getCourse',
+    'createOfferedCourse',
+    'updateOfferedCourse',
+    'getOfferedCourse',
+    'createSemesterRegistration',
+    'updateSemesterRegistration',
+    'getSemesterRegistration',
   ],
   faculty: [
     'getStudent',
@@ -97,7 +134,10 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'getCourse',
     'getOfferedCourse',
     'getMyEnrolledCourses',
-    'createAssignment', 'gradeAssignment', 'viewAssignment', 'viewSubmission',
+    'createAssignment',
+    'gradeAssignment',
+    'viewAssignment',
+    'viewSubmission',
     'viewResult',
   ],
   student: [
@@ -106,8 +146,11 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'getAcademicFaculty',
     'getCourse',
     'getOfferedCourse',
-    'enrollCourse', 'withdrawCourse', 'getMyEnrolledCourses',
-    'submitAssignment', 'viewAssignment',
+    'enrollCourse',
+    'withdrawCourse',
+    'getMyEnrolledCourses',
+    'submitAssignment',
+    'viewAssignment',
     'viewResult',
   ],
 };
@@ -118,17 +161,13 @@ const seedRBAC = async () => {
       await Permission.updateOne(
         { name: permName },
         { name: permName, description: `Permission to ${permName}` },
-        { upsert: true }
+        { upsert: true },
       );
     }
     logger.info('Permissions seeded');
 
     for (const roleName of ROLES) {
-      await Role.updateOne(
-        { name: roleName },
-        { name: roleName, description: `${roleName} role` },
-        { upsert: true }
-      );
+      await Role.updateOne({ name: roleName }, { name: roleName, description: `${roleName} role` }, { upsert: true });
     }
     logger.info('Roles seeded');
 
@@ -143,7 +182,7 @@ const seedRBAC = async () => {
         await RolePermission.updateOne(
           { roleId: role._id, permissionId: permission._id },
           { roleId: role._id, permissionId: permission._id },
-          { upsert: true }
+          { upsert: true },
         );
       }
     }
@@ -154,42 +193,45 @@ const seedRBAC = async () => {
 };
 
 const hasPermission = async (roleName: string, permissionName: string): Promise<boolean> => {
-    if (roleName === 'superAdmin') return true;
+  if (roleName === 'superAdmin') return true;
 
-    const role = await Role.findOne({ name: roleName });
-    if (!role) return false;
+  const role = await Role.findOne({ name: roleName });
+  if (!role) return false;
 
-    const permission = await Permission.findOne({ name: permissionName });
-    if (!permission) return false;
+  const permission = await Permission.findOne({ name: permissionName });
+  if (!permission) return false;
 
-    const rolePermission = await RolePermission.findOne({
-        roleId: role._id,
-        permissionId: permission._id,
-    });
+  const rolePermission = await RolePermission.findOne({
+    roleId: role._id,
+    permissionId: permission._id,
+  });
 
-    return !!rolePermission;
+  return !!rolePermission;
 };
 
 const getRolePermissions = async (roleName: string): Promise<string[]> => {
-    if (roleName === 'superAdmin') {
-        const allPermissions = await Permission.find({});
-        return allPermissions.map(p => p.name);
-    }
+  if (roleName === 'superAdmin') {
+    const allPermissions = await Permission.find({});
+    return allPermissions.map((p) => p.name);
+  }
 
-    const role = await Role.findOne({ name: roleName });
-    if (!role) return [];
+  const role = await Role.findOne({ name: roleName });
+  if (!role) return [];
 
-    const rolePermissions = await RolePermission.find({ roleId: role._id }).populate('permissionId');
+  const rolePermissions = await RolePermission.find({ roleId: role._id }).populate('permissionId');
 
-    return rolePermissions.map((rp) => {
+  return rolePermissions
+    .map((rp) => {
       if (!rp.permissionId) {
         return '';
       }
       if (typeof rp.permissionId === 'string') {
         return rp.permissionId;
       }
-      return rp.permissionId.name;
-    }).filter(Boolean);
+      const populated = rp.permissionId as any;
+      return populated.name as string;
+    })
+    .filter(Boolean);
 };
 
 export const RBACService = {

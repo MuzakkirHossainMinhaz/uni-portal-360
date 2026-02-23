@@ -5,6 +5,7 @@ import { useGetAllAssignmentsQuery } from '../../../redux/features/assignment/as
 import { useCreateSubmissionMutation } from '../../../redux/features/submission/submission.api';
 import PageHeader from '../../../components/layout/PageHeader';
 import dayjs from 'dayjs';
+import type { UploadFile } from 'antd/es/upload/interface';
 
 const { Text, Paragraph } = Typography;
 
@@ -12,7 +13,7 @@ type StudentAssignment = {
   _id: string;
   title: string;
   description?: string;
-  deadline: string;
+  dueDate: string;
 };
 
 const StudentAssignments = () => {
@@ -20,7 +21,7 @@ const StudentAssignments = () => {
   const [createSubmission, { isLoading: isSubmitting }] = useCreateSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StudentAssignment | null>(null);
-  const [fileList, setFileList] = useState<File[]>([]);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   const showSubmitModal = (assignment: StudentAssignment) => {
     setSelectedAssignment(assignment);
@@ -35,13 +36,24 @@ const StudentAssignments = () => {
   };
 
   const handleUpload = async () => {
+    if (!selectedAssignment) {
+      message.error('No assignment selected');
+      return;
+    }
+
     if (fileList.length === 0) {
       message.error('Please select a file');
       return;
     }
 
+    const file = fileList[0];
+    if (!file.originFileObj) {
+      message.error('Invalid file');
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('file', fileList[0]);
+    formData.append('file', file.originFileObj);
     formData.append('data', JSON.stringify({ assignment: selectedAssignment._id }));
 
     try {
@@ -59,7 +71,7 @@ const StudentAssignments = () => {
       setFileList([]);
     },
     beforeUpload: (file: File) => {
-      setFileList([file]);
+      setFileList([file as unknown as UploadFile]);
       return false;
     },
     fileList,
@@ -81,14 +93,18 @@ const StudentAssignments = () => {
         dataSource={assignments?.data}
         loading={isLoading}
         renderItem={(item: StudentAssignment) => {
-            const deadline = dayjs(item.deadline);
+            const deadline = dayjs(item.dueDate);
             const isExpired = dayjs().isAfter(deadline);
             const timeLeft = deadline.diff(dayjs(), 'day');
             
             return (
               <List.Item>
                 <Card 
-                    title={<Text ellipsis tooltip={item.title}>{item.title}</Text>}
+                    title={
+                      <Text ellipsis={{ tooltip: item.title }}>
+                        {item.title}
+                      </Text>
+                    }
                     bordered={false}
                     hoverable
                     actions={[

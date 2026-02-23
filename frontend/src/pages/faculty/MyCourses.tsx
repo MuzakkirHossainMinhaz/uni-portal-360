@@ -1,7 +1,7 @@
 import { Button, Col, Flex } from 'antd';
 import PHForm from '../../components/form/PHForm';
 import PHSelect from '../../components/form/PHSelect';
-import { useGetAllFacultyCoursesQuery } from '../../redux/features/faculty/facultyCourses.api';
+import { useGetFacultyCoursesQuery } from '../../redux/features/faculty/facultyCourses.api';
 import { useNavigate } from 'react-router-dom';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
 
@@ -20,17 +20,20 @@ type FacultyCourse = {
 };
 
 const MyCourses = () => {
-  const { data: facultyCoursesData } = useGetAllFacultyCoursesQuery(undefined);
+  const { data: facultyCoursesData } = useGetFacultyCoursesQuery(undefined);
   const navigate = useNavigate();
 
+  const facultyCourses =
+    (facultyCoursesData?.data as unknown as FacultyCourse[]) || [];
+
   const semesterOptions =
-    facultyCoursesData?.data?.map((item: FacultyCourse) => ({
+    facultyCourses.map((item) => ({
       label: `${item.academicSemester.name} ${item.academicSemester.year}`,
       value: item.semesterRegistration._id,
     })) ?? [];
 
   const courseOptions =
-    facultyCoursesData?.data?.map((item: FacultyCourse) => ({
+    facultyCourses.map((item) => ({
       label: item.course.title,
       value: item.course._id,
     })) ?? [];

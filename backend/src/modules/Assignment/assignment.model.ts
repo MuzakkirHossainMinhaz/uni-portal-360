@@ -37,19 +37,16 @@ const assignmentSchema = new Schema<TAssignment>(
 );
 
 // Query Middleware
-assignmentSchema.pre('find', function (next) {
+assignmentSchema.pre('find', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
-assignmentSchema.pre('findOne', function (next) {
+assignmentSchema.pre('findOne', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
-assignmentSchema.pre('aggregate', function (next) {
+assignmentSchema.pre('aggregate', function () {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
 });
 
 export const Assignment = model<TAssignment>('Assignment', assignmentSchema);

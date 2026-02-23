@@ -60,12 +60,18 @@ const getAllFees = async (query: Record<string, unknown>) => {
     .limit(Number(limit));
 
   const total = await Fee.countDocuments(filter);
+  const currentPage = Number(page);
+  const perPage = Number(limit);
+  const totalPages = Math.ceil(total / perPage) || 1;
+  const hasNext = currentPage < totalPages;
 
   return {
     meta: {
-      page: Number(page),
-      limit: Number(limit),
+      page: currentPage,
+      limit: perPage,
       total,
+      totalPages,
+      hasNext,
     },
     data: result,
   };
@@ -97,12 +103,18 @@ const getMyFees = async (userId: string, query: Record<string, unknown>) => {
         .limit(Number(limit));
 
     const total = await Fee.countDocuments(filter);
+    const currentPage = Number(page);
+    const perPage = Number(limit);
+    const totalPages = Math.ceil(total / perPage) || 1;
+    const hasNext = currentPage < totalPages;
 
     return {
         meta: {
-            page: Number(page),
-            limit: Number(limit),
+            page: currentPage,
+            limit: perPage,
             total,
+            totalPages,
+            hasNext,
         },
         data: result,
     };

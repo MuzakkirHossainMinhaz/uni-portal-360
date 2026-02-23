@@ -51,14 +51,12 @@ const notificationSchema = new Schema<TNotification>(
 notificationSchema.index({ userId: 1, read: 1 });
 
 // Query Middleware to exclude deleted notifications
-notificationSchema.pre('find', function (next) {
+notificationSchema.pre('find', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
-notificationSchema.pre('findOne', function (next) {
+notificationSchema.pre('findOne', function () {
   this.find({ isDeleted: { $ne: true } });
-  next();
 });
 
 export const Notification = model<TNotification>('Notification', notificationSchema);

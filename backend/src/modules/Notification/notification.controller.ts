@@ -18,7 +18,8 @@ const getUserNotifications = catchAsync(async (req, res) => {
 
 const markAsRead = catchAsync(async (req, res) => {
   const { userId } = req.user;
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await NotificationServices.markAsRead(id, userId);
 
   sendResponse(res, {
@@ -43,7 +44,8 @@ const markAllAsRead = catchAsync(async (req, res) => {
 
 const deleteNotification = catchAsync(async (req, res) => {
   const { userId } = req.user;
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await NotificationServices.deleteNotification(id, userId);
 
   sendResponse(res, {

@@ -3,14 +3,6 @@ import { useGetMyFeesQuery, usePayFeeMutation } from '../../../redux/features/fe
 import moment from 'moment';
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
 
-type FeeItem = {
-  _id: string;
-  type: string;
-  amount: number;
-  dueDate: string;
-  status: 'PAID' | 'PENDING' | 'OVERDUE';
-};
-
 const StudentFees = () => {
   const { data: fees, isFetching } = useGetMyFeesQuery(undefined);
   const [payFee, { isLoading: isPaying }] = usePayFeeMutation();
@@ -49,16 +41,16 @@ const StudentFees = () => {
       key: 'status',
       render: (status: string) => {
         let color: string = 'default';
-        if (status === 'PAID') color = 'success';
-        if (status === 'PENDING') color = 'warning';
-        if (status === 'OVERDUE') color = 'error';
-        return <Tag color={color}>{status}</Tag>;
+        if (status === 'Paid') color = 'success';
+        if (status === 'Pending') color = 'warning';
+        if (status === 'Overdue') color = 'error';
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
     },
     {
       title: 'Action',
       key: 'action',
-      render: (item: FeeItem) =>
+      render: (item: any) =>
         item.status === 'PAID' ? (
           <DownloadReceipt fee={item} />
         ) : (
@@ -76,10 +68,8 @@ const StudentFees = () => {
 
   const pendingAmount =
     fees?.data
-      ?.filter(
-        (f: FeeItem) => f.status === 'PENDING' || f.status === 'OVERDUE',
-      )
-      .reduce((acc: number, curr: FeeItem) => acc + curr.amount, 0) || 0;
+      ?.filter((f) => f.status === 'Pending' || f.status === 'Overdue')
+      .reduce((acc: number, curr) => acc + curr.amount, 0) || 0;
 
   return (
     <div>

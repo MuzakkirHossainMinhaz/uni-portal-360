@@ -21,6 +21,16 @@ type AdminFeeItem = {
   type: string;
   status: 'Paid' | 'Pending' | 'Overdue';
   dueDate: string;
+  transactionId?: string;
+  paidDate?: string;
+};
+
+type CreateFeePayload = {
+  student: string;
+  academicSemester: string;
+  type: string;
+  amount: number;
+  dueDate: string;
 };
 
 type PaginatedFees = {
@@ -70,7 +80,7 @@ const feeApi = baseApi.injectEndpoints({
         meta: response.meta,
       }),
     }),
-    createFee: builder.mutation<AdminFeeItem, Partial<AdminFeeItem>>({
+    createFee: builder.mutation<AdminFeeItem, CreateFeePayload>({
       query: (data) => ({
         url: '/fees',
         method: 'POST',

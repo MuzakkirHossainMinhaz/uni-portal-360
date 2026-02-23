@@ -3,7 +3,7 @@ import { useGetAttendanceAnalyticsQuery, useGetLowAttendanceStudentsQuery } from
 
 const AdminAttendanceDashboard = () => {
   const { data: analyticsData, isLoading: isAnalyticsLoading } = useGetAttendanceAnalyticsQuery(undefined);
-  const { data: lowAttendanceData, isLoading: isLowAttendanceLoading } = useGetLowAttendanceStudentsQuery({ threshold: 75 });
+  const { data: lowAttendanceData, isLoading: isLowAttendanceLoading } = useGetLowAttendanceStudentsQuery({ threshold: '75' });
 
   const lowAttendanceColumns = [
     {

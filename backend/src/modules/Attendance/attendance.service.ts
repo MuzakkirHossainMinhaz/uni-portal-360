@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
@@ -49,28 +49,28 @@ const createAttendanceIntoDB = async (payload: {
 
       // 3. Prepare Attendance Record
       attendanceRecords.push({
-        student: record.student,
-        offeredCourse,
-        semesterRegistration: isOfferedCourseExists.semesterRegistration.toString(),
+        student: new Types.ObjectId(record.student),
+        offeredCourse: new Types.ObjectId(offeredCourse),
+        semesterRegistration: isOfferedCourseExists.semesterRegistration as Types.ObjectId,
         date: new Date(date),
         status: record.status,
         remark: record.remark,
-      });
+      } as TAttendance);
     }
 
     const studentIds = attendanceList.map((a) => a.student);
     const dateObj = new Date(date);
 
-    await attendanceRepository.model.deleteMany(
+    await attendanceRepository.deleteMany(
       {
-        offeredCourse,
+        offeredCourse: new Types.ObjectId(offeredCourse),
         date: dateObj,
-        student: { $in: studentIds },
+        student: { $in: studentIds.map((id) => new Types.ObjectId(id)) },
       },
       { session },
     );
 
-    const result = await attendanceRepository.model.insertMany(attendanceRecords, { session });
+    const result = await attendanceRepository.insertMany(attendanceRecords, { session });
 
     await session.commitTransaction();
     await session.endSession();
@@ -100,7 +100,7 @@ const getAttendanceReport = async (query: Record<string, unknown>) => {
 
 const getLowAttendanceStudents = async (threshold: number = 75) => {
   // Aggregate to calculate attendance percentage per student per course
-  const lowAttendanceList = await attendanceRepository.model.aggregate([
+  const lowAttendanceList = await attendanceRepository.aggregate([
     {
       $group: {
         _id: { student: '$student', offeredCourse: '$offeredCourse' },
@@ -157,9 +157,9 @@ const getLowAttendanceStudents = async (threshold: number = 75) => {
 };
 
 const getAttendanceAnalytics = async () => {
-    const totalAttendance = await attendanceRepository.model.countDocuments();
+    const totalAttendance = await attendanceRepository.countDocuments();
     
-    const statusBreakdown = await attendanceRepository.model.aggregate([
+    const statusBreakdown = await attendanceRepository.aggregate([
         {
             $group: {
                 _id: '$status',
@@ -181,4 +181,3 @@ export const AttendanceServices = {
   getLowAttendanceStudents,
   getAttendanceAnalytics
 };
-

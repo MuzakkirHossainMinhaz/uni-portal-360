@@ -27,7 +27,8 @@ const getAllSubmissions = catchAsync(async (req, res) => {
 });
 
 const gradeSubmission = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await SubmissionServices.gradeSubmission(id, req.body);
 
   sendResponse(res, {
@@ -39,7 +40,8 @@ const gradeSubmission = catchAsync(async (req, res) => {
 });
 
 const updateSubmission = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await SubmissionServices.updateSubmission(id, req.body);
 
   sendResponse(res, {

@@ -17,7 +17,14 @@ type AuditLogQueryParams = {
 
 const AuditLogs = () => {
   const [params, setParams] = useState<AuditLogQueryParams>({ page: 1, limit: 10 });
-  const { data: auditLogs, isFetching } = useGetAuditLogsQuery(params);
+  const { data: auditLogs, isFetching } = useGetAuditLogsQuery({
+    page: params.page.toString(),
+    limit: params.limit.toString(),
+    ...(params.action ? { action: params.action } : {}),
+    ...(params.severity ? { severity: params.severity } : {}),
+    ...(params.startDate ? { startDate: params.startDate } : {}),
+    ...(params.endDate ? { endDate: params.endDate } : {}),
+  });
 
   const columns = [
     {
@@ -73,8 +80,8 @@ const AuditLogs = () => {
   const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
     setParams({
       ...params,
-      page: pagination.current,
-      limit: pagination.pageSize,
+      page: pagination.current ?? 1,
+      limit: pagination.pageSize ?? params.limit,
     });
   };
 

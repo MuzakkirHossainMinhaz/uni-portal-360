@@ -36,12 +36,18 @@ const getAuditLogs = async (query: Record<string, unknown>) => {
     .populate('userId', 'email role id');
 
   const total = await AuditLog.countDocuments(filter);
+  const currentPage = Number(page);
+  const perPage = Number(limit);
+  const totalPages = Math.ceil(total / perPage) || 1;
+  const hasNext = currentPage < totalPages;
 
   return {
     meta: {
-      page: Number(page),
-      limit: Number(limit),
+      page: currentPage,
+      limit: perPage,
       total,
+      totalPages,
+      hasNext,
     },
     data: logs,
   };

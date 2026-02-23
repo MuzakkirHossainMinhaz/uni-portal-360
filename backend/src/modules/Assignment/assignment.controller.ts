@@ -27,7 +27,8 @@ const getAllAssignments = catchAsync(async (req, res) => {
 });
 
 const getAssignmentById = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await AssignmentServices.getAssignmentById(id);
 
   sendResponse(res, {
@@ -39,7 +40,8 @@ const getAssignmentById = catchAsync(async (req, res) => {
 });
 
 const updateAssignment = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await AssignmentServices.updateAssignment(id, req.body);
 
   sendResponse(res, {
@@ -51,7 +53,8 @@ const updateAssignment = catchAsync(async (req, res) => {
 });
 
 const deleteAssignment = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const idParam = req.params.id;
+  const id = Array.isArray(idParam) ? idParam[0] : idParam;
   const result = await AssignmentServices.deleteAssignment(id);
 
   sendResponse(res, {

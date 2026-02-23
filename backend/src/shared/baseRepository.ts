@@ -1,4 +1,4 @@
-import { FilterQuery, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import QueryBuilder from '../builder/QueryBuilder';
 
 export type TPaginationMeta = {
@@ -68,15 +68,14 @@ export abstract class BaseRepository<
   }
 
   async create(payload: TCreate): Promise<T> {
-    const result = await this.model.create(payload);
-    return result;
+    const result = await this.model.create(payload as any);
+    return result as any as T;
   }
 
   async updateById(id: string, payload: TUpdate): Promise<T | null> {
-    const result = await this.model.findOneAndUpdate({ _id: id } as FilterQuery<T>, payload, {
+    const result = await this.model.findOneAndUpdate({ _id: id } as any, payload as any, {
       new: true,
     });
-    return result;
+    return result as any as T | null;
   }
 }
-

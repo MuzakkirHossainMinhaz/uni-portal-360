@@ -16,7 +16,9 @@ type GradeFormValues = {
 
 const FacultySubmissions = () => {
   const { assignmentId } = useParams();
-  const { data: submissions, isLoading } = useGetAllSubmissionsQuery({ assignment: assignmentId });
+  const submissionsQuery = assignmentId ? { assignment: assignmentId } : undefined;
+  const { data: submissions, isLoading } =
+    useGetAllSubmissionsQuery(submissionsQuery);
   const [gradeSubmission, { isLoading: isGrading }] = useGradeSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<TSubmission | null>(null);
@@ -32,6 +34,11 @@ const FacultySubmissions = () => {
   };
 
   const handleGrade = async (values: GradeFormValues) => {
+    if (!selectedSubmission) {
+      message.error('No submission selected');
+      return;
+    }
+
     try {
       await gradeSubmission({
         id: selectedSubmission._id,

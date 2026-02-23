@@ -1,5 +1,5 @@
-import { TMeta } from '../../../types';
-import { TAuditLog } from '../../../types/auditLog.type';
+import { TMeta } from '../../../../types';
+import { TAuditLog } from '../../../../types/auditLog.type';
 import { baseApi } from '../../../api/baseApi';
 
 type PaginatedAuditLogs = {

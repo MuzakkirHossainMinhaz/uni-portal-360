@@ -42,14 +42,11 @@ const styles = StyleSheet.create({
 
 type FeeReceipt = {
   _id: string;
-  transactionId: string;
-  paidDate: string;
+  transactionId?: string;
+  paidDate?: string;
   student?: {
-    name?: {
-      firstName?: string;
-      lastName?: string;
-    };
-    id?: string;
+    id: string;
+    fullName: string;
   };
   type: string;
   academicSemester?: {
@@ -82,11 +79,11 @@ const FeeReceiptDocument = ({ fee }: { fee: FeeReceipt }) => (
         
         <View style={styles.row}>
           <Text style={styles.label}>Student Name:</Text>
-          <Text style={styles.value}>{fee.student?.name?.firstName} {fee.student?.name?.lastName}</Text>
+          <Text style={styles.value}>{fee.student?.fullName}</Text>
         </View>
         <View style={styles.row}>
-            <Text style={styles.label}>Student ID:</Text>
-            <Text style={styles.value}>{fee.student?.id}</Text>
+          <Text style={styles.label}>Student ID:</Text>
+          <Text style={styles.value}>{fee.student?.id}</Text>
         </View>
         
         <View style={{ borderBottom: 1, borderBottomColor: '#ccc', marginVertical: 10 }} />
@@ -112,7 +109,7 @@ const FeeReceiptDocument = ({ fee }: { fee: FeeReceipt }) => (
 
 export const DownloadReceipt = ({ fee }: { fee: FeeReceipt }) => (
   <PDFDownloadLink document={<FeeReceiptDocument fee={fee} />} fileName={`receipt_${fee._id}.pdf`}>
-    {({ loading }) => (
+    {({ loading }: { loading: boolean }) => (
       <Button size="small" disabled={loading}>
         {loading ? 'Loading...' : 'Download Receipt'}
       </Button>
