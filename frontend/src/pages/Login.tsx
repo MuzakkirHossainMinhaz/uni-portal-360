@@ -38,7 +38,11 @@ const Login = () => {
       if (res.data.needsPasswordChange) {
         navigate(`/change-password`);
       } else {
-        navigate(`/${user.role}/dashboard`);
+        if (user.role === 'superAdmin') {
+          navigate(`/admin/dashboard`);
+        } else {
+          navigate(`/${user.role}/dashboard`);
+        }
       }
     } catch {
       toast.error('Something went wrong', { id: toastId, duration: 2000 });

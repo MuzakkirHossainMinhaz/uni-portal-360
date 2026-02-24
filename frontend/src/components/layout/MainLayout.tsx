@@ -1,100 +1,121 @@
-import { DesktopOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
-import { Avatar, Button, Col, Layout, Row, Segmented, Space, Tooltip, Typography } from 'antd';
+import { DesktopOutlined, LogoutOutlined, MoonOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Button, Dropdown, Layout, MenuProps, Space } from 'antd';
 import { Outlet } from 'react-router-dom';
-import { logout } from '../../redux/features/auth/authSlice';
-import { useAppDispatch } from '../../redux/hooks';
+import { logout, selectCurrentUser } from '../../redux/features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import NotificationBell from './NotificationBell';
 import Sidebar from './Sidebar';
 
 const { Header, Content } = Layout;
-const { Text } = Typography;
 
 const MainLayout = () => {
   const dispatch = useAppDispatch();
-  const { mode, preference, setPreference } = useThemeMode();
+  const { mode, setPreference } = useThemeMode();
+  const currentUser = useAppSelector(selectCurrentUser);
 
   const handleLogout = () => {
     dispatch(logout());
   };
 
+  const themeItems: MenuProps['items'] = [
+    {
+      key: 'system',
+      label: 'System',
+      icon: <DesktopOutlined />,
+      onClick: () => setPreference('system'),
+    },
+    {
+      key: 'light',
+      label: 'Light',
+      icon: <SunOutlined />,
+      onClick: () => setPreference('light'),
+    },
+    {
+      key: 'dark',
+      label: 'Dark',
+      icon: <MoonOutlined />,
+      onClick: () => setPreference('dark'),
+    },
+  ];
+
+  const profileItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      label: 'Profile',
+      icon: <UserOutlined />,
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      label: 'Logout',
+      icon: <LogoutOutlined />,
+      onClick: handleLogout,
+    },
+  ];
+
   return (
-    <Layout className="app-shell">
+    <Layout className="app-shell" style={{ minHeight: '100vh' }}>
       <Sidebar />
       <Layout>
         <Header
           style={{
-            padding: '0 24px',
+            padding: '0 16px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(148, 163, 184, 0.24)',
+            justifyContent: 'flex-end',
+            borderBottom: mode === 'dark' ? '1px solid rgba(148, 163, 184, 0.1)' : '1px solid rgba(226, 232, 240, 0.8)',
+            background: mode === 'dark' ? '#0f172a' : '#ffffff',
+            height: 64,
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
           }}
         >
           <Space size={8}>
-            <Avatar src="/logo.png" alt="Uni Portal 360" size={32} style={{ backgroundColor: 'transparent' }} />
-            <div>
-              <Text
+            <Dropdown menu={{ items: themeItems }} trigger={['click']} placement="bottomRight">
+              <Button
+                shape="circle"
+                icon={mode === 'dark' ? <MoonOutlined /> : <SunOutlined />}
                 style={{
                   color: mode === 'dark' ? '#e5e7eb' : '#111827',
-                  fontSize: 16,
-                  fontWeight: 600,
+                  borderColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)',
                 }}
-              >
-                Uni Portal 360
-              </Text>
-              <Text
+              />
+            </Dropdown>
+
+            <NotificationBell />
+
+            <Dropdown menu={{ items: profileItems }} trigger={['click']} placement="bottomRight">
+              <Button
+                shape="circle"
+                icon={
+                  <Avatar size="small" src="/favicon.png" style={{ backgroundColor: 'transparent' }}>
+                    {currentUser?.userId?.charAt(0) || 'U'}
+                  </Avatar>
+                }
                 style={{
-                  color: mode === 'dark' ? '#9ca3af' : '#6b7280',
-                  display: 'block',
-                  fontSize: 12,
+                  color: mode === 'dark' ? '#e5e7eb' : '#111827',
+                  borderColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)',
                 }}
-              >
-                Intelligent University Management
-              </Text>
-            </div>
+              />
+            </Dropdown>
           </Space>
-          <Row justify="end" align="middle" gutter={16}>
-            <Col>
-              <Tooltip title="Theme">
-                <Segmented
-                  size="small"
-                  value={preference}
-                  onChange={(value) => setPreference(value as typeof preference)}
-                  options={[
-                    {
-                      label: 'System',
-                      value: 'system',
-                      icon: <DesktopOutlined />,
-                    },
-                    {
-                      label: 'Light',
-                      value: 'light',
-                      icon: <SunOutlined />,
-                    },
-                    {
-                      label: 'Dark',
-                      value: 'dark',
-                      icon: <MoonOutlined />,
-                    },
-                  ]}
-                />
-              </Tooltip>
-            </Col>
-            <Col>
-              <NotificationBell />
-            </Col>
-            <Col>
-              <Button type="primary" onClick={handleLogout}>
-                Logout
-              </Button>
-            </Col>
-          </Row>
         </Header>
-        <Content className="app-shell-main">
-          <div className="app-shell-content">
-            <Outlet />
-          </div>
+
+        {/* Main Content */}
+        <Content
+          className="app-shell-main"
+          style={{
+            maxHeight: 'calc(100vh - 64px)',
+            overflowY: 'auto',
+            background: mode === 'dark' ? '#0f172a' : '#f8fafc',
+            padding: '16px',
+          }}
+        >
+          <Outlet />
         </Content>
       </Layout>
     </Layout>

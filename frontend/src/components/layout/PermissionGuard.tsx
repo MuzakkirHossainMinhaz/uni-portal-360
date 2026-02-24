@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
+import { selectCurrentUser, selectUserPermissions } from '../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
-import { selectUserPermissions, selectCurrentUser } from '../../redux/features/auth/authSlice';
 
 type PermissionGuardProps = {
   children: ReactNode;

@@ -1,7 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
-import mongoSanitize from 'express-mongo-sanitize';
+// import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import hpp from 'hpp';
@@ -16,7 +16,7 @@ const app: Application = express();
 
 // Security Middlewares
 app.use(helmet());
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
 app.use(hpp());
 
 // Rate Limiting
