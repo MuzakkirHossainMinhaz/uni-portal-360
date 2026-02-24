@@ -30,7 +30,7 @@ const getAllAcademicSemestersFromDB = async (query: Record<string, unknown>) => 
 };
 
 const getSingleAcademicSemesterFromDB = async (id: string) => {
-  const result = await AcademicSemester.findById(id);
+  const result = await AcademicSemester.findById(id).select('-__v');
   return result;
 };
 
@@ -45,9 +45,15 @@ const updateAcademicSemesterIntoDB = async (id: string, payload: Partial<TAcadem
   return result;
 };
 
+const deleteAcademicSemesterFromDB = async (id: string) => {
+  const result = await AcademicSemester.findByIdAndDelete(id).select('-__v');
+  return result;
+};
+
 export const AcademicSemesterServices = {
   createAcademicSemesterIntoDB,
   getAllAcademicSemestersFromDB,
   getSingleAcademicSemesterFromDB,
   updateAcademicSemesterIntoDB,
+  deleteAcademicSemesterFromDB,
 };

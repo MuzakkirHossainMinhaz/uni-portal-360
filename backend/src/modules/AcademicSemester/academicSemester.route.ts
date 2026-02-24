@@ -8,10 +8,16 @@ import { AcademicSemesterValidations } from './academicSemester.validation';
 const router = express.Router();
 
 router.post(
-  '/create-academic-semester',
+  '/',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(AcademicSemesterValidations.createAcdemicSemesterValidationSchema),
   AcademicSemesterControllers.createAcademicSemester,
+);
+
+router.get(
+  '/',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
+  AcademicSemesterControllers.getAllAcademicSemesters,
 );
 
 router.get(
@@ -27,10 +33,10 @@ router.patch(
   AcademicSemesterControllers.updateAcademicSemester,
 );
 
-router.get(
-  '/',
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
-  AcademicSemesterControllers.getAllAcademicSemesters,
+router.delete(
+  '/:semesterId',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  AcademicSemesterControllers.deleteAcademicSemester,
 );
 
 export const AcademicSemesterRoutes = router;

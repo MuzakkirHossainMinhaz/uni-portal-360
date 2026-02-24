@@ -59,7 +59,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   }
 
   return res.status(statusCode).json({
-    statusCode,
+    success: false,
     message,
     error: errorSources,
     path: req.originalUrl,

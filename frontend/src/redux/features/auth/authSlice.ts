@@ -29,9 +29,9 @@ const authSlice = createSlice({
       state.token = token;
     },
     setPermissions: (state, action) => {
-        if (state.user) {
-            state.user.permissions = action.payload;
-        }
+      if (state.user) {
+        state.user.permissions = action.payload;
+      }
     },
     logout: (state) => {
       state.user = null;

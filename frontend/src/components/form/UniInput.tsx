@@ -19,9 +19,9 @@ const UniInput = ({ type, name, label, disabled, required }: TInputProps) => {
         render={({ field }) => (
           <Form.Item label={label} required={required}>
             {isPassword ? (
-              <Input.Password {...field} id={name} size="large" disabled={disabled} />
+              <Input.Password {...field} id={name} size="large" disabled={disabled} required={required} />
             ) : (
-              <Input {...field} type={type} id={name} size="large" disabled={disabled} />
+              <Input {...field} type={type} id={name} size="large" disabled={disabled} required={required} />
             )}
           </Form.Item>
         )}

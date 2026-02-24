@@ -1,4 +1,11 @@
-import { TAcademicDepartment, TAcademicFaculty, TAcademicSemester, TMeta, TQueryParam, TResponseRedux } from '../../../types';
+import {
+  TAcademicDepartment,
+  TAcademicFaculty,
+  TAcademicSemester,
+  TMeta,
+  TQueryParam,
+  TResponseRedux,
+} from '../../../types';
 
 import { baseApi } from '../../api/baseApi';
 
@@ -31,13 +38,31 @@ const academicManagementApi = baseApi.injectEndpoints({
           meta: response.meta,
         };
       },
+      providesTags: ['AcademicSemesters'],
     }),
     addAcademicSemester: builder.mutation<unknown, unknown>({
       query: (data) => ({
-        url: '/academic-semesters/create-academic-semester',
+        url: '/academic-semesters',
         method: 'POST',
         body: data,
       }),
+      invalidatesTags: ['AcademicSemesters'],
+    }),
+    updateAcademicSemester: builder.mutation<unknown, unknown>({
+      query: (data) => ({
+        url: '/academic-semesters',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['AcademicSemesters'],
+    }),
+    deleteAcademicSemester: builder.mutation<unknown, unknown>({
+      query: (data) => ({
+        url: '/academic-semesters',
+        method: 'DELETE',
+        body: data,
+      }),
+      invalidatesTags: ['AcademicSemesters'],
     }),
     getAcademicFaculties: builder.query<PaginatedResponse<TAcademicFaculty[]>, void>({
       query: () => {
@@ -81,6 +106,8 @@ const academicManagementApi = baseApi.injectEndpoints({
 export const {
   useGetAllSemestersQuery,
   useAddAcademicSemesterMutation,
+  useUpdateAcademicSemesterMutation,
+  useDeleteAcademicSemesterMutation,
   useGetAcademicDepartmentsQuery,
   useGetAcademicFacultiesQuery,
 } = academicManagementApi;
