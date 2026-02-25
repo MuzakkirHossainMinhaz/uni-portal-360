@@ -5,6 +5,7 @@ export interface IBaseService<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
   getById(id: string): Promise<T | null>;
   getAll(query: Record<string, unknown>, searchableFields?: string[]): Promise<TPaginatedResult<T>>;
   updateById(id: string, payload: TUpdate): Promise<T | null>;
+  deleteById(id: string): Promise<T | null>;
 }
 
 export abstract class BaseService<T, TCreate = Partial<T>, TUpdate = Partial<T>> implements IBaseService<
@@ -32,5 +33,9 @@ export abstract class BaseService<T, TCreate = Partial<T>, TUpdate = Partial<T>>
 
   updateById(id: string, payload: TUpdate): Promise<T | null> {
     return this.repository.updateById(id, payload);
+  }
+
+  deleteById(id: string): Promise<T | null> {
+    return this.repository.deleteById(id);
   }
 }

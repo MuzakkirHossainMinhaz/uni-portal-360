@@ -16,7 +16,7 @@ import {
 } from '../../../redux/features/admin/courseManagement';
 import {
   useGetAcademicDepartmentsQuery,
-  useGetAcademicFacultiesQuery,
+  useGetAllAcademicFacultiesQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import { weekDaysOptions } from '../../../constants/global';
 import UniTimePicker from '../../../components/form/UniTimePicker';
@@ -31,7 +31,7 @@ const OfferCourse = () => {
     { name: 'status', value: 'UPCOMING' },
   ]);
 
-  const { data: academicFacultyData } = useGetAcademicFacultiesQuery(undefined);
+  const { data: academicFacultyData } = useGetAllAcademicFacultiesQuery(undefined);
 
   const { data: academicDepartmentData } =
     useGetAcademicDepartmentsQuery(undefined);

@@ -11,7 +11,7 @@ import {
   useDeleteAcademicSemesterMutation,
   useGetAllAcademicSemestersQuery,
   useUpdateAcademicSemesterMutation,
-} from '../../../redux/features/admin/academicSemester.api';
+} from '../../../redux/features/admin/academicManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
 
 const { Title } = Typography;

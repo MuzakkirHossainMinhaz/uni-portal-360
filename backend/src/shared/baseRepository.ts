@@ -22,6 +22,7 @@ export interface IReadonlyRepository<T> {
 export interface IWriteonlyRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
   create(payload: TCreate): Promise<T>;
   updateById(id: string, payload: TUpdate): Promise<T | null>;
+  deleteById(id: string): Promise<T | null>;
 }
 
 export type IBaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<T>> = IReadonlyRepository<T> &
@@ -36,6 +37,11 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
 
   protected constructor(model: Model<T>) {
     this.model = model;
+  }
+
+  async create(payload: TCreate): Promise<T> {
+    const result = await this.model.create(payload as any);
+    return result as any as T;
   }
 
   async findById(id: string): Promise<T | null> {
@@ -60,15 +66,15 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
     };
   }
 
-  async create(payload: TCreate): Promise<T> {
-    const result = await this.model.create(payload as any);
-    return result as any as T;
-  }
-
   async updateById(id: string, payload: TUpdate): Promise<T | null> {
     const result = await this.model.findOneAndUpdate({ _id: id } as any, payload as any, {
       new: true,
     });
+    return result as any as T | null;
+  }
+
+  async deleteById(id: string): Promise<T | null> {
+    const result = await this.model.findByIdAndDelete(id);
     return result as any as T | null;
   }
 }

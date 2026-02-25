@@ -1,39 +1,24 @@
 import { AcademicFacultySearchableFields } from './academicFaculty.constant';
 import { TAcademicFaculty } from './academicFaculty.interface';
+import { BaseService } from '../../shared/baseService';
 import { AcademicFacultyRepository } from './academicFaculty.repository';
-import { AcademicFaculty } from './academicFaculty.model';
 
 const academicFacultyRepository = new AcademicFacultyRepository();
 
-const createAcademicFacultyIntoDB = async (payload: TAcademicFaculty) => {
-  const result = await academicFacultyRepository.create(payload);
-  return result;
-};
+class AcademicFacultyService extends BaseService<TAcademicFaculty, TAcademicFaculty, Partial<TAcademicFaculty>> {
+  constructor() {
+    super(academicFacultyRepository);
+  }
+}
 
-const getAllAcademicFacultiesFromDB = async (query: Record<string, unknown>) => {
-  const { meta, data } = await academicFacultyRepository.findAll(
-    query,
-    AcademicFacultySearchableFields,
-  );
-
-  return { meta, result: data };
-};
-
-const getSingleAcademicFacultyFromDB = async (id: string) => {
-  const result = await AcademicFaculty.findById(id);
-  return result;
-};
-
-const updateAcademicFacultyIntoDB = async (id: string, payload: Partial<TAcademicFaculty>) => {
-  const result = await AcademicFaculty.findOneAndUpdate({ _id: id }, payload, {
-    new: true,
-  });
-  return result;
-};
+const academicFacultyService = new AcademicFacultyService();
 
 export const AcademicFacultyServices = {
-  createAcademicFacultyIntoDB,
-  getAllAcademicFacultiesFromDB,
-  getSingleAcademicFacultyFromDB,
-  updateAcademicFacultyIntoDB,
+  createAcademicFacultyIntoDB: (payload: TAcademicFaculty) => academicFacultyService.create(payload),
+  getAllAcademicFacultiesFromDB: (query: Record<string, unknown>) => 
+    academicFacultyService.getAll(query, AcademicFacultySearchableFields),
+  getSingleAcademicFacultyFromDB: (id: string) => academicFacultyService.getById(id),
+  updateAcademicFacultyIntoDB: (id: string, payload: Partial<TAcademicFaculty>) => 
+    academicFacultyService.updateById(id, payload),
+  deleteAcademicFacultyFromDB: (id: string) => academicFacultyService.deleteById(id),
 };

@@ -1,59 +1,38 @@
-import QueryBuilder from '../../builder/QueryBuilder';
+import { BaseService } from '../../shared/baseService';
 import { AcademicSemesterSearchableFields, academicSemesterNameCodeMapper } from './academicSemester.constant';
 import { TAcademicSemester } from './academicSemester.interface';
-import { AcademicSemester } from './academicSemester.model';
+import { AcademicSemesterRepository } from './academicSemester.repository';
 
-const createAcademicSemesterIntoDB = async (payload: TAcademicSemester) => {
-  if (academicSemesterNameCodeMapper[payload.name] !== payload.code) {
-    throw new Error('Invalid Semester Code');
+const academicSemesterRepository = new AcademicSemesterRepository();
+
+class AcademicSemesterService extends BaseService<TAcademicSemester, TAcademicSemester, Partial<TAcademicSemester>> {
+  constructor() {
+    super(academicSemesterRepository);
   }
 
-  const result = await AcademicSemester.create(payload);
-  return result;
-};
-
-const getAllAcademicSemestersFromDB = async (query: Record<string, unknown>) => {
-  const academicSemesterQuery = new QueryBuilder(AcademicSemester.find(), query)
-    .search(AcademicSemesterSearchableFields)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
-
-  const result = await academicSemesterQuery.modelQuery;
-  const meta = await academicSemesterQuery.countTotal();
-
-  return {
-    meta,
-    result,
-  };
-};
-
-const getSingleAcademicSemesterFromDB = async (id: string) => {
-  const result = await AcademicSemester.findById(id).select('-__v');
-  return result;
-};
-
-const updateAcademicSemesterIntoDB = async (id: string, payload: Partial<TAcademicSemester>) => {
-  if (payload.name && payload.code && academicSemesterNameCodeMapper[payload.name] !== payload.code) {
-    throw new Error('Invalid Semester Code');
+  async create(payload: TAcademicSemester): Promise<TAcademicSemester> {
+    if (academicSemesterNameCodeMapper[payload.name] !== payload.code) {
+      throw new Error('Invalid Semester Code');
+    }
+    return super.create(payload);
   }
 
-  const result = await AcademicSemester.findOneAndUpdate({ _id: id }, payload, {
-    new: true,
-  });
-  return result;
-};
+  async updateById(id: string, payload: Partial<TAcademicSemester>): Promise<TAcademicSemester | null> {
+    if (payload.name && payload.code && academicSemesterNameCodeMapper[payload.name] !== payload.code) {
+      throw new Error('Invalid Semester Code');
+    }
+    return super.updateById(id, payload);
+  }
+}
 
-const deleteAcademicSemesterFromDB = async (id: string) => {
-  const result = await AcademicSemester.findByIdAndDelete(id).select('-__v');
-  return result;
-};
+const academicSemesterService = new AcademicSemesterService();
 
 export const AcademicSemesterServices = {
-  createAcademicSemesterIntoDB,
-  getAllAcademicSemestersFromDB,
-  getSingleAcademicSemesterFromDB,
-  updateAcademicSemesterIntoDB,
-  deleteAcademicSemesterFromDB,
+  createAcademicSemesterIntoDB: (payload: TAcademicSemester) => academicSemesterService.create(payload),
+  getAllAcademicSemestersFromDB: (query: Record<string, unknown>) =>
+    academicSemesterService.getAll(query, AcademicSemesterSearchableFields),
+  getSingleAcademicSemesterFromDB: (id: string) => academicSemesterService.getById(id),
+  updateAcademicSemesterIntoDB: (id: string, payload: Partial<TAcademicSemester>) =>
+    academicSemesterService.updateById(id, payload),
+  deleteAcademicSemesterFromDB: (id: string) => academicSemesterService.deleteById(id),
 };
