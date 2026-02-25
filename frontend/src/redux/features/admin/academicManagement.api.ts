@@ -98,6 +98,54 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicFaculties'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
+
+    // Academic Department endpoints
+    getAllAcademicDepartments: builder.query({
+      query: () => ({
+        url: '/academic-departments',
+        method: 'GET',
+      }),
+      providesTags: ['AcademicDepartments'],
+      transformResponse: (response: TResponseRedux<any>) => response.data,
+    }),
+
+    getSingleAcademicDepartment: builder.query({
+      query: (id: string) => ({
+        url: `/academic-departments/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['AcademicDepartments'],
+      transformResponse: (response: TResponseRedux<any>) => response.data,
+    }),
+
+    createAcademicDepartment: builder.mutation({
+      query: (data: any) => ({
+        url: '/academic-departments',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['AcademicDepartments'],
+      transformResponse: (response: TResponseRedux<any>) => response.data,
+    }),
+
+    updateAcademicDepartment: builder.mutation({
+      query: ({ id, data }: { id: string; data: any }) => ({
+        url: `/academic-departments/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['AcademicDepartments'],
+      transformResponse: (response: TResponseRedux<any>) => response.data,
+    }),
+
+    deleteAcademicDepartment: builder.mutation({
+      query: (id: string) => ({
+        url: `/academic-departments/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AcademicDepartments'],
+      transformResponse: (response: TResponseRedux<any>) => response.data,
+    }),
   }),
 });
 
@@ -112,4 +160,9 @@ export const {
   useCreateAcademicFacultyMutation,
   useUpdateAcademicFacultyMutation,
   useDeleteAcademicFacultyMutation,
+  useGetAllAcademicDepartmentsQuery,
+  useGetSingleAcademicDepartmentQuery,
+  useCreateAcademicDepartmentMutation,
+  useUpdateAcademicDepartmentMutation,
+  useDeleteAcademicDepartmentMutation,
 } = academicManagementApi;

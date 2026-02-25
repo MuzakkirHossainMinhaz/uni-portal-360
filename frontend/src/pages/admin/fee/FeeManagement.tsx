@@ -7,7 +7,7 @@ import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
 import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
-import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
+import { useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import PageHeader from '../../../components/layout/PageHeader';
 import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
@@ -39,7 +39,7 @@ const FeeManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
   const { data: students } = useGetAllStudentsQuery(undefined);
-  const { data: semesters } = useGetAllSemestersQuery(undefined);
+  const { data: semesters } = useGetAllAcademicSemestersQuery(undefined);
   const [createFee] = useCreateFeeMutation();
 
   const studentOptions =

@@ -265,7 +265,7 @@ const AcademicSemester = () => {
         onCancel={handleModalClose}
         footer={null}
         width={600}
-        destroyOnClose={true}
+        destroyOnHidden={true}
       >
         <UniForm
           onSubmit={handleFormSubmit}

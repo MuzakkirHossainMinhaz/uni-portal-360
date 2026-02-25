@@ -8,10 +8,16 @@ import { AcademicDepartmentValidation } from './academicDepartment.validation';
 const router = express.Router();
 
 router.post(
-  '/create-academic-department',
+  '/',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(AcademicDepartmentValidation.createAcademicDepartmentValidationSchema),
-  AcademicDepartmentControllers.createAcademicDepartmemt,
+  AcademicDepartmentControllers.createAcademicDepartment,
+);
+
+router.get(
+  '/',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
+  AcademicDepartmentControllers.getAllAcademicDepartments,
 );
 
 router.get(
@@ -24,13 +30,13 @@ router.patch(
   '/:departmentId',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(AcademicDepartmentValidation.updateAcademicDepartmentValidationSchema),
-  AcademicDepartmentControllers.updateAcademicDeartment,
+  AcademicDepartmentControllers.updateAcademicDepartment,
 );
 
-router.get(
-  '/',
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
-  AcademicDepartmentControllers.getAllAcademicDepartments,
+router.delete(
+  '/:departmentId',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  AcademicDepartmentControllers.deleteAcademicDepartment,
 );
 
 export const AcademicDepartmentRoutes = router;

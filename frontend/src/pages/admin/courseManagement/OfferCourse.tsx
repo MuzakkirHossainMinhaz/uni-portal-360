@@ -15,7 +15,7 @@ import {
   useGetCourseFacultiesQuery,
 } from '../../../redux/features/admin/courseManagement';
 import {
-  useGetAcademicDepartmentsQuery,
+  useGetAllAcademicDepartmentsQuery,
   useGetAllAcademicFacultiesQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import { weekDaysOptions } from '../../../constants/global';
@@ -34,7 +34,7 @@ const OfferCourse = () => {
   const { data: academicFacultyData } = useGetAllAcademicFacultiesQuery(undefined);
 
   const { data: academicDepartmentData } =
-    useGetAcademicDepartmentsQuery(undefined);
+    useGetAllAcademicDepartmentsQuery(undefined);
 
   const { data: coursesData } = useGetAllCoursesQuery(undefined);
 
@@ -48,13 +48,13 @@ const OfferCourse = () => {
     })
   );
 
-  const academicFacultyOptions = academicFacultyData?.data?.map((item) => ({
+  const academicFacultyOptions = academicFacultyData?.map((item: any) => ({
     value: item._id,
     label: item.name,
   }));
 
-  const academicDepartmentOptions = academicDepartmentData?.data?.map(
-    (item) => ({
+  const academicDepartmentOptions = academicDepartmentData?.map(
+    (item: any) => ({
       value: item._id,
       label: item.name,
     })

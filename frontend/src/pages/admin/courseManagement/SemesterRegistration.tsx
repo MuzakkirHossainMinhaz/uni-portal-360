@@ -5,7 +5,7 @@ import UniSelect from '../../../components/form/UniSelect';
 import { semesterStatusOptions } from '../../../constants/semester';
 
 import { toast } from 'sonner';
-import { useGetAllSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
+import { useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniInput from '../../../components/form/UniInput';
 import { useAddRegisteredSemesterMutation } from '../../../redux/features/admin/courseManagement';
@@ -13,11 +13,11 @@ import { TResponse, TSemester } from '../../../types';
 
 const SemesterRegistration = () => {
   const [addSemester] = useAddRegisteredSemesterMutation();
-  const { data: academicSemester } = useGetAllSemestersQuery([
+  const { data: academicSemester } = useGetAllAcademicSemestersQuery([
     { name: 'sort', value: 'year' },
   ]);
 
-  const academicSemesterOptions = academicSemester?.data?.map((item) => ({
+  const academicSemesterOptions = academicSemester?.map((item: any) => ({
     value: item._id,
     label: `${item.name} ${item.year}`,
   }));

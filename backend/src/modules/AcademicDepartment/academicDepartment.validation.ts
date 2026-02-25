@@ -5,6 +5,11 @@ const createAcademicDepartmentValidationSchema = z.object({
     name: z.string({
       message: 'Academic department must be string and is required',
     }),
+    description: z
+      .string({
+        message: 'Academic department description must be string',
+      })
+      .optional(),
     academicFaculty: z.string({
       message: 'Academic faculty must be string and is required',
     }),
@@ -16,6 +21,11 @@ const updateAcademicDepartmentValidationSchema = z.object({
     name: z
       .string({
         message: 'Academic department must be string',
+      })
+      .optional(),
+    description: z
+      .string({
+        message: 'Academic department description must be string',
       })
       .optional(),
     academicFaculty: z

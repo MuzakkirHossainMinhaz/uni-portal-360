@@ -3,7 +3,7 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AcademicDepartmentServices } from './academicDepartment.service';
 
-const createAcademicDepartmemt = catchAsync(async (req, res) => {
+const createAcademicDepartment = catchAsync(async (req, res) => {
   const result = await AcademicDepartmentServices.createAcademicDepartmentIntoDB(req.body);
 
   sendResponse(res, {
@@ -21,7 +21,7 @@ const getAllAcademicDepartments = catchAsync(async (req, res) => {
     success: true,
     message: 'Academic departments are retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
@@ -37,7 +37,7 @@ const getSingleAcademicDepartment = catchAsync(async (req, res) => {
   });
 });
 
-const updateAcademicDeartment = catchAsync(async (req, res) => {
+const updateAcademicDepartment = catchAsync(async (req, res) => {
   const { departmentId } = req.params;
   const result = await AcademicDepartmentServices.updateAcademicDepartmentIntoDB(departmentId as string, req.body);
 
@@ -49,9 +49,22 @@ const updateAcademicDeartment = catchAsync(async (req, res) => {
   });
 });
 
+const deleteAcademicDepartment = catchAsync(async (req, res) => {
+  const { departmentId } = req.params;
+  const result = await AcademicDepartmentServices.deleteAcademicDepartmentFromDB(departmentId as string);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Academic department is deleted successfully',
+    data: result,
+  });
+});
+
 export const AcademicDepartmentControllers = {
-  createAcademicDepartmemt,
+  createAcademicDepartment,
   getAllAcademicDepartments,
   getSingleAcademicDepartment,
-  updateAcademicDeartment,
+  updateAcademicDepartment,
+  deleteAcademicDepartment,
 };

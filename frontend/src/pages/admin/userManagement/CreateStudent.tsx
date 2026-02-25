@@ -6,8 +6,8 @@ import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import {
-  useGetAcademicDepartmentsQuery,
-  useGetAllSemestersQuery,
+  useGetAllAcademicDepartmentsQuery,
+  useGetAllAcademicSemestersQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import { useAddStudentMutation } from '../../../redux/features/admin/userManagement.api';
 
@@ -94,10 +94,10 @@ const CreateStudent = () => {
   console.log({ data, error });
 
   const { data: sData, isLoading: sIsLoading } =
-    useGetAllSemestersQuery(undefined);
+    useGetAllAcademicSemestersQuery(undefined);
 
   const { data: dData, isLoading: dIsLoading } =
-    useGetAcademicDepartmentsQuery(undefined);
+    useGetAllAcademicDepartmentsQuery(undefined);
 
   const semesterOptions = sData?.data?.map((item) => ({
     value: item._id,

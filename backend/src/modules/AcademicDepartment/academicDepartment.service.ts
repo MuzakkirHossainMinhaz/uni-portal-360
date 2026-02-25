@@ -1,46 +1,57 @@
-import QueryBuilder from '../../builder/QueryBuilder';
+import { TPaginatedResult } from '../../shared/baseRepository';
+import { BaseService } from '../../shared/baseService';
+import { AcademicDepartmentSearchableFields } from './academicDepartment.constant';
 import { TAcademicDepartment } from './academicDepartment.interface';
 import { AcademicDepartment } from './academicDepartment.model';
-import { AcademicDepartmentSearchableFields } from './academicDepartmets.constant';
+import { AcademicDepartmentRepository } from './academicDepartment.repository';
 
-const createAcademicDepartmentIntoDB = async (payload: TAcademicDepartment) => {
-  const result = await AcademicDepartment.create(payload);
-  return result;
-};
+const academicDepartmentRepository = new AcademicDepartmentRepository();
 
-const getAllAcademicDepartmentsFromDB = async (query: Record<string, unknown>) => {
-  const academicDepartmentQuery = new QueryBuilder(AcademicDepartment.find().populate('academicFaculty'), query)
-    .search(AcademicDepartmentSearchableFields)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
+class AcademicDepartmentService extends BaseService<
+  TAcademicDepartment,
+  TAcademicDepartment,
+  Partial<TAcademicDepartment>
+> {
+  constructor() {
+    super(academicDepartmentRepository);
+  }
 
-  const result = await academicDepartmentQuery.modelQuery;
-  const meta = await academicDepartmentQuery.countTotal();
+  async getAll(
+    query: Record<string, unknown>,
+    searchableFields?: string[],
+  ): Promise<TPaginatedResult<TAcademicDepartment>> {
+    const result = await super.getAll(query, searchableFields);
+    // Populate academicFaculty for all results
+    if (result.data && Array.isArray(result.data)) {
+      const populatedData = await Promise.all(
+        result.data.map(async (item: any) => {
+          const populatedItem = await AcademicDepartment.findById(item._id).populate('academicFaculty');
+          return populatedItem;
+        }),
+      );
+      // Filter out null values and cast to proper type
+      return {
+        ...result,
+        data: populatedData.filter((item): item is NonNullable<typeof item> => item !== null) as TAcademicDepartment[],
+      };
+    }
+    return result;
+  }
 
-  return {
-    meta,
-    result,
-  };
-};
+  async getById(id: string) {
+    const result = await AcademicDepartment.findById(id).populate('academicFaculty');
+    return result;
+  }
+}
 
-const getSingleAcademicDepartmentFromDB = async (id: string) => {
-  const result = await AcademicDepartment.findById(id).populate('academicFaculty');
-
-  return result;
-};
-
-const updateAcademicDepartmentIntoDB = async (id: string, payload: Partial<TAcademicDepartment>) => {
-  const result = await AcademicDepartment.findOneAndUpdate({ _id: id }, payload, {
-    new: true,
-  });
-  return result;
-};
+const academicDepartmentService = new AcademicDepartmentService();
 
 export const AcademicDepartmentServices = {
-  createAcademicDepartmentIntoDB,
-  getAllAcademicDepartmentsFromDB,
-  getSingleAcademicDepartmentFromDB,
-  updateAcademicDepartmentIntoDB,
+  createAcademicDepartmentIntoDB: (payload: TAcademicDepartment) => academicDepartmentService.create(payload),
+  getAllAcademicDepartmentsFromDB: (query: Record<string, unknown>) =>
+    academicDepartmentService.getAll(query, AcademicDepartmentSearchableFields),
+  getSingleAcademicDepartmentFromDB: (id: string) => academicDepartmentService.getById(id),
+  updateAcademicDepartmentIntoDB: (id: string, payload: Partial<TAcademicDepartment>) =>
+    academicDepartmentService.updateById(id, payload),
+  deleteAcademicDepartmentFromDB: (id: string) => academicDepartmentService.deleteById(id),
 };

@@ -7,14 +7,15 @@ type TSelectProps = {
   options: { value: string; label: string; disabled?: boolean }[] | undefined;
   disabled?: boolean;
   mode?: 'multiple' | undefined;
+  required?: boolean;
 };
 
-const UniSelect = ({ label, name, options, disabled, mode }: TSelectProps) => {
+const UniSelect = ({ label, name, options, disabled, mode, required }: TSelectProps) => {
   return (
     <Controller
       name={name}
       render={({ field, fieldState: { error } }) => (
-        <Form.Item label={label}>
+        <Form.Item label={label} required={required}>
           <Select mode={mode} style={{ width: '100%' }} {...field} options={options} size="large" disabled={disabled} />
           {error && <small style={{ color: 'red' }}>{error.message}</small>}
         </Form.Item>
