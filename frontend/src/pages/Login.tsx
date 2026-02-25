@@ -55,10 +55,8 @@ const Login = () => {
       align="middle"
       style={{
         minHeight: '100vh',
-        padding: '48px 16px',
         background: 'radial-gradient(circle at top left, #0b1120 0, #020617 40%, #020617 100%)',
       }}
-      gutter={[48, 48]}
     >
       <Col xs={24} md={12} lg={10}>
         <div

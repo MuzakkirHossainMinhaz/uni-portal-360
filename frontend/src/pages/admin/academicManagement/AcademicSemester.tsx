@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
@@ -77,6 +77,16 @@ const AcademicSemester = () => {
     setIsModalVisible(true);
   };
 
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setEditingSemester(null);
+  };
+
+  const handleAddSemester = () => {
+    setEditingSemester(null);
+    setIsModalVisible(true);
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteAcademicSemester(id).unwrap();
@@ -108,6 +118,12 @@ const AcademicSemester = () => {
     selectedRowKeys,
     onChange: onSelectChange,
   };
+
+  useEffect(() => {
+    if (!isModalVisible) {
+      setEditingSemester(null);
+    }
+  }, [isModalVisible]);
 
   const columns = [
     {
@@ -213,7 +229,7 @@ const AcademicSemester = () => {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => setIsModalVisible(true)}
+              onClick={handleAddSemester}
               style={{
                 borderRadius: 8,
                 height: 40,
@@ -246,16 +262,19 @@ const AcademicSemester = () => {
       <Modal
         title={editingSemester ? 'Edit Semester' : 'Create Semester'}
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={handleModalClose}
         footer={null}
         width={600}
+        destroyOnClose={true}
       >
         <UniForm
           onSubmit={handleFormSubmit}
           defaultValues={
             editingSemester
               ? {
-                  name: semesterOptions.find((option) => option.label === editingSemester.name)?.value || editingSemester.code,
+                  name:
+                    semesterOptions.find((option) => option.label === editingSemester.name)?.value ||
+                    editingSemester.code,
                   code: editingSemester.code,
                   year: editingSemester.year,
                   startMonth: editingSemester.startMonth,
@@ -286,7 +305,7 @@ const AcademicSemester = () => {
           </Row>
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <Space>
-              <Button onClick={() => setIsModalVisible(false)}>Cancel</Button>
+              <Button onClick={handleModalClose}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"
