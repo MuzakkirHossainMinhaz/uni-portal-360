@@ -10,11 +10,10 @@ import OfferedCourses from '../pages/admin/courseManagement/OfferedCourses';
 import RegisteredSemesters from '../pages/admin/courseManagement/RegisteredSemesters';
 import SemesterRegistration from '../pages/admin/courseManagement/SemesterRegistration';
 import FeeManagement from '../pages/admin/fee/FeeManagement';
-import CreateAdmin from '../pages/admin/userManagement/CreateAdmin';
-import CreateFaculty from '../pages/admin/userManagement/CreateFaculty';
-import CreateStudent from '../pages/admin/userManagement/CreateStudent';
-import StudentData from '../pages/admin/userManagement/StudentData';
-import StudentDetails from '../pages/admin/userManagement/StudentDetails';
+import Admin from '../pages/admin/userManagement/Admin';
+import Faculty from '../pages/admin/userManagement/Faculty';
+import Member from '../pages/admin/userManagement/Member';
+import Student from '../pages/admin/userManagement/Student';
 
 export const adminPaths = [
   {
@@ -25,31 +24,16 @@ export const adminPaths = [
   {
     name: 'Academic Management',
     children: [
-      // {
-      //   name: 'Academic Semester',
-      //   path: 'create-academic-semester',
-      //   element: <CreateAcademicSemester />,
-      // },
       {
         name: 'Academic Semester',
         path: 'academic-semester',
         element: <AcademicSemester />,
       },
-      // {
-      //   name: 'Create A. Faculty',
-      //   path: 'create-academic-faculty',
-      //   element: <CreateAcademicFaculty />,
-      // },
       {
         name: 'Academic Faculty',
         path: 'academic-faculty',
         element: <AcademicFaculty />,
       },
-      // {
-      //   name: 'Create A. Department',
-      //   path: 'create-academic-department',
-      //   element: <CreateAcademicDepartment />,
-      // },
       {
         name: 'Academic Department',
         path: 'academic-department',
@@ -61,34 +45,24 @@ export const adminPaths = [
     name: 'User Management',
     children: [
       {
-        name: 'Create Student',
-        path: 'create-student',
-        element: <CreateStudent />,
+        name: 'Admins',
+        path: 'admins',
+        element: <Admin />,
+      },
+      {
+        name: 'Members',
+        path: 'members',
+        element: <Member />,
+      },
+      {
+        name: 'Faculty',
+        path: 'faculty',
+        element: <Faculty />,
       },
       {
         name: 'Students',
-        path: 'students-data',
-        element: <StudentData />,
-      },
-      {
-        path: 'student-data/:studentId',
-        element: <StudentDetails />,
-      },
-      {
-        name: 'Create Admin',
-        path: 'create-admin',
-        element: <CreateAdmin />,
-      },
-      {
-        name: 'Create Faculty',
-        path: 'create-faculty',
-        element: <CreateFaculty />,
-      },
-
-      {
-        name: 'Create Member',
-        path: 'create-member',
-        element: <CreateStudent />,
+        path: 'students',
+        element: <Student />,
       },
     ],
   },
