@@ -243,10 +243,6 @@ const AcademicDepartment = () => {
           dataSource={departments || []}
           rowKey="_id"
           rowSelection={rowSelection}
-          style={{
-            background: mode === 'dark' ? 'rgba(30,41,59,0.8)' : 'rgba(248,250,252,0.8)',
-            borderRadius: 12,
-          }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,

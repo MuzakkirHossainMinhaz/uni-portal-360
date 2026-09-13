@@ -39,3 +39,210 @@ body[data-theme='light'] .app-shell-content {
   background: #ffffff;
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
 }
+
+/* ==========================================================================
+   Ant Design Table Theme Enhancements
+   ========================================================================== */
+
+/* Dark Mode Table */
+body[data-theme='dark'] .ant-table-wrapper {
+  background: transparent !important;
+}
+
+body[data-theme='dark'] .ant-table {
+  background: transparent !important;
+  color: #e2e8f0;
+}
+
+body[data-theme='dark'] .ant-table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+body[data-theme='dark'] .ant-table-thead > tr > th {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+}
+
+body[data-theme='dark'] .ant-table-thead > tr > th::before {
+  background-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+body[data-theme='dark'] .ant-table-tbody > tr > td {
+  background: transparent !important;
+  color: #e2e8f0 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important;
+}
+
+body[data-theme='dark'] .ant-table-tbody > tr:hover > td,
+body[data-theme='dark'] .ant-table-tbody > tr.ant-table-row:hover > td {
+  background: rgba(30, 41, 59, 0.65) !important;
+}
+
+body[data-theme='dark'] .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: rgba(15, 106, 216, 0.18) !important;
+}
+
+body[data-theme='dark'] .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+  background: rgba(15, 106, 216, 0.28) !important;
+}
+
+body[data-theme='dark'] .ant-table-placeholder {
+  background: transparent !important;
+}
+
+body[data-theme='dark'] .ant-table-placeholder .ant-empty-description {
+  color: #94a3b8 !important;
+}
+
+/* Pagination — Light Mode active item text fix */
+.ant-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+/* Pagination in Dark Mode */
+body[data-theme='dark'] .ant-pagination .ant-pagination-item {
+  background: #1e293b;
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+body[data-theme='dark'] .ant-pagination .ant-pagination-item a {
+  color: #cbd5e1;
+}
+
+body[data-theme='dark'] .ant-pagination .ant-pagination-item-active {
+  background: #0f6ad8 !important;
+  border-color: #0f6ad8 !important;
+}
+
+body[data-theme='dark'] .ant-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+body[data-theme='dark'] .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+body[data-theme='dark'] .ant-pagination .ant-pagination-next .ant-pagination-item-link {
+  background: #1e293b;
+  border-color: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+
+/* Radio & Checkbox inside Table in Dark Mode */
+body[data-theme='dark'] .ant-table-wrapper .ant-radio-inner,
+body[data-theme='dark'] .ant-table-wrapper .ant-checkbox-inner {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+body[data-theme='dark'] .ant-table-wrapper .ant-radio-checked .ant-radio-inner,
+body[data-theme='dark'] .ant-table-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #0f6ad8;
+  border-color: #0f6ad8;
+}
+
+/* ==========================================================================
+   Dark Mode Inputs & Form Controls
+   ========================================================================== */
+body[data-theme='dark'] .ant-input,
+body[data-theme='dark'] .ant-input-affix-wrapper,
+body[data-theme='dark'] .ant-select-selector,
+body[data-theme='dark'] .ant-picker,
+body[data-theme='dark'] .ant-input-number {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+body[data-theme='dark'] .ant-input-affix-wrapper input.ant-input {
+  background-color: transparent !important;
+  color: #f1f5f9 !important;
+}
+
+body[data-theme='dark'] .ant-input::placeholder,
+body[data-theme='dark'] .ant-input-affix-wrapper input::placeholder {
+  color: #94a3b8 !important;
+}
+
+body[data-theme='dark'] .ant-input-password-icon,
+body[data-theme='dark'] .ant-input-suffix {
+  color: #94a3b8 !important;
+}
+
+body[data-theme='dark'] .ant-input:hover,
+body[data-theme='dark'] .ant-input-affix-wrapper:hover,
+body[data-theme='dark'] .ant-select-selector:hover,
+body[data-theme='dark'] .ant-picker:hover {
+  border-color: #38bdf8 !important;
+}
+
+body[data-theme='dark'] .ant-input:focus,
+body[data-theme='dark'] .ant-input-focused,
+body[data-theme='dark'] .ant-input-affix-wrapper:focus,
+body[data-theme='dark'] .ant-input-affix-wrapper-focused,
+body[data-theme='dark'] .ant-select-focused .ant-select-selector,
+body[data-theme='dark'] .ant-picker-focused {
+  border-color: #0f6ad8 !important;
+  box-shadow: 0 0 0 2px rgba(15, 106, 216, 0.25) !important;
+}
+
+body[data-theme='dark'] .ant-form-item-label > label {
+  color: #cbd5e1 !important;
+}
+
+/* ==========================================================================
+   Responsive Login Card & Standalone Auth Pages
+   ========================================================================== */
+.login-card {
+  padding: 40px 36px 44px;
+  transition: all 0.3s ease;
+}
+
+.login-card .ant-form-item-label > label {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+}
+
+.login-card .ant-input,
+.login-card .ant-input-affix-wrapper {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+.login-card .ant-input-affix-wrapper input.ant-input {
+  background-color: transparent !important;
+  color: #f1f5f9 !important;
+}
+
+.login-card .ant-input::placeholder,
+.login-card .ant-input-affix-wrapper input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.login-card .ant-input-password-icon,
+.login-card .ant-input-suffix {
+  color: #94a3b8 !important;
+}
+
+.login-card .ant-input:hover,
+.login-card .ant-input-affix-wrapper:hover {
+  border-color: #38bdf8 !important;
+}
+
+.login-card .ant-input:focus,
+.login-card .ant-input-focused,
+.login-card .ant-input-affix-wrapper:focus,
+.login-card .ant-input-affix-wrapper-focused {
+  border-color: #0f6ad8 !important;
+  box-shadow: 0 0 0 2px rgba(15, 106, 216, 0.25) !important;
+}
+
+@media (max-width: 576px) {
+  .login-card {
+    padding: 32px 20px 36px !important;
+    border-radius: 20px !important;
+  }
+}
+
+

@@ -56,16 +56,18 @@ const Login = () => {
       style={{
         minHeight: '100vh',
         background: 'radial-gradient(circle at top left, #0b1120 0, #020617 40%, #020617 100%)',
+        padding: '24px 16px',
       }}
     >
-      <Col xs={24} md={12} lg={10}>
+      <Col xs={24} sm={20} md={14} lg={10} xl={8}>
         <div
+          className="login-card"
           style={{
-            maxWidth: 520,
+            width: '100%',
+            maxWidth: 480,
             margin: '0 auto',
             background: 'rgba(15,23,42,0.96)',
             borderRadius: 24,
-            padding: '40px 40px 44px',
             boxShadow: '0 32px 80px rgba(15,23,42,0.9)',
             border: '1px solid rgba(148,163,184,0.35)',
           }}
