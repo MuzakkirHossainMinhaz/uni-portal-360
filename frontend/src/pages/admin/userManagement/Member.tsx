@@ -1,8 +1,8 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
-import UniForm from '../../../components/form/UniForm';
+import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import {
   useGetAllMembersQuery,
@@ -24,6 +24,7 @@ interface Member {
   profileImg?: string;
   membershipType?: string;
   joinDate?: string;
+  createdAt?: string;
   isDeleted?: boolean;
 }
 
@@ -38,6 +39,8 @@ const Member = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<UniFormHandle>(null);
 
   // API hooks
   const { data: membersData, isLoading, error } = useGetAllMembersQuery({});
@@ -50,6 +53,7 @@ const Member = () => {
   const handleModalClose = () => {
     setIsModalVisible(false);
     setEditingMember(null);
+    formRef.current?.reset();
   };
 
   const handleAddMember = () => {
@@ -58,23 +62,27 @@ const Member = () => {
   };
 
   const handleFormSubmit = async (data: any) => {
+    setIsSubmitting(true);
     try {
       if (editingMember) {
-        // Update logic
-        await updateMember({
-          data,
-          id: editingMember._id,
-        }).unwrap();
+        await updateMember({ data, id: editingMember._id }).unwrap();
         message.success('Member updated successfully');
       } else {
-        // Create logic
         await createMember(data).unwrap();
         message.success('Member created successfully');
       }
       setIsModalVisible(false);
       setEditingMember(null);
-    } catch (error) {
-      message.error('Operation failed. Please try again.');
+      formRef.current?.reset();
+    } catch (err: any) {
+      const errMsg =
+        err?.data?.message ||
+        err?.data?.error?.[0]?.message ||
+        err?.message ||
+        'Something went wrong. Please try again.';
+      message.error(errMsg, 5);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,8 +95,8 @@ const Member = () => {
     try {
       await deleteMember(id).unwrap();
       message.success('Member deleted successfully');
-    } catch (error) {
-      message.error('Delete failed. Please try again.');
+    } catch (err: any) {
+      message.error(err?.data?.message || 'Delete failed. Please try again.');
     }
   };
 
@@ -106,20 +114,10 @@ const Member = () => {
     }
   };
 
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
   const rowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
   };
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingMember(null);
-    }
-  }, [isModalVisible]);
 
   const columns: ColumnsType<Member> = [
     {
@@ -160,9 +158,10 @@ const Member = () => {
     },
     {
       title: 'Join Date',
-      dataIndex: 'joinDate',
-      key: 'joinDate',
-      render: (date: string) => {
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (_: any, record: Member) => {
+        const date = record.createdAt || record.joinDate;
         if (!date) return 'N/A';
         return new Date(date).toLocaleDateString();
       },
@@ -298,28 +297,29 @@ const Member = () => {
         onCancel={handleModalClose}
         footer={null}
         width={600}
-        destroyOnHidden={true}
+        destroyOnClose={true}
       >
         <UniForm
+          ref={formRef}
           onSubmit={handleFormSubmit}
-          defaultValues={
-            editingMember
-              ? {
-                  name: editingMember.name,
-                  email: editingMember.email,
-                  contactNo: editingMember.contactNo || '',
-                  address: editingMember.address || '',
-                  membershipType: editingMember.membershipType || 'standard',
-                }
-              : {
-                  name: '',
-                  email: '',
-                  contactNo: '',
-                  address: '',
-                  membershipType: 'standard',
-                }
-          }
-        >
+            defaultValues={
+              editingMember
+                ? {
+                    name: editingMember.name,
+                    email: editingMember.email,
+                    contactNo: editingMember.contactNo || '',
+                    address: editingMember.address || '',
+                    membershipType: editingMember.membershipType || 'standard',
+                  }
+                : {
+                    name: '',
+                    email: '',
+                    contactNo: '',
+                    address: '',
+                    membershipType: 'standard',
+                  }
+            }
+          >
           <Row gutter={[16, 0]}>
             <Col span={24}>
               <UniInput type="text" name="name" label="Full Name" required />
@@ -339,10 +339,11 @@ const Member = () => {
           </Row>
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <Space>
-              <Button onClick={handleModalClose}>Cancel</Button>
+              <Button onClick={handleModalClose} disabled={isSubmitting}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"
+                loading={isSubmitting}
                 style={{
                   background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)',
                   border: 'none',

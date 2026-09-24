@@ -12,7 +12,10 @@ import {
   FileTextOutlined,
   ReadOutlined,
   BankOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  SafetyCertificateOutlined,
+  UsergroupAddOutlined,
+  SolutionOutlined
 } from '@ant-design/icons';
 
 const getIconForItem = (itemName: string) => {
@@ -26,11 +29,14 @@ const getIconForItem = (itemName: string) => {
     'Create A. Department': <BankOutlined />,
     'Academic Department': <BankOutlined />,
     'User Management': <UserOutlined />,
-    'Create Student': <UserOutlined />,
-    'Students': <UserOutlined />,
-    'Create Admin': <SettingOutlined />,
-    'Create Faculty': <TeamOutlined />,
-    'Create Member': <UserOutlined />,
+    'Create Student': <ReadOutlined />,
+    'Students': <ReadOutlined />,
+    'Create Admin': <SafetyCertificateOutlined />,
+    'Admins': <SafetyCertificateOutlined />,
+    'Create Faculty': <SolutionOutlined />,
+    'Faculty': <SolutionOutlined />,
+    'Create Member': <UsergroupAddOutlined />,
+    'Members': <UsergroupAddOutlined />,
     'Course Management': <BookOutlined />,
     'Semester Registration': <FileTextOutlined />,
     'Registered Semesters': <CalendarOutlined />,

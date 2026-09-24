@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { UserStatus } from './user.constant';
+import { createMemberValidationSchema } from '../Member/member.validation';
 
 const userValidationSchema = z.object({
   pasword: z
@@ -15,7 +16,9 @@ const changeStatusValidationSchema = z.object({
     status: z.enum([...UserStatus] as [string, ...string[]]),
   }),
 });
+
 export const UserValidation = {
   userValidationSchema,
   changeStatusValidationSchema,
+  createMemberValidationSchema,
 };

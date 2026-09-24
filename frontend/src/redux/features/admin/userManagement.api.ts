@@ -165,6 +165,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: '/members',
         method: 'GET',
       }),
+      providesTags: ['Member'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
     getSingleMember: builder.query({
@@ -172,6 +173,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/members/${id}`,
         method: 'GET',
       }),
+      providesTags: ['Member'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
     addMember: builder.mutation({
@@ -180,6 +182,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
+      invalidatesTags: ['Member'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
     updateMember: builder.mutation({
@@ -188,6 +191,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
+      invalidatesTags: ['Member'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
     deleteMember: builder.mutation({
@@ -195,6 +199,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/members/${id}`,
         method: 'DELETE',
       }),
+      invalidatesTags: ['Member'],
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
 

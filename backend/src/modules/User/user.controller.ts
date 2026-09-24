@@ -42,6 +42,21 @@ const createAdmin = catchAsync(async (req, res) => {
   });
 });
 
+const createMember = catchAsync(async (req, res) => {
+  // Try taking member either nested or directly from body to handle simple frontend forms
+  const { password, member } = req.body;
+  const memberData = member || req.body;
+
+  const result = await UserServices.createMemberIntoDB(req.file, password, memberData);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Member is created successfully',
+    data: result,
+  });
+});
+
 const getMe = catchAsync(async (req, res) => {
   const { userId, role } = req.user;
   const result = await UserServices.getMe(userId, role);
@@ -66,10 +81,12 @@ const changeStatus = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 export const UserControllers = {
   createStudent,
   createFaculty,
   createAdmin,
+  createMember,
   getMe,
   changeStatus,
 };

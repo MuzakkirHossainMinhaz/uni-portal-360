@@ -1,8 +1,9 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Select, Space, Table, Typography } from 'antd';
+import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
-import UniForm from '../../../components/form/UniForm';
+import { Controller } from 'react-hook-form';
+import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import {
   useGetAllAdminsQuery,
@@ -13,6 +14,7 @@ import {
 import { useThemeMode } from '../../../theme/ThemeProvider';
 
 const { Title } = Typography;
+const { Option } = Select;
 
 interface Admin {
   _id: string;
@@ -30,23 +32,65 @@ const sorter = (a: any, b: any) => {
   return nameA.localeCompare(nameB);
 };
 
+// Controlled Select that integrates with react-hook-form via Controller
+const UniSelect = ({
+  name,
+  label,
+  options,
+  required,
+}: {
+  name: string;
+  label: string;
+  options: { value: string; label: string }[];
+  required?: boolean;
+}) => (
+  <div style={{ marginBottom: 16 }}>
+    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>
+      {required && <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>}
+      {label}
+    </label>
+    <Controller
+      name={name}
+      render={({ field }) => (
+        <Select
+          {...field}
+          value={field.value || undefined}
+          style={{ width: '100%' }}
+          size="large"
+          placeholder={`Select ${label}`}
+          allowClear
+        >
+          {options.map((opt) => (
+            <Option key={opt.value} value={opt.value}>
+              {opt.label}
+            </Option>
+          ))}
+        </Select>
+      )}
+    />
+  </div>
+);
+
 const Admin = () => {
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<UniFormHandle>(null);
 
-  // API hooks
-  const { data: adminsData, isLoading, error } = useGetAllAdminsQuery({});
+  const { data: adminsData, isLoading, error } = useGetAllAdminsQuery(undefined);
   const [createAdmin] = useAddAdminMutation();
   const [updateAdmin] = useUpdateAdminMutation();
   const [deleteAdmin] = useDeleteAdminMutation();
 
   const admins = adminsData?.data || adminsData || [];
 
+  // Close modal and reset form
   const handleModalClose = () => {
     setIsModalVisible(false);
     setEditingAdmin(null);
+    formRef.current?.reset();
   };
 
   const handleAddAdmin = () => {
@@ -54,24 +98,56 @@ const Admin = () => {
     setIsModalVisible(true);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (formData: any) => {
+    setIsSubmitting(true);
     try {
       if (editingAdmin) {
-        // Update logic
-        await updateAdmin({
-          data,
-          id: editingAdmin._id,
-        }).unwrap();
+        await updateAdmin({ data: { admin: formData }, id: editingAdmin._id }).unwrap();
         message.success('Admin updated successfully');
+        setIsModalVisible(false);
+        setEditingAdmin(null);
+        formRef.current?.reset();
       } else {
-        // Create logic
-        await createAdmin(data).unwrap();
-        message.success('Admin created successfully');
+        // Backend expects multipart/form-data with a `data` JSON string field
+        const payload = {
+          password: formData.password || undefined,
+          admin: {
+            designation: formData.designation,
+            name: {
+              firstName: formData.firstName,
+              middleName: formData.middleName || '',
+              lastName: formData.lastName,
+            },
+            gender: formData.gender,
+            dateOfBirth: formData.dateOfBirth || undefined,
+            email: formData.email,
+            contactNo: formData.contactNo,
+            emergencyContactNo: formData.emergencyContactNo,
+            bloogGroup: formData.bloogGroup,
+            presentAddress: formData.presentAddress,
+            permanentAddress: formData.permanentAddress,
+          },
+        };
+
+        const fd = new FormData();
+        fd.append('data', JSON.stringify(payload));
+        await createAdmin(fd).unwrap();
+        message.success('Admin created successfully!');
+        // Only reset + close on success
+        setIsModalVisible(false);
+        setEditingAdmin(null);
+        formRef.current?.reset();
       }
-      setIsModalVisible(false);
-      setEditingAdmin(null);
-    } catch (error) {
-      message.error('Operation failed. Please try again.');
+    } catch (err: any) {
+      // Keep modal open, show error — do NOT reset form
+      const errMsg =
+        err?.data?.message ||
+        err?.data?.error?.[0]?.message ||
+        err?.message ||
+        'Something went wrong. Please try again.';
+      message.error(errMsg, 5);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -84,8 +160,8 @@ const Admin = () => {
     try {
       await deleteAdmin(id).unwrap();
       message.success('Admin deleted successfully');
-    } catch (error) {
-      message.error('Delete failed. Please try again.');
+    } catch (err: any) {
+      message.error(err?.data?.message || 'Delete failed. Please try again.');
     }
   };
 
@@ -98,32 +174,22 @@ const Admin = () => {
       await Promise.all(selectedRowKeys.map((id) => deleteAdmin(id as string).unwrap()));
       setSelectedRowKeys([]);
       message.success(`${selectedRowKeys.length} admin(s) deleted successfully`);
-    } catch (error) {
-      message.error('Bulk delete failed. Please try again.');
+    } catch (err: any) {
+      message.error(err?.data?.message || 'Bulk delete failed. Please try again.');
     }
-  };
-
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
   };
 
   const rowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
   };
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingAdmin(null);
-    }
-  }, [isModalVisible]);
 
   const columns: ColumnsType<Admin> = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      sorter: sorter,
+      sorter,
     },
     {
       title: 'Email',
@@ -201,8 +267,7 @@ const Admin = () => {
         }}
       >
         <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-          {/* Left Side - Title and Subtitle */}
-          <Space orientation="vertical" size={4}>
+          <Space direction="vertical" size={4}>
             <Title level={3} style={{ margin: 0, color: mode === 'dark' ? '#e5e7eb' : '#111827' }}>
               Admin Management
             </Title>
@@ -211,7 +276,6 @@ const Admin = () => {
             </Typography.Text>
           </Space>
 
-          {/* Right Side - Buttons */}
           <Space style={{ display: 'flex', gap: 8 }}>
             <Button
               type="dashed"
@@ -219,10 +283,7 @@ const Admin = () => {
               onClick={handleBulkDelete}
               disabled={selectedRowKeys.length === 0}
               danger
-              style={{
-                borderRadius: 8,
-                height: 40,
-              }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Delete ({selectedRowKeys.length})
             </Button>
@@ -230,10 +291,7 @@ const Admin = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleAddAdmin}
-              style={{
-                borderRadius: 8,
-                height: 40,
-              }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Add Admin
             </Button>
@@ -245,66 +303,124 @@ const Admin = () => {
           dataSource={admins}
           rowKey="_id"
           rowSelection={rowSelection}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            style: { marginRight: 8 },
-          }}
+          pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true, style: { marginRight: 8 } }}
         />
       </Card>
 
-      {/* Create and Edit Modal */}
+      {/* Create / Edit Modal */}
       <Modal
         title={editingAdmin ? 'Edit Admin' : 'Create Admin'}
         open={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
-        width={600}
-        destroyOnHidden={true}
+        width={700}
+        destroyOnHidden
       >
         <UniForm
+          ref={formRef}
           onSubmit={handleFormSubmit}
           defaultValues={
             editingAdmin
-              ? {
-                  name: editingAdmin.name,
-                  email: editingAdmin.email,
-                  contactNo: editingAdmin.contactNo || '',
-                  address: editingAdmin.address || '',
-                }
+              ? { name: editingAdmin.name, email: editingAdmin.email, contactNo: editingAdmin.contactNo || '' }
               : {
-                  name: '',
+                  firstName: '',
+                  middleName: '',
+                  lastName: '',
                   email: '',
+                  password: '',
+                  designation: '',
+                  gender: '',
+                  bloogGroup: '',
                   contactNo: '',
-                  address: '',
+                  emergencyContactNo: '',
+                  presentAddress: '',
+                  permanentAddress: '',
+                  dateOfBirth: '',
                 }
           }
         >
-          <Row gutter={[16, 0]}>
-            <Col span={24}>
-              <UniInput type="text" name="name" label="Full Name" required />
-            </Col>
-            <Col span={24}>
-              <UniInput type="email" name="email" label="Email Address" required />
-            </Col>
-            <Col span={12}>
-              <UniInput type="text" name="contactNo" label="Contact Number" />
-            </Col>
-            <Col span={12}>
-              <UniInput type="text" name="address" label="Address" />
-            </Col>
-          </Row>
+          {editingAdmin ? (
+            <Row gutter={[16, 0]}>
+              <Col span={24}>
+                <UniInput type="text" name="name" label="Full Name" required />
+              </Col>
+              <Col span={24}>
+                <UniInput type="email" name="email" label="Email Address" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="contactNo" label="Contact Number" />
+              </Col>
+            </Row>
+          ) : (
+            <Row gutter={[16, 0]}>
+              <Col span={8}>
+                <UniInput type="text" name="firstName" label="First Name" required />
+              </Col>
+              <Col span={8}>
+                <UniInput type="text" name="middleName" label="Middle Name" />
+              </Col>
+              <Col span={8}>
+                <UniInput type="text" name="lastName" label="Last Name" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="email" name="email" label="Email" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="password" name="password" label="Password (optional)" />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="designation" label="Designation" required />
+              </Col>
+              <Col span={12}>
+                <UniSelect
+                  name="gender"
+                  label="Gender"
+                  required
+                  options={[
+                    { value: 'male', label: 'Male' },
+                    { value: 'female', label: 'Female' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                />
+              </Col>
+              <Col span={12}>
+                <UniSelect
+                  name="bloogGroup"
+                  label="Blood Group"
+                  required
+                  options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((b) => ({
+                    value: b,
+                    label: b,
+                  }))}
+                />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="dateOfBirth" label="Date of Birth (YYYY-MM-DD)" />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="contactNo" label="Contact Number" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="emergencyContactNo" label="Emergency Contact" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="presentAddress" label="Present Address" required />
+              </Col>
+              <Col span={12}>
+                <UniInput type="text" name="permanentAddress" label="Permanent Address" required />
+              </Col>
+            </Row>
+          )}
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <Space>
-              <Button onClick={handleModalClose}>Cancel</Button>
+              <Button onClick={handleModalClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
               <Button
                 type="primary"
                 htmlType="submit"
-                style={{
-                  background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)',
-                  border: 'none',
-                }}
+                loading={isSubmitting}
+                style={{ background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)', border: 'none' }}
               >
                 {editingAdmin ? 'Update' : 'Create'}
               </Button>

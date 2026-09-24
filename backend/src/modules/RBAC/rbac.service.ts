@@ -1,7 +1,7 @@
 import { logger } from '../../utils/logger';
 import { Permission, Role, RolePermission } from './rbac.model';
 
-const ROLES = ['superAdmin', 'admin', 'registrar', 'faculty', 'student'];
+const ROLES = ['superAdmin', 'admin', 'registrar', 'faculty', 'student', 'member'];
 
 const PERMISSIONS = [
   // User Management
@@ -17,6 +17,10 @@ const PERMISSIONS = [
   'deleteAdmin',
   'updateAdmin',
   'getAdmin',
+  'createMember',
+  'deleteMember',
+  'updateMember',
+  'getMember',
 
   // Academic Management
   'createAcademicSemester',
@@ -81,6 +85,10 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'deleteAdmin',
     'updateAdmin',
     'getAdmin',
+    'createMember',
+    'deleteMember',
+    'updateMember',
+    'getMember',
     'createAcademicSemester',
     'updateAcademicSemester',
     'getAcademicSemester',
@@ -153,24 +161,38 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'viewAssignment',
     'viewResult',
   ],
+  member: [],
 };
 
 const seedRBAC = async () => {
   try {
+    let permissionsInserted = 0;
     for (const permName of PERMISSIONS) {
-      await Permission.updateOne(
+      const result = await Permission.updateOne(
         { name: permName },
-        { name: permName, description: `Permission to ${permName}` },
+        { $setOnInsert: { name: permName, description: `Permission to ${permName}` } },
         { upsert: true },
       );
+      permissionsInserted += result.upsertedCount;
     }
-    logger.info('Permissions seeded');
+    if (permissionsInserted > 0) {
+      logger.info(`RBAC: ${permissionsInserted} new permission(s) seeded`);
+    }
 
+    let rolesInserted = 0;
     for (const roleName of ROLES) {
-      await Role.updateOne({ name: roleName }, { name: roleName, description: `${roleName} role` }, { upsert: true });
+      const result = await Role.updateOne(
+        { name: roleName },
+        { $setOnInsert: { name: roleName, description: `${roleName} role` } },
+        { upsert: true },
+      );
+      rolesInserted += result.upsertedCount;
     }
-    logger.info('Roles seeded');
+    if (rolesInserted > 0) {
+      logger.info(`RBAC: ${rolesInserted} new role(s) seeded`);
+    }
 
+    let rolePermsInserted = 0;
     for (const [roleName, permissions] of Object.entries(ROLE_PERMISSIONS)) {
       const role = await Role.findOne({ name: roleName });
       if (!role) continue;
@@ -179,14 +201,17 @@ const seedRBAC = async () => {
         const permission = await Permission.findOne({ name: permName });
         if (!permission) continue;
 
-        await RolePermission.updateOne(
+        const result = await RolePermission.updateOne(
           { roleId: role._id, permissionId: permission._id },
-          { roleId: role._id, permissionId: permission._id },
+          { $setOnInsert: { roleId: role._id, permissionId: permission._id } },
           { upsert: true },
         );
+        rolePermsInserted += result.upsertedCount;
       }
     }
-    logger.info('RolePermissions seeded');
+    if (rolePermsInserted > 0) {
+      logger.info(`RBAC: ${rolePermsInserted} new role-permission mapping(s) seeded`);
+    }
   } catch (error) {
     logger.error('Error seeding RBAC', error);
   }

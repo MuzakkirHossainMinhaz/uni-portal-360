@@ -1,8 +1,8 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
-import UniForm from '../../../components/form/UniForm';
+import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
 import {
@@ -42,9 +42,11 @@ const Faculty = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<UniFormHandle>(null);
 
   // API hooks
-  const { data: facultiesData, isLoading, error } = useGetAllFacultiesQuery({});
+  const { data: facultiesData, isLoading, error } = useGetAllFacultiesQuery(undefined);
   const [createFaculty] = useAddFacultyMutation();
   const [updateFaculty] = useUpdateFacultyMutation();
   const [deleteFaculty] = useDeleteFacultyMutation();
@@ -56,6 +58,7 @@ const Faculty = () => {
   const handleModalClose = () => {
     setIsModalVisible(false);
     setEditingFaculty(null);
+    formRef.current?.reset();
   };
 
   const handleAddFaculty = () => {
@@ -64,23 +67,29 @@ const Faculty = () => {
   };
 
   const handleFormSubmit = async (data: any) => {
+    setIsSubmitting(true);
     try {
       if (editingFaculty) {
-        // Update logic
-        await updateFaculty({
-          data,
-          id: editingFaculty._id,
-        }).unwrap();
+        await updateFaculty({ data, id: editingFaculty._id }).unwrap();
         message.success('Faculty updated successfully');
       } else {
-        // Create logic
-        await createFaculty(data).unwrap();
+        const fd = new FormData();
+        fd.append('data', JSON.stringify({ faculty: data }));
+        await createFaculty(fd).unwrap();
         message.success('Faculty created successfully');
       }
       setIsModalVisible(false);
       setEditingFaculty(null);
-    } catch (error) {
-      message.error('Operation failed. Please try again.');
+      formRef.current?.reset();
+    } catch (err: any) {
+      const errMsg =
+        err?.data?.message ||
+        err?.data?.error?.[0]?.message ||
+        err?.message ||
+        'Something went wrong. Please try again.';
+      message.error(errMsg, 5);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -93,8 +102,8 @@ const Faculty = () => {
     try {
       await deleteFaculty(id).unwrap();
       message.success('Faculty deleted successfully');
-    } catch (error) {
-      message.error('Delete failed. Please try again.');
+    } catch (err: any) {
+      message.error(err?.data?.message || 'Delete failed. Please try again.');
     }
   };
 
@@ -107,25 +116,15 @@ const Faculty = () => {
       await Promise.all(selectedRowKeys.map((id) => deleteFaculty(id as string).unwrap()));
       setSelectedRowKeys([]);
       message.success(`${selectedRowKeys.length} faculty(ies) deleted successfully`);
-    } catch (error) {
-      message.error('Bulk delete failed. Please try again.');
+    } catch (err: any) {
+      message.error(err?.data?.message || 'Bulk delete failed. Please try again.');
     }
-  };
-
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
   };
 
   const rowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
   };
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingFaculty(null);
-    }
-  }, [isModalVisible]);
 
   const columns: ColumnsType<Faculty> = [
     {
@@ -274,7 +273,7 @@ const Faculty = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<any>
           columns={columns}
           dataSource={faculties}
           rowKey="_id"
@@ -298,6 +297,7 @@ const Faculty = () => {
         destroyOnHidden={true}
       >
         <UniForm
+          ref={formRef}
           onSubmit={handleFormSubmit}
           defaultValues={
             editingFaculty
@@ -344,10 +344,11 @@ const Faculty = () => {
           </Row>
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <Space>
-              <Button onClick={handleModalClose}>Cancel</Button>
+              <Button onClick={handleModalClose} disabled={isSubmitting}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"
+                loading={isSubmitting}
                 style={{
                   background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)',
                   border: 'none',
