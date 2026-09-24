@@ -1,7 +1,9 @@
 import { logger } from '../../utils/logger';
 import { Permission, Role, RolePermission } from './rbac.model';
+import { USER_ROLE } from '../User/user.constant';
+import { TUserRole } from '../User/user.interface';
 
-const ROLES = ['superAdmin', 'admin', 'registrar', 'faculty', 'student', 'member'];
+const ROLES = Object.values(USER_ROLE);
 
 const PERMISSIONS = [
   // User Management
@@ -17,10 +19,6 @@ const PERMISSIONS = [
   'deleteAdmin',
   'updateAdmin',
   'getAdmin',
-  'createMember',
-  'deleteMember',
-  'updateMember',
-  'getMember',
 
   // Academic Management
   'createAcademicSemester',
@@ -70,7 +68,7 @@ const PERMISSIONS = [
   'publishResult',
 ];
 
-const ROLE_PERMISSIONS: Record<string, string[]> = {
+const ROLE_PERMISSIONS: Record<TUserRole, string[]> = {
   superAdmin: PERMISSIONS, // All permissions
   admin: [
     'createStudent',
@@ -85,10 +83,6 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'deleteAdmin',
     'updateAdmin',
     'getAdmin',
-    'createMember',
-    'deleteMember',
-    'updateMember',
-    'getMember',
     'createAcademicSemester',
     'updateAcademicSemester',
     'getAcademicSemester',
@@ -113,26 +107,6 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'deleteSemesterRegistration',
     'getSemesterRegistration',
     'publishResult',
-  ],
-  registrar: [
-    'createAcademicSemester',
-    'updateAcademicSemester',
-    'getAcademicSemester',
-    'createAcademicDepartment',
-    'updateAcademicDepartment',
-    'getAcademicDepartment',
-    'createAcademicFaculty',
-    'updateAcademicFaculty',
-    'getAcademicFaculty',
-    'createCourse',
-    'updateCourse',
-    'getCourse',
-    'createOfferedCourse',
-    'updateOfferedCourse',
-    'getOfferedCourse',
-    'createSemesterRegistration',
-    'updateSemesterRegistration',
-    'getSemesterRegistration',
   ],
   faculty: [
     'getStudent',
@@ -161,7 +135,6 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'viewAssignment',
     'viewResult',
   ],
-  member: [],
 };
 
 const seedRBAC = async () => {

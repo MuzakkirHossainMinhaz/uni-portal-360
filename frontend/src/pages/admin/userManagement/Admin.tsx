@@ -273,7 +273,7 @@ const Admin = () => {
               Admin Management
             </Title>
             <Typography.Text style={{ color: mode === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 14 }}>
-              Manage system administrators and their permissions
+              Manage Admin profiles. The system-owner Super Admin is listed in All Accounts &amp; Roles.
             </Typography.Text>
           </Space>
 

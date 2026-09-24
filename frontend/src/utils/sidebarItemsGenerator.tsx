@@ -14,7 +14,6 @@ import {
   BankOutlined,
   AppstoreOutlined,
   SafetyCertificateOutlined,
-  UsergroupAddOutlined,
   SolutionOutlined
 } from '@ant-design/icons';
 
@@ -29,14 +28,13 @@ const getIconForItem = (itemName: string) => {
     'Create A. Department': <BankOutlined />,
     'Academic Department': <BankOutlined />,
     'User Management': <UserOutlined />,
+    'All Accounts & Roles': <TeamOutlined />,
     'Create Student': <ReadOutlined />,
     'Students': <ReadOutlined />,
     'Create Admin': <SafetyCertificateOutlined />,
     'Admins': <SafetyCertificateOutlined />,
     'Create Faculty': <SolutionOutlined />,
     'Faculty': <SolutionOutlined />,
-    'Create Member': <UsergroupAddOutlined />,
-    'Members': <UsergroupAddOutlined />,
     'Course Management': <BookOutlined />,
     'Semester Registration': <FileTextOutlined />,
     'Registered Semesters': <CalendarOutlined />,

@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Schema, model } from 'mongoose';
 import config from '../../config';
-import { UserStatus } from './user.constant';
+import { USER_ROLE, UserStatus } from './user.constant';
 import { TUser, UserModel } from './user.interface';
 
 const userSchema = new Schema<TUser, UserModel>(
@@ -30,7 +30,7 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     role: {
       type: String,
-      enum: ['superAdmin', 'student', 'faculty', 'admin', 'member'],
+      enum: Object.values(USER_ROLE),
     },
     status: {
       type: String,

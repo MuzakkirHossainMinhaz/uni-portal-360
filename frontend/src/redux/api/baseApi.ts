@@ -82,7 +82,6 @@ export const baseApi = createApi({
     'Notification',
     'SemesterResult',
     'Submission',
-    'Member',
   ],
   endpoints: () => ({}),
 });

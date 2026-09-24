@@ -159,50 +159,6 @@ const userManagementApi = baseApi.injectEndpoints({
       transformResponse: (response: TResponseRedux<any>) => response.data,
     }),
 
-    // Member endpoints
-    getAllMembers: builder.query({
-      query: () => ({
-        url: '/members',
-        method: 'GET',
-      }),
-      providesTags: ['Member'],
-      transformResponse: (response: TResponseRedux<any>) => response.data,
-    }),
-    getSingleMember: builder.query({
-      query: (id: string) => ({
-        url: `/members/${id}`,
-        method: 'GET',
-      }),
-      providesTags: ['Member'],
-      transformResponse: (response: TResponseRedux<any>) => response.data,
-    }),
-    addMember: builder.mutation({
-      query: (data) => ({
-        url: '/users/create-member',
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['Member'],
-      transformResponse: (response: TResponseRedux<any>) => response.data,
-    }),
-    updateMember: builder.mutation({
-      query: ({ id, data }: { id: string; data: any }) => ({
-        url: `/members/${id}`,
-        method: 'PATCH',
-        body: data,
-      }),
-      invalidatesTags: ['Member'],
-      transformResponse: (response: TResponseRedux<any>) => response.data,
-    }),
-    deleteMember: builder.mutation({
-      query: (id: string) => ({
-        url: `/members/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Member'],
-      transformResponse: (response: TResponseRedux<any>) => response.data,
-    }),
-
     changePassword: builder.mutation<null, { oldPassword: string; newPassword: string }>({
       query: (data) => ({
         url: '/auth/change-password',
@@ -229,10 +185,5 @@ export const {
   useAddAdminMutation,
   useUpdateAdminMutation,
   useDeleteAdminMutation,
-  useGetAllMembersQuery,
-  useGetSingleMemberQuery,
-  useAddMemberMutation,
-  useUpdateMemberMutation,
-  useDeleteMemberMutation,
   useChangePasswordMutation,
 } = userManagementApi;

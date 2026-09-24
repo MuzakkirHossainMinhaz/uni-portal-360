@@ -11,8 +11,8 @@ import RegisteredSemesters from '../pages/admin/courseManagement/RegisteredSemes
 import SemesterRegistration from '../pages/admin/courseManagement/SemesterRegistration';
 import FeeManagement from '../pages/admin/fee/FeeManagement';
 import Admin from '../pages/admin/userManagement/Admin';
+import AccountsAndRoles from '../pages/admin/userManagement/AccountsAndRoles';
 import Faculty from '../pages/admin/userManagement/Faculty';
-import Member from '../pages/admin/userManagement/Member';
 import Student from '../pages/admin/userManagement/Student';
 
 export const adminPaths = [
@@ -45,14 +45,14 @@ export const adminPaths = [
     name: 'User Management',
     children: [
       {
+        name: 'All Accounts & Roles',
+        path: 'accounts',
+        element: <AccountsAndRoles />,
+      },
+      {
         name: 'Admins',
         path: 'admins',
         element: <Admin />,
-      },
-      {
-        name: 'Members',
-        path: 'members',
-        element: <Member />,
       },
       {
         name: 'Faculty',

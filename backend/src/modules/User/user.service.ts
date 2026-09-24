@@ -13,10 +13,8 @@ import { TStudent } from '../Student/student.interface';
 import { Student } from '../Student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import { generateAdminId, generateFacultyId, generateStudentId, generateMemberId } from './user.utils';
+import { generateAdminId, generateFacultyId, generateStudentId } from './user.utils';
 import { Express } from 'express';
-import { TMember } from '../Member/member.interface';
-import { Member } from '../Member/member.model';
 import { RBACService } from '../RBAC/rbac.service';
 
 const createStudentIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TStudent) => {
@@ -212,53 +210,6 @@ const createAdminIntoDB = async (file: Express.Multer.File | undefined, password
   }
 };
 
-const createMemberIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TMember) => {
-  const userData: Partial<TUser> = {};
-
-  userData.password = password || (config.default_password as string);
-  userData.role = 'member';
-  userData.email = payload.email;
-
-  const session = await mongoose.startSession();
-
-  try {
-    session.startTransaction();
-
-    userData.id = await generateMemberId();
-
-    if (file) {
-      const imageName = `${userData.id}${payload?.name}`;
-      const path = file?.path;
-      const { secure_url } = await sendImageToCloudinary(imageName, path);
-      payload.profileImg = secure_url as string;
-    }
-
-    const newUser = await User.create([userData], { session });
-
-    if (!newUser.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
-    }
-
-    payload.id = newUser[0].id;
-    payload.user = newUser[0]._id;
-
-    const newMember = await Member.create([payload], { session });
-
-    if (!newMember.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create member');
-    }
-
-    await session.commitTransaction();
-    await session.endSession();
-
-    return newMember;
-  } catch (err) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw err;
-  }
-};
-
 const getMe = async (userId: string, role: string) => {
   let result = null;
   if (role === 'student') {
@@ -272,9 +223,6 @@ const getMe = async (userId: string, role: string) => {
   }
   if (role === 'superAdmin') {
     result = await Admin.findOne({ id: userId }).populate('user');
-  }
-  if (role === 'member') {
-    result = await Member.findOne({ id: userId }).populate('user');
   }
 
   const permissions = await RBACService.getRolePermissions(role);
@@ -293,7 +241,6 @@ export const UserServices = {
   createStudentIntoDB,
   createFacultyIntoDB,
   createAdminIntoDB,
-  createMemberIntoDB,
   getMe,
   changeStatus,
 };

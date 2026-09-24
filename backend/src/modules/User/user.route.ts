@@ -6,12 +6,15 @@ import { upload } from '../../utils/sendImageToCloudinary';
 import { createAdminValidationSchema } from '../Admin/admin.validation';
 import { createFacultyValidationSchema } from '../Faculty/faculty.validation';
 import { createStudentValidationSchema } from '../Student/student.validation';
-import { createMemberValidationSchema } from '../Member/member.validation';
 import { USER_ROLE } from './user.constant';
 import { UserControllers } from './user.controller';
 import { UserValidation } from './user.validation';
 
 const router = express.Router();
+
+// The directory includes bootstrap users without a role-specific profile.
+router.get('/', auth(USER_ROLE.superAdmin, USER_ROLE.admin), UserControllers.getAccounts);
+router.get('/roles', auth(USER_ROLE.superAdmin, USER_ROLE.admin), UserControllers.getRoles);
 
 router.post(
   '/create-student',
@@ -65,24 +68,6 @@ router.post(
 );
 
 router.post(
-  '/create-member',
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
-  upload.single('file'),
-  (req: Request, res: Response, next: NextFunction) => {
-    if (req.body && req.body.data) {
-      try {
-        req.body = JSON.parse(req.body.data);
-      } catch (err) {
-        // ignore error if not JSON
-      }
-    }
-    next();
-  },
-  validateRequest(createMemberValidationSchema),
-  UserControllers.createMember,
-);
-
-router.post(
   '/change-status/:id',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(UserValidation.changeStatusValidationSchema),
@@ -91,7 +76,7 @@ router.post(
 
 router.get(
   '/me',
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student, USER_ROLE.member),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
   UserControllers.getMe,
 );
 

@@ -196,9 +196,11 @@ Uni Portal 360 models a modern university’s core processes. Below is a high‑
   - Enforced `needsPasswordChange` flow on first login or reset.
 
 - **Role‑Based Access Control**
-  - System roles: `superAdmin`, `admin`, `faculty`, `student`, `registrar`.
-  - Fine‑grained permissions (e.g. `createStudent`, `assignFaculties`, `enrollCourse`, `createAssignment`, `viewResult`, etc.).
-  - RBAC seeding on startup ensures consistent permissions across environments.
+  - Core roles: `admin`, `faculty`, and `student`. `superAdmin` is the bootstrap system-owner variant of administration.
+  - Exactly four account roles are supported: `superAdmin`, `admin`, `faculty`, and `student`.
+  - User Management → All Accounts & Roles lists every stored account role, including Super Admin and any legacy entries, with descriptions and counts.
+  - Explicit API role checks control access; some endpoints also enforce seeded permissions. A permission name alone does not guarantee a working feature.
+  - See [Roles and User Management](docs/roles-and-user-management.md) for functionality, limitations, the permission matrix, and the recommended minimal setup.
 
 ### 3.2 Academic Structure & Course Management
 

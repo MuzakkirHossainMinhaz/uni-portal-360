@@ -12,7 +12,6 @@ import { CourseRoutes } from '../modules/Course/course.route';
 import { EnrolledCourseRoutes } from '../modules/EnrolledCourse/enrolledCourse.route';
 import { FacultyRoutes } from '../modules/Faculty/faculty.route';
 import { FeeRoutes } from '../modules/Fee/fee.route';
-import { MemberRoutes } from '../modules/Member/member.route';
 import { NotificationRoutes } from '../modules/Notification/notification.route';
 import { offeredCourseRoutes } from '../modules/OfferedCourse/OfferedCourse.route';
 import { semesterRegistrationRoutes } from '../modules/SemesterRegistration/semesterRegistration.route';
@@ -40,10 +39,6 @@ const moduleRoutes = [
   {
     path: '/admins',
     route: AdminRoutes,
-  },
-  {
-    path: '/members',
-    route: MemberRoutes,
   },
   {
     path: '/academic-semesters',
