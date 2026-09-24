@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, Modal, Table, message, Card, Space, Tag, Typography, Avatar } from 'antd';
+import { App, Button, Form, Input, InputNumber, Modal, Table, Card, Space, Tag, Typography, Avatar } from 'antd';
 import { UserOutlined, DownloadOutlined, StarOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ type GradeFormValues = {
 };
 
 const FacultySubmissions = () => {
+  const { message } = App.useApp();
   const { assignmentId } = useParams();
   const submissionsQuery = assignmentId ? { assignment: assignmentId } : undefined;
   const { data: submissions, isLoading } =

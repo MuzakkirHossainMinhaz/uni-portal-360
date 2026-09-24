@@ -40,7 +40,7 @@ const updateMemberIntoDB = async (id: string, payload: Partial<TMember>) => {
   }
 
   const result = await Member.findOneAndUpdate(query, payload, {
-    new: true,
+    returnDocument: 'after',
     runValidators: true,
   });
 
@@ -57,7 +57,7 @@ const deleteMemberFromDB = async (id: string) => {
     const deletedMember = await Member.findOneAndUpdate(
       query,
       { isDeleted: true },
-      { new: true, session },
+      { returnDocument: 'after', session },
     );
 
     if (!deletedMember) {
@@ -67,7 +67,7 @@ const deleteMemberFromDB = async (id: string) => {
     const deletedUser = await User.findByIdAndUpdate(
       deletedMember.user,
       { isDeleted: true },
-      { new: true, session },
+      { returnDocument: 'after', session },
     );
 
     if (!deletedUser) {

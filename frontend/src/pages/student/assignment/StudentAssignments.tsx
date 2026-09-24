@@ -1,4 +1,4 @@
-import { Button, Card, List, message, Modal, Upload, Typography, Tag, Space } from 'antd';
+import { App, Button, Card, List, Modal, Upload, Typography, Tag, Space } from 'antd';
 import { UploadOutlined, CalendarOutlined, FileTextOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useGetAllAssignmentsQuery } from '../../../redux/features/assignment/assignment.api';
@@ -17,6 +17,7 @@ type StudentAssignment = {
 };
 
 const StudentAssignments = () => {
+  const { message } = App.useApp();
   const { data: assignments, isLoading } = useGetAllAssignmentsQuery(undefined);
   const [createSubmission, { isLoading: isSubmitting }] = useCreateSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -129,7 +130,7 @@ const StudentAssignments = () => {
                           {item.description}
                       </Paragraph>
                       
-                      <Space direction="vertical" style={{ width: '100%', marginTop: 16 }}>
+                      <Space orientation="vertical" style={{ width: '100%', marginTop: 16 }}>
                           <Space>
                               <CalendarOutlined style={{ color: '#8c8c8c' }} />
                               <Text type="secondary" style={{ fontSize: 12 }}>

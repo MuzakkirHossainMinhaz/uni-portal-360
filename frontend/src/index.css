@@ -238,11 +238,21 @@ body[data-theme='dark'] .ant-form-item-label > label {
   box-shadow: 0 0 0 2px rgba(15, 106, 216, 0.25) !important;
 }
 
+/*
+ * Password, prefix, suffix, and clearable inputs render a border-owning
+ * affix wrapper around a borderless input. Keep the focus treatment on that
+ * outer wrapper so the nested input never draws a second focus rectangle.
+ */
+body[data-theme='dark'] .ant-input-affix-wrapper > input.ant-input,
+.login-card .ant-input-affix-wrapper > input.ant-input {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 @media (max-width: 576px) {
   .login-card {
     padding: 32px 20px 36px !important;
     border-radius: 20px !important;
   }
 }
-
-

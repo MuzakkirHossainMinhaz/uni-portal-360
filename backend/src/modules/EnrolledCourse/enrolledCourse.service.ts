@@ -260,7 +260,7 @@ const updateEnrolledCourseMarksIntoDB = async (facultyId: string, payload: Parti
   }
 
   const result = await EnrolledCourse.findByIdAndUpdate(isCourseBelongToFaculty._id, modifiedData, {
-    new: true,
+    returnDocument: 'after',
   });
   
   // Calculate Semester GPA immediately

@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
+import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
 import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
@@ -38,6 +38,7 @@ const sorter = (a: any, b: any) => {
 };
 
 const Faculty = () => {
+  const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);

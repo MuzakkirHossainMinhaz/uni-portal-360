@@ -137,7 +137,7 @@ const payFee = async (feeId: string, paymentDetails: { transactionId: string }) 
             paidDate: new Date(),
             transactionId: paymentDetails.transactionId,
         },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     return updatedFee;

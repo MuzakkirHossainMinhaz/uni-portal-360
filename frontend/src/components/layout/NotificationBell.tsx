@@ -1,5 +1,5 @@
 import { BellOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Badge, Button, Dropdown, List, message, Spin, Typography } from 'antd';
+import { App, Badge, Button, Dropdown, List, Spin, Typography } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -22,6 +22,7 @@ type NotificationItem = {
 };
 
 const NotificationBell = () => {
+  const { message } = App.useApp();
   const { mode } = useThemeMode();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { Button, Col, Row, DatePicker, message, Form } from 'antd';
+import { App, Button, Col, Row, DatePicker, Form } from 'antd';
 import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import { useCreateAssignmentMutation } from '../../../redux/features/assignment/assignment.api';
 import UniForm from '../../../components/form/UniForm';
@@ -25,6 +25,7 @@ type AssignmentFormValues = {
 };
 
 const CreateAssignment = () => {
+  const { message } = App.useApp();
   const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
   const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
 

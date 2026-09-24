@@ -1,4 +1,4 @@
-import { Button, Modal, Table, Tag, message, Row, Col, Card, Space, Typography, Input } from 'antd';
+import { App, Button, Modal, Table, Tag, Row, Col, Card, Space, Typography, Input } from 'antd';
 import { useState } from 'react';
 import { SubmitHandler } from 'react-hook-form';
 import { useCreateFeeMutation, useGetAllFeesQuery } from '../../../redux/features/fee/fee.api';
@@ -36,6 +36,7 @@ type AdminFeeItem = {
 };
 
 const FeeManagement = () => {
+  const { message } = App.useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
   const { data: students } = useGetAllStudentsQuery(undefined);

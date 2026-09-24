@@ -363,7 +363,7 @@ const updateOfferedCourseIntoDB = async (
   }
 
   const result = await OfferedCourse.findByIdAndUpdate(id, payload, {
-    new: true,
+    returnDocument: 'after',
   });
   return result;
 };

@@ -1,4 +1,4 @@
-import { Button, Form, InputNumber, Modal, Select, Table, message } from 'antd';
+import { App, Button, Form, InputNumber, Modal, Select, Table } from 'antd';
 import { useState } from 'react';
 import { useGetFacultyCoursesQuery, useUpdateEnrolledCourseMarksMutation } from '../../../redux/features/faculty/facultyCourses.api';
 
@@ -33,6 +33,7 @@ type FacultyCourseEnrollment = {
 type MarksFormValues = CourseMarks;
 
 const FacultyGradebook = () => {
+  const { message } = App.useApp();
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingStudent, setEditingStudent] = useState<FacultyCourseEnrollment | null>(null);

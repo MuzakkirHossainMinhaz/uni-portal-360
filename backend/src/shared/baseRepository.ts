@@ -68,7 +68,7 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
 
   async updateById(id: string, payload: TUpdate): Promise<T | null> {
     const result = await this.model.findOneAndUpdate({ _id: id } as any, payload as any, {
-      new: true,
+      returnDocument: 'after',
     });
     return result as any as T | null;
   }

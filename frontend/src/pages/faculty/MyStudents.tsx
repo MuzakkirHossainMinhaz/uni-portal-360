@@ -3,7 +3,7 @@ import {
   useGetFacultyCoursesQuery,
   useUpdateEnrolledCourseMarksMutation,
 } from '../../redux/features/faculty/facultyCourses.api';
-import { Button, Modal, Table, message } from 'antd';
+import { App, Button, Modal, Table } from 'antd';
 import { useState } from 'react';
 import UniForm from '../../components/form/UniForm';
 import UniInput from '../../components/form/UniInput';
@@ -90,6 +90,7 @@ const MyStudents = () => {
 };
 
 const AddMarksModal = ({ studentInfo }: { studentInfo: StudentTableRow }) => {
+  const { message } = App.useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updateMarks, { isLoading }] = useUpdateEnrolledCourseMarksMutation();
 

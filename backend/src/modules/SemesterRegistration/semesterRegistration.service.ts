@@ -115,7 +115,7 @@ const updateSemesterRegistrationIntoDB = async (id: string, payload: Partial<TSe
   }
 
   const result = await SemesterRegistration.findByIdAndUpdate(id, payload, {
-    new: true,
+    returnDocument: 'after',
     runValidators: true,
   });
 
@@ -168,7 +168,6 @@ const deleteSemesterRegistrationFromDB = async (id: string) => {
 
     const deletedSemesterRegistration = await SemesterRegistration.findByIdAndDelete(id, {
       session,
-      new: true,
     });
 
     if (!deletedSemesterRegistration) {

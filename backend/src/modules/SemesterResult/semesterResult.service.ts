@@ -64,7 +64,7 @@ const calculateSemesterGPA = async (studentId: string, academicSemesterId: strin
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         session,
       },
     );

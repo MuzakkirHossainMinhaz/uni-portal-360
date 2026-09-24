@@ -1,4 +1,4 @@
-import { Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar, Form, message } from 'antd';
+import { App, Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar, Form } from 'antd';
 import { useState } from 'react';
 import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -17,6 +17,7 @@ type FacultyCourse = {
 };
 
 const FacultyAttendance = () => {
+  const { message } = App.useApp();
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
 

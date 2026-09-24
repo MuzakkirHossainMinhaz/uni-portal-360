@@ -1,9 +1,10 @@
-import { Button, Card, Col, Row, Statistic, Table, Tag, message } from 'antd';
+import { App, Button, Card, Col, Row, Statistic, Table, Tag } from 'antd';
 import { useGetMyFeesQuery, usePayFeeMutation } from '../../../redux/features/fee/fee.api';
 import moment from 'moment';
 import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
 
 const StudentFees = () => {
+  const { message } = App.useApp();
   const { data: fees, isFetching } = useGetMyFeesQuery(undefined);
   const [payFee, { isLoading: isPaying }] = usePayFeeMutation();
 

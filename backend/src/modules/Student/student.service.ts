@@ -71,7 +71,7 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
   }
 
   const result = await Student.findByIdAndUpdate(id, modifiedUpdatedData, {
-    new: true,
+    returnDocument: 'after',
     runValidators: true,
   });
   return result;
@@ -83,7 +83,11 @@ const deleteStudentFromDB = async (id: string) => {
   try {
     session.startTransaction();
 
-    const deletedStudent = await Student.findByIdAndUpdate(id, { isDeleted: true }, { new: true, session });
+    const deletedStudent = await Student.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { returnDocument: 'after', session },
+    );
 
     if (!deletedStudent) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student');
@@ -92,7 +96,11 @@ const deleteStudentFromDB = async (id: string) => {
     // get user _id from deletedStudent
     const userId = deletedStudent.user;
 
-    const deletedUser = await User.findByIdAndUpdate(userId, { isDeleted: true }, { new: true, session });
+    const deletedUser = await User.findByIdAndUpdate(
+      userId,
+      { isDeleted: true },
+      { returnDocument: 'after', session },
+    );
 
     if (!deletedUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');

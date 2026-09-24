@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, Flex, message, Modal, Popconfirm, Row, Select, Space, Table, Typography } from 'antd';
+import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Select, Space, Table, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
 import { Controller } from 'react-hook-form';
@@ -72,6 +72,7 @@ const UniSelect = ({
 );
 
 const Admin = () => {
+  const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
@@ -267,7 +268,7 @@ const Admin = () => {
         }}
       >
         <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-          <Space direction="vertical" size={4}>
+          <Space orientation="vertical" size={4}>
             <Title level={3} style={{ margin: 0, color: mode === 'dark' ? '#e5e7eb' : '#111827' }}>
               Admin Management
             </Title>

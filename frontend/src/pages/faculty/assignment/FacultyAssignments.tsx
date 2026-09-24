@@ -31,7 +31,7 @@ const FacultyAssignments = () => {
       render: (date: string) => {
           const isExpired = dayjs().isAfter(dayjs(date));
           return (
-              <Space direction="vertical" size={0}>
+              <Space orientation="vertical" size={0}>
                   <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>
                   {isExpired ? <Tag color="error">Closed</Tag> : <Tag color="success">Active</Tag>}
               </Space>

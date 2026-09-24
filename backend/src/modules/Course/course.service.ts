@@ -43,7 +43,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
 
     //step1: basic course info update
     const updatedBasicCourseInfo = await Course.findByIdAndUpdate(id, courseRemainingData, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
       session,
     });
@@ -65,7 +65,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
           },
         },
         {
-          new: true,
+          returnDocument: 'after',
           runValidators: true,
           session,
         },
@@ -84,7 +84,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
           $addToSet: { preRequisiteCourses: { $each: newPreRequisites } },
         },
         {
-          new: true,
+          returnDocument: 'after',
           runValidators: true,
           session,
         },
@@ -113,7 +113,7 @@ const deleteCourseFromDB = async (id: string) => {
     id,
     { isDeleted: true },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
   return result;
@@ -128,7 +128,7 @@ const assignFacultiesWithCourseIntoDB = async (id: string, payload: Partial<TCou
     },
     {
       upsert: true,
-      new: true,
+      returnDocument: 'after',
     },
   );
   return result;
@@ -146,7 +146,7 @@ const removeFacultiesFromCourseFromDB = async (id: string, payload: Partial<TCou
       $pull: { faculties: { $in: payload } },
     },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
   return result;

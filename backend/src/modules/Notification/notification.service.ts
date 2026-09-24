@@ -51,7 +51,7 @@ const markAsRead = async (id: string, userId: string) => {
   const notification = await Notification.findOneAndUpdate(
     { _id: id, userId: user._id },
     { read: true },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!notification) {
@@ -81,7 +81,7 @@ const deleteNotification = async (id: string, userId: string) => {
   const notification = await Notification.findOneAndUpdate(
     { _id: id, userId: user._id },
     { isDeleted: true },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!notification) {
