@@ -1,17 +1,15 @@
+import { Navigate } from 'react-router-dom';
 import AcademicDepartment from '../pages/admin/academicManagement/AcademicDepartment';
 import AcademicFaculty from '../pages/admin/academicManagement/AcademicFaculty';
 import AcademicSemester from '../pages/admin/academicManagement/AcademicSemester';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AuditLogs from '../pages/admin/auditLog/AuditLogs';
 import Courses from '../pages/admin/courseManagement/Courses';
-import CreateCourse from '../pages/admin/courseManagement/CreateCourse';
-import OfferCourse from '../pages/admin/courseManagement/OfferCourse';
 import OfferedCourses from '../pages/admin/courseManagement/OfferedCourses';
-import RegisteredSemesters from '../pages/admin/courseManagement/RegisteredSemesters';
-import SemesterRegistration from '../pages/admin/courseManagement/SemesterRegistration';
+import Semesters from '../pages/admin/courseManagement/Semesters';
 import FeeManagement from '../pages/admin/fee/FeeManagement';
-import Admin from '../pages/admin/userManagement/Admin';
 import AccountsAndRoles from '../pages/admin/userManagement/AccountsAndRoles';
+import Admin from '../pages/admin/userManagement/Admin';
 import Faculty from '../pages/admin/userManagement/Faculty';
 import Student from '../pages/admin/userManagement/Student';
 
@@ -70,29 +68,14 @@ export const adminPaths = [
     name: 'Course Management',
     children: [
       {
-        name: 'Semester Registration',
-        path: 'semester-registration',
-        element: <SemesterRegistration />,
-      },
-      {
-        name: 'Registered Semesters',
+        name: 'Semesters',
         path: 'registered-semesters',
-        element: <RegisteredSemesters />,
-      },
-      {
-        name: 'Create Course',
-        path: 'create-course',
-        element: <CreateCourse />,
+        element: <Semesters />,
       },
       {
         name: 'Courses',
         path: 'courses',
         element: <Courses />,
-      },
-      {
-        name: 'Offer Course',
-        path: 'offer-course',
-        element: <OfferCourse />,
       },
       {
         name: 'Offered Courses',
@@ -101,6 +84,9 @@ export const adminPaths = [
       },
     ],
   },
+  { path: 'semester-registration', element: <Navigate to="/admin/registered-semesters" replace /> },
+  { path: 'create-course', element: <Navigate to="/admin/courses" replace /> },
+  { path: 'offer-course', element: <Navigate to="/admin/offered-courses" replace /> },
   {
     name: 'Fee Management',
     children: [

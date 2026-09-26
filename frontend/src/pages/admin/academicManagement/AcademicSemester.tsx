@@ -266,21 +266,21 @@ const AcademicSemester = () => {
           defaultValues={
             editingSemester
               ? {
-                  name:
-                    semesterOptions.find((option) => option.label === editingSemester.name)?.value ||
-                    editingSemester.code,
-                  code: editingSemester.code,
-                  year: editingSemester.year,
-                  startMonth: editingSemester.startMonth,
-                  endMonth: editingSemester.endMonth,
-                }
+                name:
+                  semesterOptions.find((option) => option.label === editingSemester.name)?.value ||
+                  editingSemester.code,
+                code: editingSemester.code,
+                year: editingSemester.year,
+                startMonth: editingSemester.startMonth,
+                endMonth: editingSemester.endMonth,
+              }
               : {
-                  name: '',
-                  code: '',
-                  year: '',
-                  startMonth: '',
-                  endMonth: '',
-                }
+                name: '',
+                code: '',
+                year: '',
+                startMonth: '',
+                endMonth: '',
+              }
           }
         >
           <Row gutter={[16, 0]}>
@@ -297,8 +297,8 @@ const AcademicSemester = () => {
               <UniSelect name="endMonth" label="End Month" options={monthOptions} />
             </Col>
           </Row>
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
-            <Space>
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <Space size={8}>
               <Button onClick={handleModalClose}>Cancel</Button>
               <Button
                 type="primary"

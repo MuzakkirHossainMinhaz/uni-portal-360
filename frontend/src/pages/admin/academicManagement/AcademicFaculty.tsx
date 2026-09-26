@@ -240,13 +240,13 @@ const AcademicFaculty = () => {
           defaultValues={
             editingFaculty
               ? {
-                  name: editingFaculty.name,
-                  description: editingFaculty.description,
-                }
+                name: editingFaculty.name,
+                description: editingFaculty.description,
+              }
               : {
-                  name: '',
-                  description: '',
-                }
+                name: '',
+                description: '',
+              }
           }
         >
           <Row gutter={[16, 0]}>
@@ -257,8 +257,8 @@ const AcademicFaculty = () => {
               <UniInput type="text" name="description" label="Description" />
             </Col>
           </Row>
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
-            <Space>
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <Space size={8}>
               <Button onClick={handleModalClose}>Cancel</Button>
               <Button
                 type="primary"

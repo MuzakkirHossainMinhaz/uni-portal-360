@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
+import UniDatePicker from '../../../components/form/UniDatePicker';
 import {
   useAddAdminMutation,
   useDeleteAdminMutation,
@@ -472,7 +473,7 @@ const Admin = () => {
               />
             </Col>
             <Col span={12}>
-              <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
+              <UniDatePicker name="dateOfBirth" label="Date of Birth" />
             </Col>
             <Col span={12}>
               <UniInput type="text" name="contactNo" label="Contact Number" required />
@@ -488,7 +489,7 @@ const Admin = () => {
             </Col>
           </Row>
           <div style={{ marginTop: 6, textAlign: 'right' }}>
-            <Space>
+            <Space size={8}>
               <Button onClick={handleModalClose} disabled={isSubmitting}>
                 Cancel
               </Button>

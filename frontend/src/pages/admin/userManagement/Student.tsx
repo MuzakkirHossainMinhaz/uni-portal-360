@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useRef, useState } from 'react';
 import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
+import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
 import {
@@ -429,7 +430,7 @@ const Student = () => {
               <UniSelect name="bloodGroup" label="Blood Group" required options={bloodGroupOptions} />
             </Col>
             <Col span={editingStudent ? 12 : 8}>
-              <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
+              <UniDatePicker name="dateOfBirth" label="Date of Birth" />
             </Col>
             <Col span={12}>
               <UniInput type="text" name="contactNo" label="Contact Number" required />
@@ -509,8 +510,8 @@ const Student = () => {
             </Col>
           </Row>
 
-          <div style={{ marginTop: 12, textAlign: 'right' }}>
-            <Space>
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <Space size={8}>
               <Button onClick={handleModalClose} disabled={isSubmitting}>
                 Cancel
               </Button>

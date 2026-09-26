@@ -190,6 +190,18 @@ body[data-theme='dark'] .ant-form-item-label > label {
   color: #cbd5e1 !important;
 }
 
+/* The popup root receives the measured input width from the date picker. */
+.date-picker-width-matched .ant-picker-panel-container,
+.date-picker-width-matched .ant-picker-panel-layout,
+.date-picker-width-matched .ant-picker-panel,
+.date-picker-width-matched .ant-picker-date-panel {
+  width: 100% !important;
+}
+
+.date-picker-width-matched .ant-picker-panel-container {
+  display: block;
+}
+
 /* Keep the long student form scrollable without the bright system scrollbar. */
 .student-management-modal .ant-modal-body {
   scrollbar-width: thin;

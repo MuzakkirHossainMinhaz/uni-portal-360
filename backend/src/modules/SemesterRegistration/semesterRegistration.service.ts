@@ -29,6 +29,9 @@ const createSemesterRegistrationIntoDB = async (payload: TSemesterRegistration) 
       `There is aready an ${isThereAnyUpcomingOrOngoingSEmester.status} registered semester !`,
     );
   }
+  if (payload.status !== RegistrationStatus.UPCOMING) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'A semester registration must start as UPCOMING');
+  }
   // check if the semester is exist
   const isAcademicSemesterExists = await AcademicSemester.findById(academicSemester);
 
@@ -112,6 +115,20 @@ const updateSemesterRegistrationIntoDB = async (id: string, payload: Partial<TSe
       httpStatus.BAD_REQUEST,
       `You can not directly change status from ${currentSemesterStatus} to ${requestedStatus}`,
     );
+  }
+  if (currentSemesterStatus === RegistrationStatus.ONGOING &&
+      Object.keys(payload).some((key) => key !== 'status')) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Only the status may change for an ongoing semester');
+  }
+  if (payload.academicSemester && String(payload.academicSemester) !== String(isSemesterRegistrationExists.academicSemester)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'The academic semester cannot be changed');
+  }
+  const startDate = payload.startDate ?? isSemesterRegistrationExists.startDate;
+  const endDate = payload.endDate ?? isSemesterRegistrationExists.endDate;
+  const minCredit = payload.minCredit ?? isSemesterRegistrationExists.minCredit;
+  const maxCredit = payload.maxCredit ?? isSemesterRegistrationExists.maxCredit;
+  if (new Date(startDate) >= new Date(endDate) || minCredit > maxCredit) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Check the registration dates and credit limits');
   }
 
   const result = await SemesterRegistration.findByIdAndUpdate(id, payload, {

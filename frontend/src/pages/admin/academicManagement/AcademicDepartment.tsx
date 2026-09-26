@@ -1,7 +1,7 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useMemo, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
+import { useMemo, useState } from 'react';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
@@ -292,8 +292,8 @@ const AcademicDepartment = () => {
               />
             </Col>
           </Row>
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
-            <Space>
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <Space size={8}>
               <Button onClick={handleModalClose}>Cancel</Button>
               <Button
                 type="primary"

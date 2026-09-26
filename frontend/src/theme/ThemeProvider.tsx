@@ -112,6 +112,22 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           hoverBorderColor: mode === 'dark' ? '#38bdf8' : '#4096ff',
           activeBorderColor: '#0f6ad8',
         },
+        DatePicker: {
+          colorBgContainer: mode === 'dark' ? '#1e293b' : '#ffffff',
+          colorText: mode === 'dark' ? '#f1f5f9' : '#111827',
+          colorTextPlaceholder: mode === 'dark' ? '#94a3b8' : '#9ca3af',
+          colorBorder: mode === 'dark' ? 'rgba(148, 163, 184, 0.25)' : '#d9d9d9',
+          hoverBorderColor: mode === 'dark' ? '#38bdf8' : '#4096ff',
+          activeBorderColor: '#0f6ad8',
+        },
+        TimePicker: {
+          colorBgContainer: mode === 'dark' ? '#1e293b' : '#ffffff',
+          colorText: mode === 'dark' ? '#f1f5f9' : '#111827',
+          colorTextPlaceholder: mode === 'dark' ? '#94a3b8' : '#9ca3af',
+          colorBorder: mode === 'dark' ? 'rgba(148, 163, 184, 0.25)' : '#d9d9d9',
+          hoverBorderColor: mode === 'dark' ? '#38bdf8' : '#4096ff',
+          activeBorderColor: '#0f6ad8',
+        },
         Select: {
           colorBgContainer: mode === 'dark' ? '#1e293b' : '#ffffff',
           colorText: mode === 'dark' ? '#f1f5f9' : '#111827',

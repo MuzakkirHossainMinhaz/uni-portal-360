@@ -1,5 +1,6 @@
 import { Form, Input } from 'antd';
 import { Controller } from 'react-hook-form';
+import UniDatePicker from './UniDatePicker';
 
 type TInputProps = {
   type: string;
@@ -10,6 +11,9 @@ type TInputProps = {
 };
 
 const UniInput = ({ type, name, label, disabled, required }: TInputProps) => {
+  if (type === 'date') {
+    return <UniDatePicker name={name} label={label} required={required} disabled={disabled} />;
+  }
   const isPassword = type === 'password';
 
   return (

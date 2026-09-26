@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useRef, useState } from 'react';
 import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
+import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
 import { useGetAllAcademicDepartmentsQuery } from '../../../redux/features/admin/academicManagement.api';
@@ -455,7 +456,7 @@ const Faculty = () => {
               <UniSelect name="bloodGroup" label="Blood Group" required options={bloodGroupOptions} />
             </Col>
             <Col span={12}>
-              <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
+              <UniDatePicker name="dateOfBirth" label="Date of Birth" />
             </Col>
             <Col span={12}>
               <UniInput type="text" name="contactNo" label="Contact Number" required />
@@ -471,7 +472,7 @@ const Faculty = () => {
             </Col>
           </Row>
           <div style={{ marginTop: 6, textAlign: 'right' }}>
-            <Space>
+            <Space size={8}>
               <Button onClick={handleModalClose} disabled={isSubmitting}>
                 Cancel
               </Button>
