@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -15,6 +14,8 @@ const getAllAdminsFromDB = async (query: Record<string, unknown>) => {
     .sort()
     .paginate()
     .fields();
+
+  adminQuery.modelQuery.find({ isDeleted: { $ne: true } });
 
   const result = await adminQuery.modelQuery;
   const meta = await adminQuery.countTotal();
@@ -94,13 +95,12 @@ const deleteAdminFromDB = async (id: string) => {
     }
 
     await session.commitTransaction();
-    await session.endSession();
-
     return deletedAdmin;
-  } catch (err: any) {
+  } catch (error) {
     await session.abortTransaction();
+    throw error;
+  } finally {
     await session.endSession();
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete admin', err);
   }
 };
 

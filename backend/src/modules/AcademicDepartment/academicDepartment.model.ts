@@ -16,6 +16,7 @@ const academicDepartmentSchema = new Schema<TAcademicDepartment>(
     academicFaculty: {
       type: Schema.Types.ObjectId,
       ref: 'AcademicFaculty',
+      required: true,
     },
   },
   {
@@ -29,7 +30,7 @@ academicDepartmentSchema.pre('save', async function () {
   });
 
   if (isDepartmentExist) {
-    throw new AppError(httpStatus.NOT_FOUND, 'This department is already exist!');
+    throw new AppError(httpStatus.CONFLICT, 'Academic department already exists');
   }
 });
 

@@ -360,7 +360,7 @@ const Admin = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<TAdmin>
           columns={columns}
           dataSource={admins}
           rowKey="_id"
@@ -373,7 +373,6 @@ const Admin = () => {
             total: adminsData?.meta?.total ?? admins.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `${total} admin${total === 1 ? '' : 's'}`,
             onChange: (page, size) => {
               setCurrentPage(size !== pageSize ? 1 : page);
               setPageSize(size);

@@ -16,4 +16,6 @@ export class AcademicDepartmentRepository
   constructor(model: Model<TAcademicDepartment> = AcademicDepartment) {
     super(model);
   }
+
+  protected populatePaths = ['academicFaculty'];
 }

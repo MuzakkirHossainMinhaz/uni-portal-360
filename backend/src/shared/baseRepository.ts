@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, UpdateQuery } from 'mongoose';
 import QueryBuilder from '../builder/QueryBuilder';
 
 export type TPaginationMeta = {
@@ -34,18 +34,23 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
   TUpdate
 > {
   protected model: Model<T>;
+  protected populatePaths: string[] = [];
 
   protected constructor(model: Model<T>) {
     this.model = model;
   }
 
   async create(payload: TCreate): Promise<T> {
-    const result = await this.model.create(payload as any);
-    return result as any as T;
+    const result = await this.model.create(payload as unknown as T);
+    return result as T;
   }
 
   async findById(id: string): Promise<T | null> {
-    const result = await this.model.findById(id);
+    const query = this.model.findById(id);
+    if (this.populatePaths.length > 0) {
+      query.populate(this.populatePaths);
+    }
+    const result = await query;
     return result;
   }
 
@@ -57,6 +62,10 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
       .paginate()
       .fields();
 
+    if (this.populatePaths.length > 0) {
+      qb.modelQuery.populate(this.populatePaths);
+    }
+
     const data = await qb.modelQuery;
     const meta = await qb.countTotal();
 
@@ -67,14 +76,14 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
   }
 
   async updateById(id: string, payload: TUpdate): Promise<T | null> {
-    const result = await this.model.findOneAndUpdate({ _id: id } as any, payload as any, {
+    const result = await this.model.findByIdAndUpdate(id, payload as unknown as UpdateQuery<T>, {
       returnDocument: 'after',
     });
-    return result as any as T | null;
+    return result as T | null;
   }
 
   async deleteById(id: string): Promise<T | null> {
     const result = await this.model.findByIdAndDelete(id);
-    return result as any as T | null;
+    return result as T | null;
   }
 }

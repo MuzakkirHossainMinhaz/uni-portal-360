@@ -87,10 +87,10 @@ const Faculty = () => {
   const [createFaculty] = useAddFacultyMutation();
   const [updateFaculty] = useUpdateFacultyMutation();
   const [deleteFaculty] = useDeleteFacultyMutation();
-  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery({});
+  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
 
-  const faculties = facultiesData?.data || [];
-  const departments = departmentsData?.data || departmentsData || [];
+  const faculties = facultiesData?.data ?? [];
+  const departments = departmentsData?.data ?? [];
 
   const refreshTable = async (resetToFirstPage = false) => {
     if (resetToFirstPage && currentPage !== 1) {
@@ -360,7 +360,6 @@ const Faculty = () => {
             total: facultiesData?.meta?.total ?? faculties.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `${total} faculty member${total === 1 ? '' : 's'}`,
             onChange: (page, size) => {
               setCurrentPage(size !== pageSize ? 1 : page);
               setPageSize(size);

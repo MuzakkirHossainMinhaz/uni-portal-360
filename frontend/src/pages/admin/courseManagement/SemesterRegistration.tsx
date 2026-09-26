@@ -15,9 +15,10 @@ const SemesterRegistration = () => {
   const [addSemester] = useAddRegisteredSemesterMutation();
   const { data: academicSemester } = useGetAllAcademicSemestersQuery([
     { name: 'sort', value: 'year' },
+    { name: 'limit', value: 100 },
   ]);
 
-  const academicSemesterOptions = academicSemester?.map((item: any) => ({
+  const academicSemesterOptions = academicSemester?.data.map((item) => ({
     value: item._id,
     label: `${item.name} ${item.year}`,
   }));

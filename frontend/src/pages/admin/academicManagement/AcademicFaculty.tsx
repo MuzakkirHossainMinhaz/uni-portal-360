@@ -1,6 +1,7 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import type { ColumnsType } from 'antd/es/table';
+import { useMemo, useState } from 'react';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import {
@@ -10,56 +11,54 @@ import {
   useUpdateAcademicFacultyMutation,
 } from '../../../redux/features/admin/academicManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
+import type { TAcademicFaculty } from '../../../types';
 
 const { Title } = Typography;
 
-interface AcademicFaculty {
-  _id: string;
-  name: string;
-  description?: string;
-}
-
-const sorter = (a: any, b: any) => {
-  const nameA = a.name || '';
-  const nameB = b.name || '';
-  return nameA.localeCompare(nameB);
-};
+type FacultyFormValues = Pick<TAcademicFaculty, 'name' | 'description'>;
 
 const AcademicFaculty = () => {
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingFaculty, setEditingFaculty] = useState<AcademicFaculty | null>(null);
+  const [editingFaculty, setEditingFaculty] = useState<TAcademicFaculty | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const queryParams = useMemo(() => [
+    { name: 'page', value: currentPage },
+    { name: 'limit', value: pageSize },
+  ], [currentPage, pageSize]);
 
   // API hooks
-  const { data: facultiesData, isLoading, error } = useGetAllAcademicFacultiesQuery({});
+  const { data: facultiesData, isLoading, isFetching, error } = useGetAllAcademicFacultiesQuery(queryParams);
   const [createAcademicFaculty] = useCreateAcademicFacultyMutation();
   const [updateAcademicFaculty] = useUpdateAcademicFacultyMutation();
   const [deleteAcademicFaculty] = useDeleteAcademicFacultyMutation();
 
-  const handleFormSubmit = async (data: any) => {
+  const faculties = facultiesData?.data ?? [];
+
+  const handleFormSubmit = async (data: FacultyFormValues) => {
     try {
       if (editingFaculty) {
-        // Update logic
         await updateAcademicFaculty({
           data,
           id: editingFaculty._id,
         }).unwrap();
         message.success('Faculty updated successfully');
       } else {
-        // Create logic
         await createAcademicFaculty(data).unwrap();
+        setCurrentPage(1);
         message.success('Faculty created successfully');
       }
       setIsModalVisible(false);
       setEditingFaculty(null);
-    } catch (error) {
+    } catch {
       message.error('Operation failed. Please try again.');
     }
   };
 
-  const handleUpdate = (faculty: AcademicFaculty) => {
+  const handleUpdate = (faculty: TAcademicFaculty) => {
     setEditingFaculty(faculty);
     setIsModalVisible(true);
   };
@@ -78,7 +77,7 @@ const AcademicFaculty = () => {
     try {
       await deleteAcademicFaculty(id).unwrap();
       message.success('Faculty deleted successfully');
-    } catch (error) {
+    } catch {
       message.error('Delete failed. Please try again.');
     }
   };
@@ -89,10 +88,11 @@ const AcademicFaculty = () => {
       return;
     }
     try {
-      await Promise.all(selectedRowKeys.map((id) => deleteAcademicFaculty(id as string).unwrap()));
+      await Promise.all(selectedRowKeys.map((id) => deleteAcademicFaculty(String(id)).unwrap()));
       setSelectedRowKeys([]);
+      setCurrentPage(1);
       message.success(`${selectedRowKeys.length} faculty(es) deleted successfully`);
-    } catch (error) {
+    } catch {
       message.error('Bulk delete failed. Please try again.');
     }
   };
@@ -106,28 +106,23 @@ const AcademicFaculty = () => {
     onChange: onSelectChange,
   };
 
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingFaculty(null);
-    }
-  }, [isModalVisible]);
-
-  const columns = [
+  const columns: ColumnsType<TAcademicFaculty> = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      sorter: sorter,
+      sorter: (a, b) => (a.description ?? '').localeCompare(b.description ?? ''),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: AcademicFaculty) => (
+      render: (_value, record) => (
         <Space>
           <Button
             type="text"
@@ -209,16 +204,24 @@ const AcademicFaculty = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<TAcademicFaculty>
           columns={columns}
-          dataSource={facultiesData || []}
+          dataSource={faculties}
           rowKey="_id"
           rowSelection={rowSelection}
+          loading={isFetching}
+          scroll={{ x: 700 }}
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize,
+            total: facultiesData?.meta?.total ?? faculties.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            style: { marginRight: 8 },
+            onChange: (page, size) => {
+              setCurrentPage(size !== pageSize ? 1 : page);
+              setPageSize(size);
+              setSelectedRowKeys([]);
+            },
           }}
         />
       </Card>

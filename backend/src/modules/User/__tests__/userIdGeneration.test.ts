@@ -42,7 +42,7 @@ describe('user ID generation', () => {
       1,
       { _id: 'student:202601' },
       { $inc: { sequence: 1 } },
-      { new: true },
+      { returnDocument: 'after' },
     );
   });
 

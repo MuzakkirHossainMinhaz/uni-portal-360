@@ -31,10 +31,10 @@ const OfferCourse = () => {
     { name: 'status', value: 'UPCOMING' },
   ]);
 
-  const { data: academicFacultyData } = useGetAllAcademicFacultiesQuery(undefined);
+  const { data: academicFacultyData } = useGetAllAcademicFacultiesQuery([{ name: 'limit', value: 100 }]);
 
   const { data: academicDepartmentData } =
-    useGetAllAcademicDepartmentsQuery(undefined);
+    useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
 
   const { data: coursesData } = useGetAllCoursesQuery(undefined);
 
@@ -48,13 +48,13 @@ const OfferCourse = () => {
     })
   );
 
-  const academicFacultyOptions = academicFacultyData?.map((item: any) => ({
+  const academicFacultyOptions = academicFacultyData?.data.map((item) => ({
     value: item._id,
     label: item.name,
   }));
 
-  const academicDepartmentOptions = academicDepartmentData?.map(
-    (item: any) => ({
+  const academicDepartmentOptions = academicDepartmentData?.data.map(
+    (item) => ({
       value: item._id,
       label: item.name,
     })

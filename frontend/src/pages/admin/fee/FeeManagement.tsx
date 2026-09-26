@@ -40,7 +40,7 @@ const FeeManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
   const { data: students } = useGetAllStudentsQuery(undefined);
-  const { data: semesters } = useGetAllAcademicSemestersQuery(undefined);
+  const { data: semesters } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }]);
   const [createFee] = useCreateFeeMutation();
 
   const studentOptions =

@@ -89,12 +89,12 @@ const Student = () => {
   const [createStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
   const [deleteStudent] = useDeleteStudentMutation();
-  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery({});
-  const { data: semestersData } = useGetAllAcademicSemestersQuery({});
+  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
+  const { data: semestersData } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }]);
 
-  const students = studentsData?.data || [];
-  const departments = departmentsData?.data || departmentsData || [];
-  const semesters = semestersData?.data || semestersData || [];
+  const students = studentsData?.data ?? [];
+  const departments = departmentsData?.data ?? [];
+  const semesters = semestersData?.data ?? [];
 
   const refreshTable = async (resetToFirstPage = false) => {
     if (resetToFirstPage && currentPage !== 1) {
@@ -383,7 +383,6 @@ const Student = () => {
             total: studentsData?.meta?.total ?? students.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `${total} student${total === 1 ? '' : 's'}`,
             onChange: (page, size) => {
               setCurrentPage(size !== pageSize ? 1 : page);
               setPageSize(size);

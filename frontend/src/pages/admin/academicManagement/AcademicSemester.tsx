@@ -1,6 +1,7 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import type { ColumnsType } from 'antd/es/table';
+import { useMemo, useState } from 'react';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
@@ -13,67 +14,60 @@ import {
   useUpdateAcademicSemesterMutation,
 } from '../../../redux/features/admin/academicManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
+import type { TAcademicSemester } from '../../../types';
 
 const { Title } = Typography;
 
-interface AcademicSemester {
-  _id: string;
-  name: string;
-  code: string;
-  year: string;
-  startMonth: string;
-  endMonth: string;
-}
-
-const sorter = (a: any, b: any) => {
-  const nameA = a.name || '';
-  const nameB = b.name || '';
-  return nameA.localeCompare(nameB);
-};
+type SemesterFormValues = Pick<TAcademicSemester, 'name' | 'year' | 'startMonth' | 'endMonth'>;
+const monthOrder = new Map(monthOptions.map((month, index) => [month.value, index]));
 
 const AcademicSemester = () => {
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingSemester, setEditingSemester] = useState<AcademicSemester | null>(null);
+  const [editingSemester, setEditingSemester] = useState<TAcademicSemester | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const queryParams = useMemo(() => [
+    { name: 'page', value: currentPage },
+    { name: 'limit', value: pageSize },
+  ], [currentPage, pageSize]);
 
   // API hooks
-  const { data: semestersData, isLoading, error } = useGetAllAcademicSemestersQuery({});
+  const { data: semestersData, isLoading, isFetching, error } = useGetAllAcademicSemestersQuery(queryParams);
   const [createAcademicSemester] = useCreateAcademicSemesterMutation();
   const [updateAcademicSemester] = useUpdateAcademicSemesterMutation();
   const [deleteAcademicSemester] = useDeleteAcademicSemesterMutation();
 
-  const handleFormSubmit = async (data: any) => {
+  const semesters = semestersData?.data ?? [];
+
+  const handleFormSubmit = async (data: SemesterFormValues) => {
     try {
+      const semester = {
+        ...data,
+        name: semesterOptions.find((option) => option.value === data.name)?.label || data.name,
+        code: semesterOptions.find((option) => option.value === data.name)?.value || data.name,
+      };
       if (editingSemester) {
-        // Update logic
         await updateAcademicSemester({
-          data: {
-            ...data,
-            name: semesterOptions.find((option) => option.value === data.name)?.label || data.name,
-            code: semesterOptions.find((option) => option.value === data.name)?.value || data.name,
-          },
+          data: semester,
           id: editingSemester._id,
         }).unwrap();
         message.success('Semester updated successfully');
       } else {
-        // Create logic
-        await createAcademicSemester({
-          ...data,
-          name: semesterOptions.find((option) => option.value === data.name)?.label || data.name,
-          code: semesterOptions.find((option) => option.value === data.name)?.value || data.name,
-        }).unwrap();
+        await createAcademicSemester(semester).unwrap();
+        setCurrentPage(1);
         message.success('Semester created successfully');
       }
       setIsModalVisible(false);
       setEditingSemester(null);
-    } catch (error) {
+    } catch {
       message.error('Operation failed. Please try again.');
     }
   };
 
-  const handleUpdate = (semester: AcademicSemester) => {
+  const handleUpdate = (semester: TAcademicSemester) => {
     setEditingSemester(semester);
     setIsModalVisible(true);
   };
@@ -92,7 +86,7 @@ const AcademicSemester = () => {
     try {
       await deleteAcademicSemester(id).unwrap();
       message.success('Semester deleted successfully');
-    } catch (error) {
+    } catch {
       message.error('Delete failed. Please try again.');
     }
   };
@@ -103,10 +97,11 @@ const AcademicSemester = () => {
       return;
     }
     try {
-      await Promise.all(selectedRowKeys.map((id) => deleteAcademicSemester(id as string).unwrap()));
+      await Promise.all(selectedRowKeys.map((id) => deleteAcademicSemester(String(id)).unwrap()));
       setSelectedRowKeys([]);
+      setCurrentPage(1);
       message.success(`${selectedRowKeys.length} semester(s) deleted successfully`);
-    } catch (error) {
+    } catch {
       message.error('Bulk delete failed. Please try again.');
     }
   };
@@ -120,13 +115,7 @@ const AcademicSemester = () => {
     onChange: onSelectChange,
   };
 
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingSemester(null);
-    }
-  }, [isModalVisible]);
-
-  const columns = [
+  const columns: ColumnsType<TAcademicSemester> = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -136,30 +125,30 @@ const AcademicSemester = () => {
       title: 'Code',
       dataIndex: 'code',
       key: 'code',
-      sorter: sorter,
+      sorter: (a, b) => a.code.localeCompare(b.code),
     },
     {
       title: 'Year',
       dataIndex: 'year',
       key: 'year',
-      sorter: sorter,
+      sorter: (a, b) => a.year.localeCompare(b.year),
     },
     {
       title: 'Start Month',
       dataIndex: 'startMonth',
       key: 'startMonth',
-      sorter: sorter,
+      sorter: (a, b) => (monthOrder.get(a.startMonth) ?? 0) - (monthOrder.get(b.startMonth) ?? 0),
     },
     {
       title: 'End Month',
       dataIndex: 'endMonth',
       key: 'endMonth',
-      sorter: sorter,
+      sorter: (a, b) => (monthOrder.get(a.endMonth) ?? 0) - (monthOrder.get(b.endMonth) ?? 0),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: AcademicSemester) => (
+      render: (_value, record) => (
         <Space>
           <Button
             type="text"
@@ -241,16 +230,24 @@ const AcademicSemester = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<TAcademicSemester>
           columns={columns}
-          dataSource={semestersData || []}
+          dataSource={semesters}
           rowKey="_id"
           rowSelection={rowSelection}
+          loading={isFetching}
+          scroll={{ x: 850 }}
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize,
+            total: semestersData?.meta?.total ?? semesters.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            style: { marginRight: 8 },
+            onChange: (page, size) => {
+              setCurrentPage(size !== pageSize ? 1 : page);
+              setPageSize(size);
+              setSelectedRowKeys([]);
+            },
           }}
         />
       </Card>

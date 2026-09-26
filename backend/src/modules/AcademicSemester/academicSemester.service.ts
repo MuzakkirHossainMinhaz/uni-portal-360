@@ -1,3 +1,5 @@
+import httpStatus from 'http-status';
+import AppError from '../../errors/AppError';
 import { BaseService } from '../../shared/baseService';
 import { AcademicSemesterSearchableFields, academicSemesterNameCodeMapper } from './academicSemester.constant';
 import { TAcademicSemester } from './academicSemester.interface';
@@ -12,14 +14,17 @@ class AcademicSemesterService extends BaseService<TAcademicSemester, TAcademicSe
 
   async create(payload: TAcademicSemester): Promise<TAcademicSemester> {
     if (academicSemesterNameCodeMapper[payload.name] !== payload.code) {
-      throw new Error('Invalid Semester Code');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid semester name/code combination');
     }
     return super.create(payload);
   }
 
   async updateById(id: string, payload: Partial<TAcademicSemester>): Promise<TAcademicSemester | null> {
+    if ((payload.name && !payload.code) || (!payload.name && payload.code)) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Semester name and code must be updated together');
+    }
     if (payload.name && payload.code && academicSemesterNameCodeMapper[payload.name] !== payload.code) {
-      throw new Error('Invalid Semester Code');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid semester name/code combination');
     }
     return super.updateById(id, payload);
   }

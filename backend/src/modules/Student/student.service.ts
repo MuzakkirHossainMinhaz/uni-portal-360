@@ -12,7 +12,10 @@ import { Student } from './student.model';
 
 const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   const studentQuery = new QueryBuilder(
-    Student.find().populate('user').populate('admissionSemester').populate('academicDepartment academicFaculty'),
+    Student.find()
+      .populate('user')
+      .populate('admissionSemester')
+      .populate('academicDepartment academicFaculty'),
     { sort: '-_id', ...query },
   )
     .search(studentSearchableFields)
@@ -20,6 +23,8 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
     .sort()
     .paginate()
     .fields();
+
+  studentQuery.modelQuery.find({ isDeleted: { $ne: true } });
 
   const meta = await studentQuery.countTotal();
   const result = await studentQuery.modelQuery;
@@ -54,17 +59,6 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
   const modifiedUpdatedData: Record<string, unknown> = {
     ...remainingStudentData,
   };
-
-  /*
-    guardain: {
-      fatherOccupation:"Teacher"
-    }
-
-    guardian.fatherOccupation = Teacher
-
-    name.firstName = 'Mezba'
-    name.lastName = 'Abedin'
-  */
 
   if (name && Object.keys(name).length) {
     for (const [key, value] of Object.entries(name)) {
@@ -146,13 +140,12 @@ const deleteStudentFromDB = async (id: string) => {
     }
 
     await session.commitTransaction();
-    await session.endSession();
-
     return deletedStudent;
-  } catch (err) {
+  } catch (error) {
     await session.abortTransaction();
+    throw error;
+  } finally {
     await session.endSession();
-    throw err;
   }
 };
 

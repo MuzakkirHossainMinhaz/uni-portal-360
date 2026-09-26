@@ -19,6 +19,8 @@ const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
+  facultyQuery.modelQuery.find({ isDeleted: { $ne: true } });
+
   const result = await facultyQuery.modelQuery;
   const meta = await facultyQuery.countTotal();
   return {
@@ -108,13 +110,12 @@ const deleteFacultyFromDB = async (id: string) => {
     }
 
     await session.commitTransaction();
-    await session.endSession();
-
     return deletedFaculty;
-  } catch (err) {
+  } catch (error) {
     await session.abortTransaction();
+    throw error;
+  } finally {
     await session.endSession();
-    throw err;
   }
 };
 

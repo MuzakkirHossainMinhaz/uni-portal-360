@@ -1,39 +1,15 @@
 import { z } from 'zod';
 
-const createAcademicDepartmentValidationSchema = z.object({
-  body: z.object({
-    name: z.string({
-      message: 'Academic department must be string and is required',
-    }),
-    description: z
-      .string({
-        message: 'Academic department description must be string',
-      })
-      .optional(),
-    academicFaculty: z.string({
-      message: 'Academic faculty must be string and is required',
-    }),
-  }),
+const departmentBodySchema = z.object({
+  name: z.string({ message: 'Academic department must be string and is required' }),
+  description: z.string({ message: 'Academic department description must be string' }).optional(),
+  academicFaculty: z.string({ message: 'Academic faculty must be string and is required' }),
 });
 
+const createAcademicDepartmentValidationSchema = z.object({ body: departmentBodySchema });
+
 const updateAcademicDepartmentValidationSchema = z.object({
-  body: z.object({
-    name: z
-      .string({
-        message: 'Academic department must be string',
-      })
-      .optional(),
-    description: z
-      .string({
-        message: 'Academic department description must be string',
-      })
-      .optional(),
-    academicFaculty: z
-      .string({
-        message: 'Academic faculty must be string',
-      })
-      .optional(),
-  }),
+  body: departmentBodySchema.partial(),
 });
 
 export const AcademicDepartmentValidation = {

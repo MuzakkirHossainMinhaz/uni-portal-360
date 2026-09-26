@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
@@ -13,41 +13,34 @@ import {
   useUpdateAcademicDepartmentMutation,
 } from '../../../redux/features/admin/academicManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
+import type { TAcademicDepartment } from '../../../types';
 
 const { Title } = Typography;
 
-interface AcademicDepartment {
-  _id: string;
-  name: string;
-  description?: string;
-  academicFaculty: {
-    _id: string;
-    name: string;
-  };
-}
-
-const sorter = (a: any, b: any) => {
-  const nameA = a.name || '';
-  const nameB = b.name || '';
-  return nameA.localeCompare(nameB);
-};
+type DepartmentFormValues = { name: string; description?: string; academicFaculty: string };
 
 const AcademicDepartment = () => {
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<AcademicDepartment | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<TAcademicDepartment | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const queryParams = useMemo(() => [
+    { name: 'page', value: currentPage },
+    { name: 'limit', value: pageSize },
+  ], [currentPage, pageSize]);
 
   // API hooks
-  const { data: departmentsData, isLoading, error } = useGetAllAcademicDepartmentsQuery({});
+  const { data: departmentsData, isLoading, isFetching, error } = useGetAllAcademicDepartmentsQuery(queryParams);
   const [createAcademicDepartment] = useCreateAcademicDepartmentMutation();
   const [updateAcademicDepartment] = useUpdateAcademicDepartmentMutation();
   const [deleteAcademicDepartment] = useDeleteAcademicDepartmentMutation();
-  const { data: facultiesData } = useGetAllAcademicFacultiesQuery({});
+  const { data: facultiesData } = useGetAllAcademicFacultiesQuery([{ name: 'limit', value: 100 }]);
 
-  const departments = departmentsData?.data || departmentsData || [];
-  const faculties = facultiesData?.data || facultiesData || [];
+  const departments = departmentsData?.data ?? [];
+  const faculties = facultiesData?.data ?? [];
 
   const handleModalClose = () => {
     setIsModalVisible(false);
@@ -59,28 +52,27 @@ const AcademicDepartment = () => {
     setIsModalVisible(true);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: DepartmentFormValues) => {
     try {
       if (editingDepartment) {
-        // Update logic
         await updateAcademicDepartment({
           data,
           id: editingDepartment._id,
         }).unwrap();
         message.success('Department updated successfully');
       } else {
-        // Create logic
         await createAcademicDepartment(data).unwrap();
+        setCurrentPage(1);
         message.success('Department created successfully');
       }
       setIsModalVisible(false);
       setEditingDepartment(null);
-    } catch (error) {
+    } catch {
       message.error('Operation failed. Please try again.');
     }
   };
 
-  const handleUpdate = (department: AcademicDepartment) => {
+  const handleUpdate = (department: TAcademicDepartment) => {
     setEditingDepartment(department);
     setIsModalVisible(true);
   };
@@ -89,7 +81,7 @@ const AcademicDepartment = () => {
     try {
       await deleteAcademicDepartment(id).unwrap();
       message.success('Department deleted successfully');
-    } catch (error) {
+    } catch {
       message.error('Delete failed. Please try again.');
     }
   };
@@ -100,10 +92,11 @@ const AcademicDepartment = () => {
       return;
     }
     try {
-      await Promise.all(selectedRowKeys.map((id) => deleteAcademicDepartment(id as string).unwrap()));
+      await Promise.all(selectedRowKeys.map((id) => deleteAcademicDepartment(String(id)).unwrap()));
       setSelectedRowKeys([]);
+      setCurrentPage(1);
       message.success(`${selectedRowKeys.length} department(s) deleted successfully`);
-    } catch (error) {
+    } catch {
       message.error('Bulk delete failed. Please try again.');
     }
   };
@@ -117,18 +110,12 @@ const AcademicDepartment = () => {
     onChange: onSelectChange,
   };
 
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingDepartment(null);
-    }
-  }, [isModalVisible]);
-
-  const columns: ColumnsType<AcademicDepartment> = [
+  const columns: ColumnsType<TAcademicDepartment> = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      sorter: sorter,
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Description',
@@ -157,7 +144,7 @@ const AcademicDepartment = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: AcademicDepartment) => (
+      render: (_value, record) => (
         <Space>
           <Button
             type="text"
@@ -239,16 +226,24 @@ const AcademicDepartment = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<TAcademicDepartment>
           columns={columns}
-          dataSource={departments || []}
+          dataSource={departments}
           rowKey="_id"
           rowSelection={rowSelection}
+          loading={isFetching}
+          scroll={{ x: 850 }}
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize,
+            total: departmentsData?.meta?.total ?? departments.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            style: { marginRight: 8 },
+            onChange: (page, size) => {
+              setCurrentPage(size !== pageSize ? 1 : page);
+              setPageSize(size);
+              setSelectedRowKeys([]);
+            },
           }}
         />
       </Card>
@@ -290,7 +285,7 @@ const AcademicDepartment = () => {
                 name="academicFaculty"
                 label="Academic Faculty"
                 required
-                options={faculties.map((faculty: any) => ({
+                options={faculties.map((faculty) => ({
                   value: faculty._id,
                   label: faculty.name,
                 }))}

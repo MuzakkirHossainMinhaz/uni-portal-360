@@ -226,8 +226,11 @@ const getRolePermissions = async (roleName: string): Promise<string[]> => {
       if (typeof rp.permissionId === 'string') {
         return rp.permissionId;
       }
-      const populated = rp.permissionId as any;
-      return populated.name as string;
+      const populated: unknown = rp.permissionId;
+      return typeof populated === 'object' && populated !== null && 'name' in populated &&
+        typeof populated.name === 'string'
+        ? populated.name
+        : '';
     })
     .filter(Boolean);
 };

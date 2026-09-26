@@ -29,7 +29,7 @@ const nextId = async (role: TUserRole, prefix: string) => {
   const counter = await UserIdCounter.findOneAndUpdate(
     { _id: key },
     { $inc: { sequence: 1 } },
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!counter) throw new Error('Failed to generate user ID');
