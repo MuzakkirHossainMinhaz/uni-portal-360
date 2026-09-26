@@ -1,108 +1,44 @@
 import { TAcademicSemester } from '../AcademicSemester/academicSemester.interface';
+import { TUserRole } from './user.interface';
 import { User } from './user.model';
+import { UserIdCounter } from './userIdCounter.model';
 
-const findLastStudentId = async () => {
-  const lastStudent = await User.findOne(
-    {
-      role: 'student',
-    },
-    {
-      id: 1,
-      _id: 0,
-    },
-  )
-    .sort({
-      createdAt: -1,
-    })
-    .lean();
+const nextId = async (role: TUserRole, prefix: string) => {
+  const key = `${role}:${prefix}`;
 
-  return lastStudent?.id ? lastStudent.id : undefined;
-};
+  // Seed a counter from existing accounts when upgrading an existing database.
+  if (!(await UserIdCounter.exists({ _id: key }))) {
+    const [last] = await User.aggregate<{ sequence: number }>([
+      { $match: { role, id: { $regex: `^${prefix}[0-9]+$` } } },
+      { $project: { sequence: { $toInt: { $substrCP: ['$id', prefix.length, 64] } } } },
+      { $group: { _id: null, sequence: { $max: '$sequence' } } },
+    ]);
 
-export const generateStudentId = async (payload: TAcademicSemester) => {
-  let currentId = (0).toString();
-  const lastStudentId = await findLastStudentId();
-
-  const lastStudentSemesterCode = lastStudentId?.substring(4, 6);
-  const lastStudentYear = lastStudentId?.substring(0, 4);
-
-  const currentSemesterCode = payload.code;
-  const currentYear = payload.year;
-
-  if (lastStudentId && lastStudentSemesterCode === currentSemesterCode && lastStudentYear === currentYear) {
-    currentId = lastStudentId.substring(6);
+    try {
+      await UserIdCounter.updateOne(
+        { _id: key },
+        { $setOnInsert: { sequence: last?.sequence ?? 0 } },
+        { upsert: true },
+      );
+    } catch (error) {
+      // Another request may have created the same counter first.
+      if (!(error instanceof Error && 'code' in error && error.code === 11000)) throw error;
+    }
   }
 
-  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
+  const counter = await UserIdCounter.findOneAndUpdate(
+    { _id: key },
+    { $inc: { sequence: 1 } },
+    { new: true },
+  );
 
-  incrementId = `${payload.year}${payload.code}${incrementId}`;
-
-  return incrementId;
+  if (!counter) throw new Error('Failed to generate user ID');
+  return `${prefix}${String(counter.sequence).padStart(4, '0')}`;
 };
 
-// Faculty ID
-export const findLastFacultyId = async () => {
-  const lastFaculty = await User.findOne(
-    {
-      role: 'faculty',
-    },
-    {
-      id: 1,
-      _id: 0,
-    },
-  )
-    .sort({
-      createdAt: -1,
-    })
-    .lean();
+export const generateStudentId = (semester: TAcademicSemester) =>
+  nextId('student', `${semester.year}${semester.code}`);
 
-  return lastFaculty?.id ? lastFaculty.id.substring(2) : undefined;
-};
+export const generateFacultyId = () => nextId('faculty', 'F-');
 
-export const generateFacultyId = async () => {
-  let currentId = (0).toString();
-  const lastFacultyId = await findLastFacultyId();
-
-  if (lastFacultyId) {
-    currentId = lastFacultyId.substring(2);
-  }
-
-  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
-
-  incrementId = `F-${incrementId}`;
-
-  return incrementId;
-};
-
-// Admin ID
-export const findLastAdminId = async () => {
-  const lastAdmin = await User.findOne(
-    {
-      role: 'admin',
-    },
-    {
-      id: 1,
-      _id: 0,
-    },
-  )
-    .sort({
-      createdAt: -1,
-    })
-    .lean();
-
-  return lastAdmin?.id ? lastAdmin.id.substring(2) : undefined;
-};
-
-export const generateAdminId = async () => {
-  let currentId = (0).toString();
-  const lastAdminId = await findLastAdminId();
-
-  if (lastAdminId) {
-    currentId = lastAdminId.substring(2);
-  }
-
-  let incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
-
-  incrementId = `A-${incrementId}`;
-  return incrementId;
-};
+export const generateAdminId = () => nextId('admin', 'A-');

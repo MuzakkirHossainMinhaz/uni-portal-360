@@ -7,7 +7,7 @@ import { TUserRole } from '../modules/User/user.interface';
 import { User } from '../modules/User/user.model';
 import catchAsync from '../utils/catchAsync';
 
-const auth = (...requiredRoles: TUserRole[]) => {
+const authorize = (allowPasswordChange: boolean, requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization;
 
@@ -25,7 +25,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const user = await User.isUserExistsByCustomId(userId);
 
     if (!user) {
-      throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
+      throw new AppError(httpStatus.UNAUTHORIZED, 'Your session is no longer valid');
     }
     // checking if the user is already deleted
 
@@ -46,13 +46,24 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
     }
 
-    if (requiredRoles && !requiredRoles.includes(role)) {
-      throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized  hi!');
+    if (user.role !== role) {
+      throw new AppError(httpStatus.UNAUTHORIZED, 'Your session is no longer valid');
+    }
+
+    if (!allowPasswordChange && user.needsPasswordChange) {
+      throw new AppError(httpStatus.FORBIDDEN, 'Password change required');
+    }
+
+    if (requiredRoles.length && !requiredRoles.includes(role)) {
+      throw new AppError(httpStatus.FORBIDDEN, 'You do not have access to this resource');
     }
 
     req.user = decoded as JwtPayload & { role: string };
     next();
   });
 };
+
+const auth = (...requiredRoles: TUserRole[]) => authorize(false, requiredRoles);
+export const authForPasswordChange = (...requiredRoles: TUserRole[]) => authorize(true, requiredRoles);
 
 export default auth;

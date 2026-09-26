@@ -4,6 +4,7 @@ import { baseApi } from '../../api/baseApi';
 type LoginData = {
   accessToken: string;
   needsPasswordChange: boolean;
+  permissions: string[];
 };
 
 type LoginPayload = {
@@ -13,6 +14,10 @@ type LoginPayload = {
 
 const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getMyPermissions: builder.query<string[], void>({
+      query: () => ({ url: '/users/me', method: 'GET' }),
+      transformResponse: (response: TResponse<{ permissions: string[] }>) => response.data?.permissions ?? [],
+    }),
     login: builder.mutation<TResponse<LoginData>, LoginPayload>({
       query: (userInfo) => ({
         url: '/auth/login',
@@ -23,4 +28,4 @@ const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation } = authApi;
+export const { useGetMyPermissionsQuery, useLoginMutation } = authApi;

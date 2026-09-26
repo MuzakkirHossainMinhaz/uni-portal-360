@@ -242,7 +242,20 @@ const getMe = async (userId: string, role: string) => {
   return { ...result?.toObject(), permissions };
 };
 
-const changeStatus = async (id: string, payload: { status: string }) => {
+const changeStatus = async (
+  id: string,
+  payload: { status: string },
+  actor: { userId: string; role: string },
+) => {
+  const target = await User.findById(id);
+  if (!target) throw new AppError(httpStatus.NOT_FOUND, 'Account not found');
+  if (target.role === 'superAdmin' && actor.role !== 'superAdmin') {
+    throw new AppError(httpStatus.FORBIDDEN, 'Only Super Admin can change this account');
+  }
+  if (target.id === actor.userId && payload.status === 'blocked') {
+    throw new AppError(httpStatus.BAD_REQUEST, 'You cannot block your own account');
+  }
+
   const result = await User.findByIdAndUpdate(id, payload, {
     returnDocument: 'after',
   });

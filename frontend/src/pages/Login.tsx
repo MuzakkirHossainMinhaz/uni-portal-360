@@ -32,7 +32,14 @@ const Login = () => {
       }
 
       const user = verifyToken(res.data.accessToken) as TUser;
-      dispatch(setUser({ user: user, token: res.data.accessToken }));
+      dispatch(setUser({
+        user: {
+          ...user,
+          permissions: res.data.permissions,
+          needsPasswordChange: res.data.needsPasswordChange,
+        },
+        token: res.data.accessToken,
+      }));
       toast.success('Logged in', { id: toastId, duration: 2000 });
 
       if (res.data.needsPasswordChange) {

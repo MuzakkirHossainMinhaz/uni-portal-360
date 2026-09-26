@@ -1,6 +1,6 @@
 import { BaseQueryFn, FetchArgs, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { toast } from 'sonner';
-import { logout } from '../features/auth/authSlice';
+import { logout, requirePasswordChange } from '../features/auth/authSlice';
 import { RootState } from '../store';
 
 type ErrorWithMessage = {
@@ -33,7 +33,12 @@ const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, unknown> = async (args,
   }
   if (result?.error?.status === 403) {
     const error = result.error as ErrorWithMessage;
-    toast.error(error.data?.message ?? 'You are not authorized');
+    if (error.data?.message === 'Password change required') {
+      api.dispatch(requirePasswordChange());
+      toast.error('Please change your password to continue.', { id: 'password-change-required' });
+    } else {
+      toast.error(error.data?.message ?? 'You are not authorized');
+    }
   }
   if (result?.error?.status === 401) {
     api.dispatch(logout());

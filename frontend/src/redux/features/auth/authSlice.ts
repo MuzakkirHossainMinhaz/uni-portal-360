@@ -7,6 +7,7 @@ export type TUser = {
   iat: number;
   exp: number;
   permissions?: string[];
+  needsPasswordChange?: boolean;
 };
 
 type TAuthState = {
@@ -33,6 +34,9 @@ const authSlice = createSlice({
         state.user.permissions = action.payload;
       }
     },
+    requirePasswordChange: (state) => {
+      if (state.user) state.user.needsPasswordChange = true;
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -40,7 +44,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setPermissions, logout } = authSlice.actions;
+export const { setUser, setPermissions, requirePasswordChange, logout } = authSlice.actions;
 
 export default authSlice.reducer;
 

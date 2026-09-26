@@ -92,7 +92,10 @@ const getMe = catchAsync(async (req, res) => {
 const changeStatus = catchAsync(async (req, res) => {
   const id = req.params.id;
 
-  const result = await UserServices.changeStatus(id as string, req.body);
+  const result = await UserServices.changeStatus(id as string, req.body, {
+    userId: req.user.userId,
+    role: req.user.role,
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

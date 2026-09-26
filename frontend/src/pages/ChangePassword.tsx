@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Col, Row, Typography } from 'antd';
 import UniForm from '../components/form/UniForm';
 import UniInput from '../components/form/UniInput';
@@ -6,6 +7,7 @@ import { useChangePasswordMutation } from '../redux/features/admin/userManagemen
 import { useAppDispatch } from '../redux/hooks';
 import { logout } from '../redux/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const { Title, Paragraph } = Typography;
 
@@ -13,6 +15,7 @@ const ChangePassword = () => {
   const [changePassword] = useChangePasswordMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     const payload = {
@@ -20,9 +23,18 @@ const ChangePassword = () => {
       newPassword: data.newPassword as string,
     };
 
-    await changePassword(payload).unwrap();
-    dispatch(logout());
-    navigate('/login');
+    setIsSubmitting(true);
+    try {
+      await changePassword(payload).unwrap();
+      toast.success('Password changed. Please sign in again.');
+      dispatch(logout());
+      navigate('/login');
+    } catch (error) {
+      console.error('Password change failed', error);
+      toast.error('Could not change password. Please check your current password and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,7 +71,7 @@ const ChangePassword = () => {
           <UniForm onSubmit={onSubmit}>
             <UniInput type="password" name="oldPassword" label="Old Password" required />
             <UniInput type="password" name="newPassword" label="New Password" required />
-            <Button htmlType="submit" type="primary" size="large" block style={{ marginTop: 8 }}>
+            <Button htmlType="submit" type="primary" size="large" block loading={isSubmitting} style={{ marginTop: 8 }}>
               Change Password
             </Button>
           </UniForm>

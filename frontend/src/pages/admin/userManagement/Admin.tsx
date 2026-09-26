@@ -337,6 +337,7 @@ const Admin = () => {
             </Typography.Text>
           </Space>
 
+          {/* Right Side - Buttons */}
           <Space style={{ display: 'flex', gap: 8 }}>
             <Button
               type="dashed"
@@ -366,7 +367,6 @@ const Admin = () => {
           rowSelection={rowSelection}
           loading={isFetching}
           scroll={{ x: 1050 }}
-          locale={{ emptyText: 'No admins found' }}
           pagination={{
             current: currentPage,
             pageSize,
@@ -398,34 +398,34 @@ const Admin = () => {
           defaultValues={
             editingAdmin
               ? {
-                  firstName: editingAdmin.name?.firstName || '',
-                  middleName: editingAdmin.name?.middleName || '',
-                  lastName: editingAdmin.name?.lastName || '',
-                  designation: editingAdmin.designation || '',
-                  gender: editingAdmin.gender || '',
-                  dateOfBirth: editingAdmin.dateOfBirth?.slice(0, 10) || '',
-                  email: editingAdmin.email,
-                  contactNo: editingAdmin.contactNo || '',
-                  emergencyContactNo: editingAdmin.emergencyContactNo || '',
-                  bloodGroup: editingAdmin.bloodGroup || '',
-                  presentAddress: editingAdmin.presentAddress || '',
-                  permanentAddress: editingAdmin.permanentAddress || '',
-                }
+                firstName: editingAdmin.name?.firstName || '',
+                middleName: editingAdmin.name?.middleName || '',
+                lastName: editingAdmin.name?.lastName || '',
+                designation: editingAdmin.designation || '',
+                gender: editingAdmin.gender || '',
+                dateOfBirth: editingAdmin.dateOfBirth?.slice(0, 10) || '',
+                email: editingAdmin.email,
+                contactNo: editingAdmin.contactNo || '',
+                emergencyContactNo: editingAdmin.emergencyContactNo || '',
+                bloodGroup: editingAdmin.bloodGroup || '',
+                presentAddress: editingAdmin.presentAddress || '',
+                permanentAddress: editingAdmin.permanentAddress || '',
+              }
               : {
-                  firstName: '',
-                  middleName: '',
-                  lastName: '',
-                  email: '',
-                  password: '',
-                  designation: '',
-                  gender: '',
-                  bloodGroup: '',
-                  contactNo: '',
-                  emergencyContactNo: '',
-                  presentAddress: '',
-                  permanentAddress: '',
-                  dateOfBirth: '',
-                }
+                firstName: '',
+                middleName: '',
+                lastName: '',
+                email: '',
+                password: '',
+                designation: '',
+                gender: '',
+                bloodGroup: '',
+                contactNo: '',
+                emergencyContactNo: '',
+                presentAddress: '',
+                permanentAddress: '',
+                dateOfBirth: '',
+              }
           }
         >
           <Row gutter={[16, 0]}>

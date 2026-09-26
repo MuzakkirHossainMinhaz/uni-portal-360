@@ -1,28 +1,25 @@
-import { Alert, Button, Card, Flex, Input, Select, Space, Switch, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Account,
   RoleGuide,
-  useGetAccountDirectoryQuery,
-  useGetRoleGuideQuery,
+  useGetRoleGuideQuery
 } from '../../../redux/features/admin/userDirectory.api';
 
 const { Title, Paragraph, Text } = Typography;
 
 const AccountsAndRoles = () => {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [search, setSearch] = useState('');
-  const [role, setRole] = useState<string>();
-  const [includeDeleted, setIncludeDeleted] = useState(false);
-  const accounts = useGetAccountDirectoryQuery(
-    { page, limit, search: search || undefined, role, includeDeleted },
-    { refetchOnMountOrArgChange: true },
-  );
+  // const [page, setPage] = useState(1);
+  // const [limit, setLimit] = useState(20);
+  // const [search, setSearch] = useState('');
+  // const [role, setRole] = useState<string>();
+  // const [includeDeleted, setIncludeDeleted] = useState(false);
+  // const accounts = useGetAccountDirectoryQuery(
+  //   { page, limit, search: search || undefined, role, includeDeleted },
+  //   { refetchOnMountOrArgChange: true },
+  // );
   const roles = useGetRoleGuideQuery(undefined, { refetchOnMountOrArgChange: true });
-  const roleDetails = new Map((roles.data ?? []).map((item) => [item.role, item]));
+  // const roleDetails = new Map((roles.data ?? []).map((item) => [item.role, item]));
 
   const roleColumns: ColumnsType<RoleGuide> = [
     { title: 'Role', dataIndex: 'label', width: 150 },
@@ -43,12 +40,12 @@ const AccountsAndRoles = () => {
         <Button
           type="link"
           aria-label={`Show ${item.label} accounts`}
-          onClick={() => {
-            setRole(item.role);
-            setSearch('');
-            setIncludeDeleted(true);
-            setPage(1);
-          }}
+        // onClick={() => {
+        //   setRole(item.role);
+        //   setSearch('');
+        //   setIncludeDeleted(true);
+        //   setPage(1);
+        // }}
         >
           {count + item.deletedAccounts}
         </Button>
@@ -67,37 +64,37 @@ const AccountsAndRoles = () => {
     },
   ];
 
-  const accountColumns: ColumnsType<Account> = [
-    { title: 'Account ID', dataIndex: 'id' },
-    { title: 'Email', dataIndex: 'email' },
-    { title: 'Role', dataIndex: 'role', render: (value: string) => roleDetails.get(value)?.label ?? value },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      render: (value: string, account) => (
-        <Tag color={account.isDeleted || value === 'blocked' ? 'red' : 'green'}>
-          {account.isDeleted ? 'Deleted' : value === 'in-progress' ? 'Enabled' : value}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Password change required',
-      dataIndex: 'needsPasswordChange',
-      render: (required: boolean) => (required ? 'Yes' : 'No'),
-    },
-    {
-      title: 'Profile management',
-      key: 'management',
-      render: (_, account) => {
-        const path = roleDetails.get(account.role)?.managementPath;
-        return path && !account.isDeleted ? (
-          <Link to={path}>Manage profiles</Link>
-        ) : (
-          <Text type="secondary">Read only</Text>
-        );
-      },
-    },
-  ];
+  // const accountColumns: ColumnsType<Account> = [
+  //   { title: 'Account ID', dataIndex: 'id' },
+  //   { title: 'Email', dataIndex: 'email' },
+  //   { title: 'Role', dataIndex: 'role', render: (value: string) => roleDetails.get(value)?.label ?? value },
+  //   {
+  //     title: 'Status',
+  //     dataIndex: 'status',
+  //     render: (value: string, account) => (
+  //       <Tag color={account.isDeleted || value === 'blocked' ? 'red' : 'green'}>
+  //         {account.isDeleted ? 'Deleted' : value === 'in-progress' ? 'Enabled' : value}
+  //       </Tag>
+  //     ),
+  //   },
+  //   {
+  //     title: 'Password change required',
+  //     dataIndex: 'needsPasswordChange',
+  //     render: (required: boolean) => (required ? 'Yes' : 'No'),
+  //   },
+  //   {
+  //     title: 'Profile management',
+  //     key: 'management',
+  //     render: (_, account) => {
+  //       const path = roleDetails.get(account.role)?.managementPath;
+  //       return path && !account.isDeleted ? (
+  //         <Link to={path}>Manage profiles</Link>
+  //       ) : (
+  //         <Text type="secondary">Read only</Text>
+  //       );
+  //     },
+  //   },
+  // ];
 
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
@@ -136,7 +133,8 @@ const AccountsAndRoles = () => {
           stored roles are marked unsupported.
         </Paragraph>
       </Card>
-      <Card title="Account directory">
+
+      {/* <Card title="Account directory">
         <Flex gap="middle" wrap align="center" style={{ marginBottom: 16 }}>
           <Input.Search
             key={search}
@@ -207,7 +205,7 @@ const AccountsAndRoles = () => {
             }}
           />
         )}
-      </Card>
+      </Card> */}
     </Space>
   );
 };

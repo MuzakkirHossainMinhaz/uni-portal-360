@@ -6,6 +6,7 @@ import AppError from '../../errors/AppError';
 import { logger } from '../../utils/logger';
 import { sendEmail } from '../../utils/sendEmail';
 import { User } from '../User/user.model';
+import { RBACService } from '../RBAC/rbac.service';
 import { TLoginUser } from './auth.interface';
 import { createToken, verifyToken } from './auth.utils';
 
@@ -55,6 +56,7 @@ const loginUser = async (payload: TLoginUser) => {
     accessToken,
     refreshToken,
     needsPasswordChange: user?.needsPasswordChange,
+    permissions: await RBACService.getRolePermissions(user.role),
   };
 };
 

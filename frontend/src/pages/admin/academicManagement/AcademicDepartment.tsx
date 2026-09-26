@@ -267,15 +267,15 @@ const AcademicDepartment = () => {
           defaultValues={
             editingDepartment
               ? {
-                  name: editingDepartment.name,
-                  description: editingDepartment.description || '',
-                  academicFaculty: editingDepartment.academicFaculty?._id,
-                }
+                name: editingDepartment.name,
+                description: editingDepartment.description || '',
+                academicFaculty: editingDepartment.academicFaculty?._id,
+              }
               : {
-                  name: '',
-                  description: '',
-                  academicFaculty: '',
-                }
+                name: '',
+                description: '',
+                academicFaculty: '',
+              }
           }
         >
           <Row gutter={[16, 0]}>

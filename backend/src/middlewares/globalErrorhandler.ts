@@ -25,6 +25,10 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
+  } else if (['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(err?.name)) {
+    statusCode = 401;
+    message = 'Your session is invalid or expired';
+    errorSources = [{ path: '', message }];
   } else if (err?.name === 'ValidationError') {
     const simplifiedError = handleValidationError(err);
     statusCode = simplifiedError?.statusCode;

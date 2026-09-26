@@ -190,6 +190,43 @@ body[data-theme='dark'] .ant-form-item-label > label {
   color: #cbd5e1 !important;
 }
 
+/* Keep the long student form scrollable without the bright system scrollbar. */
+.student-management-modal .ant-modal-body {
+  scrollbar-width: thin;
+}
+
+body[data-theme='dark'] .student-management-modal .ant-modal-body {
+  scrollbar-color: #475569 transparent;
+}
+
+body[data-theme='light'] .student-management-modal .ant-modal-body {
+  scrollbar-color: #b8c4d3 transparent;
+}
+
+.student-management-modal .ant-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.student-management-modal .ant-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.student-management-modal .ant-modal-body::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #475569;
+  background-clip: padding-box;
+}
+
+body[data-theme='light'] .student-management-modal .ant-modal-body::-webkit-scrollbar-thumb {
+  background: #b8c4d3;
+  background-clip: padding-box;
+}
+
+.student-management-modal .ant-modal-body::-webkit-scrollbar-button {
+  display: none;
+}
+
 /* ==========================================================================
    Responsive Login Card & Standalone Auth Pages
    ========================================================================== */

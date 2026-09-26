@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { User } from '../User/user.model';
+import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
 import { FacultySearchableFields } from './faculty.constant';
 import { TFaculty } from './faculty.interface';
 import { Faculty } from './faculty.model';
@@ -45,11 +46,40 @@ const updateFacultyIntoDB = async (id: string, payload: Partial<TFaculty>) => {
     }
   }
 
-  const result = await Faculty.findByIdAndUpdate(id, modifiedUpdatedData, {
-    returnDocument: 'after',
-    runValidators: true,
-  });
-  return result;
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const currentFaculty = await Faculty.findById(id).session(session);
+    if (!currentFaculty) throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found');
+
+    if (payload.academicDepartment) {
+      const department = await AcademicDepartment.findById(payload.academicDepartment).session(session);
+      if (!department) throw new AppError(httpStatus.BAD_REQUEST, 'Academic department not found');
+      modifiedUpdatedData.academicFaculty = department.academicFaculty;
+    }
+
+    if (payload.email) {
+      const account = await User.findByIdAndUpdate(
+        currentFaculty.user,
+        { email: payload.email },
+        { session, runValidators: true, returnDocument: 'after' },
+      );
+      if (!account) throw new AppError(httpStatus.NOT_FOUND, 'Faculty account not found');
+    }
+
+    const result = await Faculty.findByIdAndUpdate(id, modifiedUpdatedData, {
+      session,
+      returnDocument: 'after',
+      runValidators: true,
+    });
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 };
 
 const deleteFacultyFromDB = async (id: string) => {

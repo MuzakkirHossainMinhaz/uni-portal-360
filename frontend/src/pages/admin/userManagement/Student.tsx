@@ -276,56 +276,56 @@ const Student = () => {
 
   const defaultValues = editingStudent
     ? {
-        firstName: editingStudent.name?.firstName || '',
-        middleName: editingStudent.name?.middleName || '',
-        lastName: editingStudent.name?.lastName || '',
-        gender: editingStudent.gender || '',
-        dateOfBirth: editingStudent.dateOfBirth?.slice(0, 10) || '',
-        email: editingStudent.email,
-        contactNo: editingStudent.contactNo || '',
-        emergencyContactNo: editingStudent.emergencyContactNo || '',
-        bloodGroup: editingStudent.bloodGroup || '',
-        presentAddress: editingStudent.presentAddress || '',
-        permanentAddress: editingStudent.permanentAddress || '',
-        fatherName: editingStudent.guardian?.fatherName || '',
-        fatherOccupation: editingStudent.guardian?.fatherOccupation || '',
-        fatherContactNo: editingStudent.guardian?.fatherContactNo || '',
-        motherName: editingStudent.guardian?.motherName || '',
-        motherOccupation: editingStudent.guardian?.motherOccupation || '',
-        motherContactNo: editingStudent.guardian?.motherContactNo || '',
-        localGuardianName: editingStudent.localGuardian?.name || '',
-        localGuardianOccupation: editingStudent.localGuardian?.occupation || '',
-        localGuardianContactNo: editingStudent.localGuardian?.contactNo || '',
-        localGuardianAddress: editingStudent.localGuardian?.address || '',
-        admissionSemester: editingStudent.admissionSemester?._id || '',
-        academicDepartment: editingStudent.academicDepartment?._id || '',
-      }
+      firstName: editingStudent.name?.firstName || '',
+      middleName: editingStudent.name?.middleName || '',
+      lastName: editingStudent.name?.lastName || '',
+      gender: editingStudent.gender || '',
+      dateOfBirth: editingStudent.dateOfBirth?.slice(0, 10) || '',
+      email: editingStudent.email,
+      contactNo: editingStudent.contactNo || '',
+      emergencyContactNo: editingStudent.emergencyContactNo || '',
+      bloodGroup: editingStudent.bloodGroup || '',
+      presentAddress: editingStudent.presentAddress || '',
+      permanentAddress: editingStudent.permanentAddress || '',
+      fatherName: editingStudent.guardian?.fatherName || '',
+      fatherOccupation: editingStudent.guardian?.fatherOccupation || '',
+      fatherContactNo: editingStudent.guardian?.fatherContactNo || '',
+      motherName: editingStudent.guardian?.motherName || '',
+      motherOccupation: editingStudent.guardian?.motherOccupation || '',
+      motherContactNo: editingStudent.guardian?.motherContactNo || '',
+      localGuardianName: editingStudent.localGuardian?.name || '',
+      localGuardianOccupation: editingStudent.localGuardian?.occupation || '',
+      localGuardianContactNo: editingStudent.localGuardian?.contactNo || '',
+      localGuardianAddress: editingStudent.localGuardian?.address || '',
+      admissionSemester: editingStudent.admissionSemester?._id || '',
+      academicDepartment: editingStudent.academicDepartment?._id || '',
+    }
     : {
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        password: '',
-        gender: '',
-        dateOfBirth: '',
-        email: '',
-        contactNo: '',
-        emergencyContactNo: '',
-        bloodGroup: '',
-        presentAddress: '',
-        permanentAddress: '',
-        fatherName: '',
-        fatherOccupation: '',
-        fatherContactNo: '',
-        motherName: '',
-        motherOccupation: '',
-        motherContactNo: '',
-        localGuardianName: '',
-        localGuardianOccupation: '',
-        localGuardianContactNo: '',
-        localGuardianAddress: '',
-        admissionSemester: '',
-        academicDepartment: '',
-      };
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      password: '',
+      gender: '',
+      dateOfBirth: '',
+      email: '',
+      contactNo: '',
+      emergencyContactNo: '',
+      bloodGroup: '',
+      presentAddress: '',
+      permanentAddress: '',
+      fatherName: '',
+      fatherOccupation: '',
+      fatherContactNo: '',
+      motherName: '',
+      motherOccupation: '',
+      motherContactNo: '',
+      localGuardianName: '',
+      localGuardianOccupation: '',
+      localGuardianContactNo: '',
+      localGuardianAddress: '',
+      admissionSemester: '',
+      academicDepartment: '',
+    };
 
   return (
     <div>
@@ -343,13 +343,16 @@ const Student = () => {
             </Title>
             <Typography.Text type="secondary">Manage student enrollment and academic information</Typography.Text>
           </Space>
-          <Space>
+
+          {/* Right Side - Buttons */}
+          <Space style={{ display: 'flex', gap: 8 }}>
             <Button
               type="dashed"
               icon={<DeleteOutlined />}
               onClick={handleBulkDelete}
               disabled={selectedRowKeys.length === 0}
               danger
+              style={{ borderRadius: 8, height: 40, }}
             >
               Delete ({selectedRowKeys.length})
             </Button>
@@ -360,6 +363,7 @@ const Student = () => {
                 setEditingStudent(null);
                 setIsModalVisible(true);
               }}
+              style={{ borderRadius: 8, height: 40, }}
             >
               Add Student
             </Button>
@@ -373,7 +377,6 @@ const Student = () => {
           rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
           loading={isFetching}
           scroll={{ x: 1200 }}
-          locale={{ emptyText: 'No students found' }}
           pagination={{
             current: currentPage,
             pageSize,
@@ -391,6 +394,7 @@ const Student = () => {
       </Card>
 
       <Modal
+        className="student-management-modal"
         title={editingStudent ? 'Edit Student' : 'Create Student'}
         open={isModalVisible}
         onCancel={handleModalClose}
@@ -419,13 +423,13 @@ const Student = () => {
                 <UniInput type="password" name="password" label="Password (optional)" />
               </Col>
             ) : null}
-            <Col span={8}>
+            <Col span={editingStudent ? 12 : 8}>
               <UniSelect name="gender" label="Gender" required options={genderOptions} />
             </Col>
-            <Col span={8}>
+            <Col span={editingStudent ? 12 : 8}>
               <UniSelect name="bloodGroup" label="Blood Group" required options={bloodGroupOptions} />
             </Col>
-            <Col span={8}>
+            <Col span={editingStudent ? 12 : 8}>
               <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
             </Col>
             <Col span={12}>

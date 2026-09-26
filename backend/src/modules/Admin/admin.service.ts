@@ -42,11 +42,34 @@ const updateAdminIntoDB = async (id: string, payload: Partial<TAdmin>) => {
     }
   }
 
-  const result = await Admin.findByIdAndUpdate(id, modifiedUpdatedData, {
-    returnDocument: 'after',
-    runValidators: true,
-  });
-  return result;
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const currentAdmin = await Admin.findById(id).session(session);
+    if (!currentAdmin) throw new AppError(httpStatus.NOT_FOUND, 'Admin not found');
+
+    if (payload.email) {
+      const account = await User.findByIdAndUpdate(
+        currentAdmin.user,
+        { email: payload.email },
+        { session, runValidators: true, returnDocument: 'after' },
+      );
+      if (!account) throw new AppError(httpStatus.NOT_FOUND, 'Admin account not found');
+    }
+
+    const result = await Admin.findByIdAndUpdate(id, modifiedUpdatedData, {
+      session,
+      returnDocument: 'after',
+      runValidators: true,
+    });
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 };
 
 const deleteAdminFromDB = async (id: string) => {
