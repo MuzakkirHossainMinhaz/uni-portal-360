@@ -13,7 +13,9 @@ export type TMeta = {
   limit: number;
   page: number;
   total: number;
-  totalPage: number;
+  totalPages?: number;
+  totalPage?: number;
+  hasNext?: boolean;
 };
 
 export type TResponse<T> = {

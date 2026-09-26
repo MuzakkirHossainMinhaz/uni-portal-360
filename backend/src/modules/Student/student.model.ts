@@ -104,7 +104,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       type: String,
       required: [true, 'Emergency contact number is required'],
     },
-    bloogGroup: {
+    bloodGroup: {
       type: String,
       enum: {
         values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
@@ -162,7 +162,7 @@ studentSchema.index({ admissionSemester: 1, isDeleted: 1 });
 
 //virtual
 studentSchema.virtual('fullName').get(function () {
-  return this?.name?.firstName + this?.name?.middleName + this?.name?.lastName;
+  return [this?.name?.firstName, this?.name?.middleName, this?.name?.lastName].filter(Boolean).join(' ');
 });
 
 // Query Middleware

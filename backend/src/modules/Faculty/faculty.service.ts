@@ -8,7 +8,10 @@ import { TFaculty } from './faculty.interface';
 import { Faculty } from './faculty.model';
 
 const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
-  const facultyQuery = new QueryBuilder(Faculty.find().populate('academicDepartment academicFaculty'), query)
+  const facultyQuery = new QueryBuilder(Faculty.find().populate('academicDepartment academicFaculty'), {
+    sort: '-_id',
+    ...query,
+  })
     .search(FacultySearchableFields)
     .filter()
     .sort()
@@ -68,11 +71,7 @@ const deleteFacultyFromDB = async (id: string) => {
     // get user _id from deletedFaculty
     const userId = deletedFaculty.user;
 
-    const deletedUser = await User.findByIdAndUpdate(
-      userId,
-      { isDeleted: true },
-      { returnDocument: 'after', session },
-    );
+    const deletedUser = await User.findByIdAndUpdate(userId, { isDeleted: true }, { returnDocument: 'after', session });
 
     if (!deletedUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');

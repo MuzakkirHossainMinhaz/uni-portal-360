@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { logout, TUser, useCurrentToken } from '../../redux/features/auth/authSlice';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { verifyToken } from '../../utils/verifyToken';
@@ -11,24 +12,40 @@ type TProtectedRoute = {
 
 const ProtectedRoute = ({ children, role }: TProtectedRoute) => {
   const token = useAppSelector(useCurrentToken);
-
-  let user: TUser | undefined;
-
-  if (token) {
-    user = verifyToken(token) as TUser;
-  }
-
   const dispatch = useAppDispatch();
 
-  if (role !== undefined) {
-    const allowedRoles = role.split('|');
-    if (!allowedRoles.includes(user?.role || '')) {
-      dispatch(logout());
-      return <Navigate to="/login" replace={true} />;
+  let user: TUser | undefined;
+  let hasInvalidSession = false;
+
+  if (token) {
+    try {
+      user = verifyToken(token) as TUser;
+      hasInvalidSession = !user.exp || user.exp * 1000 <= Date.now();
+    } catch {
+      hasInvalidSession = true;
     }
   }
-  if (!token) {
-    return <Navigate to="/login" replace={true} />;
+
+  const allowedRoles = role?.split('|');
+  const hasInvalidRole = Boolean(allowedRoles && !allowedRoles.includes(user?.role || ''));
+  const shouldLogout = Boolean(token) && (hasInvalidSession || hasInvalidRole);
+
+  useEffect(() => {
+    if (!shouldLogout) {
+      return;
+    }
+
+    dispatch(logout());
+
+    if (hasInvalidSession) {
+      toast.error('Your session has expired. Please log in again.', {
+        id: 'session-expired',
+      });
+    }
+  }, [dispatch, hasInvalidSession, shouldLogout]);
+
+  if (!token || shouldLogout) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

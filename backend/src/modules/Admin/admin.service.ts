@@ -9,7 +9,7 @@ import { TAdmin } from './admin.interface';
 import { Admin } from './admin.model';
 
 const getAllAdminsFromDB = async (query: Record<string, unknown>) => {
-  const adminQuery = new QueryBuilder(Admin.find(), query)
+  const adminQuery = new QueryBuilder(Admin.find(), { sort: '-_id', ...query })
     .search(AdminSearchableFields)
     .filter()
     .sort()
@@ -42,7 +42,7 @@ const updateAdminIntoDB = async (id: string, payload: Partial<TAdmin>) => {
     }
   }
 
-  const result = await Admin.findByIdAndUpdate({ id }, modifiedUpdatedData, {
+  const result = await Admin.findByIdAndUpdate(id, modifiedUpdatedData, {
     returnDocument: 'after',
     runValidators: true,
   });
@@ -55,24 +55,16 @@ const deleteAdminFromDB = async (id: string) => {
   try {
     session.startTransaction();
 
-    const deletedAdmin = await Admin.findByIdAndUpdate(
-      id,
-      { isDeleted: true },
-      { returnDocument: 'after', session },
-    );
+    const deletedAdmin = await Admin.findByIdAndUpdate(id, { isDeleted: true }, { returnDocument: 'after', session });
 
     if (!deletedAdmin) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete admin');
     }
 
     // get user _id from deletedAdmin
     const userId = deletedAdmin.user;
 
-    const deletedUser = await User.findOneAndUpdate(
-      userId,
-      { isDeleted: true },
-      { returnDocument: 'after', session },
-    );
+    const deletedUser = await User.findByIdAndUpdate(userId, { isDeleted: true }, { returnDocument: 'after', session });
 
     if (!deletedUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');
@@ -85,7 +77,7 @@ const deleteAdminFromDB = async (id: string) => {
   } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student', err);
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete admin', err);
   }
 };
 

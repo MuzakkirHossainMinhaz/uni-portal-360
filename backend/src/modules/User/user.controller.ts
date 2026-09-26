@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
+import { logger } from '../../utils/logger';
 import sendResponse from '../../utils/sendResponse';
 import { UserServices } from './user.service';
 import { UserDirectory } from './user.directory';
@@ -26,7 +27,11 @@ const getRoles = catchAsync(async (_req, res) => {
 const createStudent = catchAsync(async (req, res) => {
   const { password, student: studentData } = req.body;
 
+  logger.info('Create student request received');
+
   const result = await UserServices.createStudentIntoDB(req.file, password, studentData);
+
+  logger.info('Student created successfully', { studentId: result[0]?.id });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -39,7 +44,11 @@ const createStudent = catchAsync(async (req, res) => {
 const createFaculty = catchAsync(async (req, res) => {
   const { password, faculty: facultyData } = req.body;
 
+  logger.info('Create faculty request received');
+
   const result = await UserServices.createFacultyIntoDB(req.file, password, facultyData);
+
+  logger.info('Faculty created successfully', { facultyId: result[0]?.id });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -52,7 +61,13 @@ const createFaculty = catchAsync(async (req, res) => {
 const createAdmin = catchAsync(async (req, res) => {
   const { password, admin: adminData } = req.body;
 
+  logger.info('Create admin request received');
+
   const result = await UserServices.createAdminIntoDB(req.file, password, adminData);
+
+  logger.info('Admin created successfully', {
+    adminId: result[0]?.id,
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

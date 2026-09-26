@@ -1,36 +1,61 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Select, Space, Table, Typography } from 'antd';
-import { useRef, useState } from 'react';
 import type { ColumnsType } from 'antd/es/table';
+import { useMemo, useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import {
-  useGetAllAdminsQuery,
   useAddAdminMutation,
-  useUpdateAdminMutation,
   useDeleteAdminMutation,
+  useGetAllAdminsQuery,
+  useUpdateAdminMutation,
 } from '../../../redux/features/admin/userManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
+import { TAdmin } from '../../../types';
+import { logger } from '../../../utils/logger';
 
 const { Title } = Typography;
 const { Option } = Select;
 
-interface Admin {
-  _id: string;
-  name: string;
+type AdminFormValues = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  password?: string;
+  designation: string;
+  gender: 'male' | 'female' | 'other';
+  dateOfBirth?: string;
   email: string;
-  role: string;
-  contactNo?: string;
-  address?: string;
-  profileImg?: string;
-}
-
-const sorter = (a: any, b: any) => {
-  const nameA = a.name || '';
-  const nameB = b.name || '';
-  return nameA.localeCompare(nameB);
+  contactNo: string;
+  emergencyContactNo: string;
+  bloodGroup: string;
+  presentAddress: string;
+  permanentAddress: string;
 };
+
+type ApiError = {
+  status?: string;
+  error?: string;
+  data?: {
+    message?: string;
+    error?: Array<{
+      path?: string;
+      message?: string;
+    }>;
+  };
+  message?: string;
+};
+
+const getAdminName = (admin: TAdmin) => {
+  const structuredName = [admin.name?.firstName, admin.name?.middleName, admin.name?.lastName]
+    .filter(Boolean)
+    .join(' ');
+
+  return structuredName || admin.fullName || admin.id || 'N/A';
+};
+
+const sorter = (a: TAdmin, b: TAdmin) => getAdminName(a).localeCompare(getAdminName(b));
 
 // Controlled Select that integrates with react-hook-form via Controller
 const UniSelect = ({
@@ -75,17 +100,35 @@ const Admin = () => {
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
+  const [editingAdmin, setEditingAdmin] = useState<TAdmin | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const formRef = useRef<UniFormHandle>(null);
 
-  const { data: adminsData, isLoading, error } = useGetAllAdminsQuery(undefined);
+  const queryParams = useMemo(
+    () => [
+      { name: 'page', value: currentPage },
+      { name: 'limit', value: pageSize },
+    ],
+    [currentPage, pageSize],
+  );
+  const { data: adminsData, isLoading, isFetching, error, refetch } = useGetAllAdminsQuery(queryParams);
   const [createAdmin] = useAddAdminMutation();
   const [updateAdmin] = useUpdateAdminMutation();
   const [deleteAdmin] = useDeleteAdminMutation();
 
-  const admins = adminsData?.data || adminsData || [];
+  const admins = adminsData?.data ?? [];
+
+  const refreshTable = async (resetToFirstPage = false) => {
+    if (resetToFirstPage && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+
+    await refetch();
+  };
 
   // Close modal and reset form
   const handleModalClose = () => {
@@ -99,11 +142,29 @@ const Admin = () => {
     setIsModalVisible(true);
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: AdminFormValues) => {
     setIsSubmitting(true);
     try {
+      const admin = {
+        designation: formData.designation,
+        name: {
+          firstName: formData.firstName,
+          middleName: formData.middleName || '',
+          lastName: formData.lastName,
+        },
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth || undefined,
+        email: formData.email,
+        contactNo: formData.contactNo,
+        emergencyContactNo: formData.emergencyContactNo,
+        bloodGroup: formData.bloodGroup,
+        presentAddress: formData.presentAddress,
+        permanentAddress: formData.permanentAddress,
+      };
+
       if (editingAdmin) {
-        await updateAdmin({ data: { admin: formData }, id: editingAdmin._id }).unwrap();
+        await updateAdmin({ data: { admin }, id: editingAdmin._id }).unwrap();
+        await refreshTable();
         message.success('Admin updated successfully');
         setIsModalVisible(false);
         setEditingAdmin(null);
@@ -112,47 +173,41 @@ const Admin = () => {
         // Backend expects multipart/form-data with a `data` JSON string field
         const payload = {
           password: formData.password || undefined,
-          admin: {
-            designation: formData.designation,
-            name: {
-              firstName: formData.firstName,
-              middleName: formData.middleName || '',
-              lastName: formData.lastName,
-            },
-            gender: formData.gender,
-            dateOfBirth: formData.dateOfBirth || undefined,
-            email: formData.email,
-            contactNo: formData.contactNo,
-            emergencyContactNo: formData.emergencyContactNo,
-            bloogGroup: formData.bloogGroup,
-            presentAddress: formData.presentAddress,
-            permanentAddress: formData.permanentAddress,
-          },
+          admin,
         };
 
         const fd = new FormData();
         fd.append('data', JSON.stringify(payload));
         await createAdmin(fd).unwrap();
+        await refreshTable(true);
         message.success('Admin created successfully!');
         // Only reset + close on success
         setIsModalVisible(false);
         setEditingAdmin(null);
         formRef.current?.reset();
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
       // Keep modal open, show error — do NOT reset form
+      const err = error as ApiError;
       const errMsg =
-        err?.data?.message ||
-        err?.data?.error?.[0]?.message ||
-        err?.message ||
-        'Something went wrong. Please try again.';
+        err.status === 'TIMEOUT_ERROR'
+          ? 'Request timed out. Please try again.'
+          : err.data?.message || err.message || 'Something went wrong. Please try again.';
+
+      logger.error('Admin form submission failed', {
+        status: err.status,
+        message: errMsg,
+        transportError: err.error,
+        validationErrors: err.data?.error ?? [],
+      });
+
       message.error(errMsg, 5);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleUpdate = (admin: Admin) => {
+  const handleUpdate = (admin: TAdmin) => {
     setEditingAdmin(admin);
     setIsModalVisible(true);
   };
@@ -160,9 +215,11 @@ const Admin = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteAdmin(id).unwrap();
+      await refreshTable();
       message.success('Admin deleted successfully');
-    } catch (err: any) {
-      message.error(err?.data?.message || 'Delete failed. Please try again.');
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      message.error(err.data?.message || 'Delete failed. Please try again.');
     }
   };
 
@@ -173,10 +230,13 @@ const Admin = () => {
     }
     try {
       await Promise.all(selectedRowKeys.map((id) => deleteAdmin(id as string).unwrap()));
+      const deletedCount = selectedRowKeys.length;
       setSelectedRowKeys([]);
-      message.success(`${selectedRowKeys.length} admin(s) deleted successfully`);
-    } catch (err: any) {
-      message.error(err?.data?.message || 'Bulk delete failed. Please try again.');
+      await refreshTable(true);
+      message.success(`${deletedCount} admin(s) deleted successfully`);
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      message.error(err.data?.message || 'Bulk delete failed. Please try again.');
     }
   };
 
@@ -185,12 +245,25 @@ const Admin = () => {
     onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
   };
 
-  const columns: ColumnsType<Admin> = [
+  const columns: ColumnsType<TAdmin> = [
+    {
+      title: 'Admin ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 125,
+      render: (id: string) => id || 'N/A',
+    },
     {
       title: 'Name',
-      dataIndex: 'name',
       key: 'name',
       sorter,
+      render: (_value, admin) => getAdminName(admin),
+    },
+    {
+      title: 'Designation',
+      dataIndex: 'designation',
+      key: 'designation',
+      render: (designation: string) => designation || 'N/A',
     },
     {
       title: 'Email',
@@ -198,23 +271,10 @@ const Admin = () => {
       key: 'email',
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => (
-        <span
-          style={{
-            padding: '4px 8px',
-            borderRadius: '4px',
-            background: mode === 'dark' ? 'rgba(34,197,94,0.2)' : 'rgba(34,197,94,0.1)',
-            color: '#22c55e',
-            fontSize: '12px',
-            fontWeight: 500,
-          }}
-        >
-          {role || 'Admin'}
-        </span>
-      ),
+      title: 'Gender',
+      dataIndex: 'gender',
+      key: 'gender',
+      render: (gender: string) => (gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : 'N/A'),
     },
     {
       title: 'Contact',
@@ -225,7 +285,7 @@ const Admin = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Admin) => (
+      render: (_: unknown, record: TAdmin) => (
         <Space>
           <Button
             type="text"
@@ -304,7 +364,22 @@ const Admin = () => {
           dataSource={admins}
           rowKey="_id"
           rowSelection={rowSelection}
-          pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true, style: { marginRight: 8 } }}
+          loading={isFetching}
+          scroll={{ x: 1050 }}
+          locale={{ emptyText: 'No admins found' }}
+          pagination={{
+            current: currentPage,
+            pageSize,
+            total: adminsData?.meta?.total ?? admins.length,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `${total} admin${total === 1 ? '' : 's'}`,
+            onChange: (page, size) => {
+              setCurrentPage(size !== pageSize ? 1 : page);
+              setPageSize(size);
+              setSelectedRowKeys([]);
+            },
+          }}
         />
       </Card>
 
@@ -322,7 +397,20 @@ const Admin = () => {
           onSubmit={handleFormSubmit}
           defaultValues={
             editingAdmin
-              ? { name: editingAdmin.name, email: editingAdmin.email, contactNo: editingAdmin.contactNo || '' }
+              ? {
+                  firstName: editingAdmin.name?.firstName || '',
+                  middleName: editingAdmin.name?.middleName || '',
+                  lastName: editingAdmin.name?.lastName || '',
+                  designation: editingAdmin.designation || '',
+                  gender: editingAdmin.gender || '',
+                  dateOfBirth: editingAdmin.dateOfBirth?.slice(0, 10) || '',
+                  email: editingAdmin.email,
+                  contactNo: editingAdmin.contactNo || '',
+                  emergencyContactNo: editingAdmin.emergencyContactNo || '',
+                  bloodGroup: editingAdmin.bloodGroup || '',
+                  presentAddress: editingAdmin.presentAddress || '',
+                  permanentAddress: editingAdmin.permanentAddress || '',
+                }
               : {
                   firstName: '',
                   middleName: '',
@@ -331,7 +419,7 @@ const Admin = () => {
                   password: '',
                   designation: '',
                   gender: '',
-                  bloogGroup: '',
+                  bloodGroup: '',
                   contactNo: '',
                   emergencyContactNo: '',
                   presentAddress: '',
@@ -340,79 +428,67 @@ const Admin = () => {
                 }
           }
         >
-          {editingAdmin ? (
-            <Row gutter={[16, 0]}>
-              <Col span={24}>
-                <UniInput type="text" name="name" label="Full Name" required />
-              </Col>
-              <Col span={24}>
-                <UniInput type="email" name="email" label="Email Address" required />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="contactNo" label="Contact Number" />
-              </Col>
-            </Row>
-          ) : (
-            <Row gutter={[16, 0]}>
-              <Col span={8}>
-                <UniInput type="text" name="firstName" label="First Name" required />
-              </Col>
-              <Col span={8}>
-                <UniInput type="text" name="middleName" label="Middle Name" />
-              </Col>
-              <Col span={8}>
-                <UniInput type="text" name="lastName" label="Last Name" required />
-              </Col>
-              <Col span={12}>
-                <UniInput type="email" name="email" label="Email" required />
-              </Col>
+          <Row gutter={[16, 0]}>
+            <Col span={8}>
+              <UniInput type="text" name="firstName" label="First Name" required />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="middleName" label="Middle Name" />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="lastName" label="Last Name" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="email" name="email" label="Email" required />
+            </Col>
+            {!editingAdmin ? (
               <Col span={12}>
                 <UniInput type="password" name="password" label="Password (optional)" />
               </Col>
-              <Col span={12}>
-                <UniInput type="text" name="designation" label="Designation" required />
-              </Col>
-              <Col span={12}>
-                <UniSelect
-                  name="gender"
-                  label="Gender"
-                  required
-                  options={[
-                    { value: 'male', label: 'Male' },
-                    { value: 'female', label: 'Female' },
-                    { value: 'other', label: 'Other' },
-                  ]}
-                />
-              </Col>
-              <Col span={12}>
-                <UniSelect
-                  name="bloogGroup"
-                  label="Blood Group"
-                  required
-                  options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((b) => ({
-                    value: b,
-                    label: b,
-                  }))}
-                />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="dateOfBirth" label="Date of Birth (YYYY-MM-DD)" />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="contactNo" label="Contact Number" required />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="emergencyContactNo" label="Emergency Contact" required />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="presentAddress" label="Present Address" required />
-              </Col>
-              <Col span={12}>
-                <UniInput type="text" name="permanentAddress" label="Permanent Address" required />
-              </Col>
-            </Row>
-          )}
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
+            ) : null}
+            <Col span={12}>
+              <UniInput type="text" name="designation" label="Designation" required />
+            </Col>
+            <Col span={12}>
+              <UniSelect
+                name="gender"
+                label="Gender"
+                required
+                options={[
+                  { value: 'male', label: 'Male' },
+                  { value: 'female', label: 'Female' },
+                  { value: 'other', label: 'Other' },
+                ]}
+              />
+            </Col>
+            <Col span={12}>
+              <UniSelect
+                name="bloodGroup"
+                label="Blood Group"
+                required
+                options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((b) => ({
+                  value: b,
+                  label: b,
+                }))}
+              />
+            </Col>
+            <Col span={12}>
+              <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="contactNo" label="Contact Number" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="emergencyContactNo" label="Emergency Contact" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="presentAddress" label="Present Address" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="permanentAddress" label="Permanent Address" required />
+            </Col>
+          </Row>
+          <div style={{ marginTop: 6, textAlign: 'right' }}>
             <Space>
               <Button onClick={handleModalClose} disabled={isSubmitting}>
                 Cancel

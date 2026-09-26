@@ -17,7 +17,11 @@ import { generateAdminId, generateFacultyId, generateStudentId } from './user.ut
 import { Express } from 'express';
 import { RBACService } from '../RBAC/rbac.service';
 
-const createStudentIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TStudent) => {
+const createStudentIntoDB = async (
+  file: Express.Multer.File | undefined,
+  password: string | undefined,
+  payload: TStudent,
+) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -89,7 +93,11 @@ const createStudentIntoDB = async (file: Express.Multer.File | undefined, passwo
   }
 };
 
-const createFacultyIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TFaculty) => {
+const createFacultyIntoDB = async (
+  file: Express.Multer.File | undefined,
+  password: string | undefined,
+  payload: TFaculty,
+) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -155,7 +163,11 @@ const createFacultyIntoDB = async (file: Express.Multer.File | undefined, passwo
   }
 };
 
-const createAdminIntoDB = async (file: Express.Multer.File | undefined, password: string, payload: TAdmin) => {
+const createAdminIntoDB = async (
+  file: Express.Multer.File | undefined,
+  password: string | undefined,
+  payload: TAdmin,
+) => {
   // create a user object
   const userData: Partial<TUser> = {};
 

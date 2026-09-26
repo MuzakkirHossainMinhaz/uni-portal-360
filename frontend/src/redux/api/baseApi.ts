@@ -1,7 +1,6 @@
 import { BaseQueryFn, FetchArgs, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { toast } from 'sonner';
-import { logger } from '../../utils/logger';
-import { logout, setUser } from '../features/auth/authSlice';
+import { logout } from '../features/auth/authSlice';
 import { RootState } from '../store';
 
 type ErrorWithMessage = {
@@ -13,6 +12,7 @@ type ErrorWithMessage = {
 const baseQuery = fetchBaseQuery({
   baseUrl: `${import.meta.env.VITE_SERVER_URL}`,
   credentials: 'include',
+  timeout: 15_000,
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token;
 
@@ -24,8 +24,8 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithRefreshToken: BaseQueryFn<FetchArgs, unknown, unknown> = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions);
+const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, unknown> = async (args, api, extraOptions) => {
+  const result = await baseQuery(args, api, extraOptions);
 
   if (result?.error?.status === 404) {
     const error = result.error as ErrorWithMessage;
@@ -36,30 +36,10 @@ const baseQueryWithRefreshToken: BaseQueryFn<FetchArgs, unknown, unknown> = asyn
     toast.error(error.data?.message ?? 'You are not authorized');
   }
   if (result?.error?.status === 401) {
-    //* Send Refresh
-    logger.info('Sending refresh token');
-
-    const res = await fetch('http://localhost:5000/api/v1/auth/refresh-token', {
-      method: 'POST',
-      credentials: 'include',
+    api.dispatch(logout());
+    toast.error('Your session has expired. Please log in again.', {
+      id: 'session-expired',
     });
-
-    const data = await res.json();
-
-    if (data?.data?.accessToken) {
-      const user = (api.getState() as RootState).auth.user;
-
-      api.dispatch(
-        setUser({
-          user,
-          token: data.data.accessToken,
-        }),
-      );
-
-      result = await baseQuery(args, api, extraOptions);
-    } else {
-      api.dispatch(logout());
-    }
   }
 
   return result;
@@ -67,7 +47,7 @@ const baseQueryWithRefreshToken: BaseQueryFn<FetchArgs, unknown, unknown> = asyn
 
 export const baseApi = createApi({
   reducerPath: 'baseApi',
-  baseQuery: baseQueryWithRefreshToken,
+  baseQuery: baseQueryWithAuth,
   tagTypes: [
     'AcademicSemesters',
     'AcademicFaculties',
@@ -82,6 +62,9 @@ export const baseApi = createApi({
     'Notification',
     'SemesterResult',
     'Submission',
+    'Students',
+    'Faculties',
+    'Admins',
   ],
   endpoints: () => ({}),
 });

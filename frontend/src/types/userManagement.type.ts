@@ -23,6 +23,46 @@ export interface TStudent {
   fullName: string;
 }
 
+export interface TFaculty {
+  _id: string;
+  id: string;
+  user: TUser;
+  designation: string;
+  name: TName;
+  fullName: string;
+  gender: 'male' | 'female' | 'other';
+  dateOfBirth?: string;
+  email: string;
+  contactNo: string;
+  emergencyContactNo: string;
+  bloodGroup?: string;
+  presentAddress: string;
+  permanentAddress: string;
+  profileImg?: string;
+  academicDepartment: TAcademicDepartment;
+  academicFaculty: TAcademicFaculty;
+  isDeleted: boolean;
+}
+
+export interface TAdmin {
+  _id: string;
+  id: string;
+  user: TUser;
+  designation: string;
+  name: TName;
+  fullName: string;
+  gender: 'male' | 'female' | 'other';
+  dateOfBirth?: string;
+  email: string;
+  contactNo: string;
+  emergencyContactNo: string;
+  bloodGroup?: string;
+  presentAddress: string;
+  permanentAddress: string;
+  profileImg?: string;
+  isDeleted: boolean;
+}
+
 export type TUser = {
   _id: string;
   id: string;

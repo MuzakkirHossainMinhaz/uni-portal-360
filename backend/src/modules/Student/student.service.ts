@@ -10,7 +10,7 @@ import { Student } from './student.model';
 const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   const studentQuery = new QueryBuilder(
     Student.find().populate('user').populate('admissionSemester').populate('academicDepartment academicFaculty'),
-    query,
+    { sort: '-_id', ...query },
   )
     .search(studentSearchableFields)
     .filter()
@@ -96,11 +96,7 @@ const deleteStudentFromDB = async (id: string) => {
     // get user _id from deletedStudent
     const userId = deletedStudent.user;
 
-    const deletedUser = await User.findByIdAndUpdate(
-      userId,
-      { isDeleted: true },
-      { returnDocument: 'after', session },
-    );
+    const deletedUser = await User.findByIdAndUpdate(userId, { isDeleted: true }, { returnDocument: 'after', session });
 
     if (!deletedUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');

@@ -1,27 +1,70 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
-import { useEffect, useState } from 'react';
-import UniForm from '../../../components/form/UniForm';
+import type { ColumnsType } from 'antd/es/table';
+import { useMemo, useRef, useState } from 'react';
+import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
-import UniDatePicker from '../../../components/form/UniDatePicker';
-import {
-  useGetAllStudentsQuery,
-  useAddStudentMutation,
-  useUpdateStudentMutation,
-  useDeleteStudentMutation,
-} from '../../../redux/features/admin/userManagement.api';
-import { useGetAllAcademicDepartmentsQuery, useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
-import { useThemeMode } from '../../../theme/ThemeProvider';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
+import {
+  useGetAllAcademicDepartmentsQuery,
+  useGetAllAcademicSemestersQuery,
+} from '../../../redux/features/admin/academicManagement.api';
+import {
+  useAddStudentMutation,
+  useDeleteStudentMutation,
+  useGetAllStudentsQuery,
+  useUpdateStudentMutation,
+} from '../../../redux/features/admin/userManagement.api';
+import { useThemeMode } from '../../../theme/ThemeProvider';
 import { TStudent } from '../../../types';
+import { logger } from '../../../utils/logger';
 
 const { Title } = Typography;
 
-const sorter = (a: any, b: any) => {
-  const nameA = a.name || '';
-  const nameB = b.name || '';
-  return nameA.localeCompare(nameB);
+type StudentFormValues = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  password?: string;
+  gender: 'male' | 'female' | 'other';
+  dateOfBirth?: string;
+  email: string;
+  contactNo: string;
+  emergencyContactNo: string;
+  bloodGroup: string;
+  presentAddress: string;
+  permanentAddress: string;
+  fatherName: string;
+  fatherOccupation: string;
+  fatherContactNo: string;
+  motherName: string;
+  motherOccupation: string;
+  motherContactNo: string;
+  localGuardianName: string;
+  localGuardianOccupation: string;
+  localGuardianContactNo: string;
+  localGuardianAddress: string;
+  admissionSemester: string;
+  academicDepartment: string;
+};
+
+type AcademicDepartment = { _id: string; name: string };
+type AcademicSemester = { _id: string; name: string; year: string | number };
+
+type ApiError = {
+  status?: string;
+  error?: string;
+  data?: { message?: string; error?: Array<{ path?: string; message?: string }> };
+  message?: string;
+};
+
+const getStudentName = (student: TStudent) => {
+  const structuredName = [student.name?.firstName, student.name?.middleName, student.name?.lastName]
+    .filter(Boolean)
+    .join(' ');
+
+  return structuredName || student.fullName || student.id || 'N/A';
 };
 
 const Student = () => {
@@ -30,9 +73,19 @@ const Student = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingStudent, setEditingStudent] = useState<TStudent | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const formRef = useRef<UniFormHandle>(null);
 
-  // API hooks
-  const { data: studentsData, isLoading, error } = useGetAllStudentsQuery(undefined);
+  const queryParams = useMemo(
+    () => [
+      { name: 'page', value: currentPage },
+      { name: 'limit', value: pageSize },
+    ],
+    [currentPage, pageSize],
+  );
+  const { data: studentsData, isLoading, isFetching, error, refetch } = useGetAllStudentsQuery(queryParams);
   const [createStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
   const [deleteStudent] = useDeleteStudentMutation();
@@ -43,48 +96,94 @@ const Student = () => {
   const departments = departmentsData?.data || departmentsData || [];
   const semesters = semestersData?.data || semestersData || [];
 
+  const refreshTable = async (resetToFirstPage = false) => {
+    if (resetToFirstPage && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+
+    await refetch();
+  };
+
   const handleModalClose = () => {
     setIsModalVisible(false);
     setEditingStudent(null);
+    formRef.current?.reset();
   };
 
-  const handleAddStudent = () => {
-    setEditingStudent(null);
-    setIsModalVisible(true);
-  };
-
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: StudentFormValues) => {
+    setIsSubmitting(true);
     try {
+      const student = {
+        name: { firstName: data.firstName, middleName: data.middleName || '', lastName: data.lastName },
+        gender: data.gender,
+        dateOfBirth: data.dateOfBirth || undefined,
+        email: data.email,
+        contactNo: data.contactNo,
+        emergencyContactNo: data.emergencyContactNo,
+        bloodGroup: data.bloodGroup,
+        presentAddress: data.presentAddress,
+        permanentAddress: data.permanentAddress,
+        guardian: {
+          fatherName: data.fatherName,
+          fatherOccupation: data.fatherOccupation,
+          fatherContactNo: data.fatherContactNo,
+          motherName: data.motherName,
+          motherOccupation: data.motherOccupation,
+          motherContactNo: data.motherContactNo,
+        },
+        localGuardian: {
+          name: data.localGuardianName,
+          occupation: data.localGuardianOccupation,
+          contactNo: data.localGuardianContactNo,
+          address: data.localGuardianAddress,
+        },
+        admissionSemester: data.admissionSemester,
+        academicDepartment: data.academicDepartment,
+      };
+
       if (editingStudent) {
-        // Update logic
-        await updateStudent({
-          data,
-          id: editingStudent._id,
-        }).unwrap();
+        await updateStudent({ data: { student }, id: editingStudent._id }).unwrap();
+        await refreshTable();
         message.success('Student updated successfully');
       } else {
-        // Create logic
-        await createStudent(data).unwrap();
+        const formData = new FormData();
+        formData.append('data', JSON.stringify({ password: data.password || undefined, student }));
+        await createStudent(formData).unwrap();
+        await refreshTable(true);
         message.success('Student created successfully');
       }
+
       setIsModalVisible(false);
       setEditingStudent(null);
-    } catch (error) {
-      message.error('Operation failed. Please try again.');
-    }
-  };
+      formRef.current?.reset();
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      const errMsg =
+        err.status === 'TIMEOUT_ERROR'
+          ? 'Request timed out. Please try again.'
+          : err.data?.message || err.message || 'Something went wrong. Please try again.';
 
-  const handleUpdate = (student: any) => {
-    setEditingStudent(student);
-    setIsModalVisible(true);
+      logger.error('Student form submission failed', {
+        status: err.status,
+        message: errMsg,
+        transportError: err.error,
+        validationErrors: err.data?.error ?? [],
+      });
+      message.error(errMsg, 5);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteStudent(id).unwrap();
+      await refreshTable();
       message.success('Student deleted successfully');
-    } catch (error) {
-      message.error('Delete failed. Please try again.');
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      message.error(err.data?.message || 'Delete failed. Please try again.');
     }
   };
 
@@ -93,148 +192,70 @@ const Student = () => {
       message.warning('Please select items to delete');
       return;
     }
+
     try {
       await Promise.all(selectedRowKeys.map((id) => deleteStudent(id as string).unwrap()));
+      const deletedCount = selectedRowKeys.length;
       setSelectedRowKeys([]);
-      message.success(`${selectedRowKeys.length} student(s) deleted successfully`);
-    } catch (error) {
-      message.error('Bulk delete failed. Please try again.');
+      await refreshTable(true);
+      message.success(`${deletedCount} student(s) deleted successfully`);
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      message.error(err.data?.message || 'Bulk delete failed. Please try again.');
     }
   };
 
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onSelectChange,
-  };
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      setEditingStudent(null);
-    }
-  }, [isModalVisible]);
-
-  const columns = [
+  const columns: ColumnsType<TStudent> = [
+    {
+      title: 'Student ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 125,
+      render: (id: string) => id || 'N/A',
+    },
     {
       title: 'Name',
-      dataIndex: 'name',
       key: 'name',
-      sorter: sorter,
+      sorter: (a, b) => getStudentName(a).localeCompare(getStudentName(b)),
+      render: (_value, student) => getStudentName(student),
     },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-    },
+    { title: 'Email', dataIndex: 'email', key: 'email' },
     {
       title: 'Department',
       dataIndex: ['academicDepartment', 'name'],
       key: 'academicDepartment',
-      render: (deptName: string) => (
-        <span
-          style={{
-            padding: '4px 8px',
-            borderRadius: '4px',
-            background: mode === 'dark' ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)',
-            color: '#3b82f6',
-            fontSize: '12px',
-            fontWeight: 500,
-          }}
-        >
-          {deptName || 'N/A'}
-        </span>
-      ),
+      render: (departmentName: string) => departmentName || 'N/A',
     },
     {
       title: 'Semester',
-      dataIndex: ['academicSemester', 'name'],
-      key: 'academicSemester',
-      render: (semesterName: string, record: any) => (
-        <span
-          style={{
-            padding: '4px 8px',
-            borderRadius: '4px',
-            background: mode === 'dark' ? 'rgba(168,85,247,0.2)' : 'rgba(168,85,247,0.1)',
-            color: '#a855f7',
-            fontSize: '12px',
-            fontWeight: 500,
-          }}
-        >
-          {semesterName && record.academicSemester ? `${semesterName} ${record.academicSemester.year}` : 'N/A'}
-        </span>
-      ),
+      dataIndex: ['admissionSemester', 'name'],
+      key: 'admissionSemester',
+      render: (semesterName: string, student) =>
+        semesterName ? `${semesterName} ${student.admissionSemester?.year}` : 'N/A',
     },
-    {
-      title: 'Contact',
-      dataIndex: 'contactNo',
-      key: 'contactNo',
-      render: (contact: string) => contact || 'N/A',
-    },
-    {
-      title: 'Gender',
-      dataIndex: 'gender',
-      key: 'gender',
-      render: (gender: string) => (
-        <span
-          style={{
-            padding: '4px 8px',
-            borderRadius: '4px',
-            background: mode === 'dark' ? 'rgba(156,163,175,0.2)' : 'rgba(156,163,175,0.1)',
-            color: mode === 'dark' ? '#9ca3af' : '#6b7280',
-            fontSize: '12px',
-            fontWeight: 500,
-          }}
-        >
-          {gender || 'N/A'}
-        </span>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isDeleted',
-      key: 'isDeleted',
-      render: (isDeleted: boolean) => (
-        <span
-          style={{
-            padding: '4px 8px',
-            borderRadius: '4px',
-            background: isDeleted
-              ? mode === 'dark'
-                ? 'rgba(239,68,68,0.2)'
-                : 'rgba(239,68,68,0.1)'
-              : mode === 'dark'
-                ? 'rgba(34,197,94,0.2)'
-                : 'rgba(34,197,94,0.1)',
-            color: isDeleted ? '#ef4444' : '#22c55e',
-            fontSize: '12px',
-            fontWeight: 500,
-          }}
-        >
-          {isDeleted ? 'Inactive' : 'Active'}
-        </span>
-      ),
-    },
+    { title: 'Contact', dataIndex: 'contactNo', key: 'contactNo', render: (contact: string) => contact || 'N/A' },
+    { title: 'Gender', dataIndex: 'gender', key: 'gender', render: (gender: string) => gender || 'N/A' },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: any) => (
+      render: (_value, student) => (
         <Space>
           <Button
             type="text"
             icon={<EditOutlined />}
-            onClick={() => handleUpdate(record)}
+            onClick={() => {
+              setEditingStudent(student);
+              setIsModalVisible(true);
+            }}
             style={{ color: mode === 'dark' ? '#e5e7eb' : '#111827' }}
           />
           <Popconfirm
             title="Are you sure you want to delete this student?"
-            onConfirm={() => handleDelete(record._id)}
+            onConfirm={() => handleDelete(student._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button type="text" icon={<DeleteOutlined />} danger style={{ color: '#ef4444' }} />
+            <Button type="text" icon={<DeleteOutlined />} danger />
           </Popconfirm>
         </Space>
       ),
@@ -243,7 +264,7 @@ const Student = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+      <div style={{ textAlign: 'center', padding: 48 }}>
         <Typography.Text>Loading students...</Typography.Text>
       </div>
     );
@@ -252,6 +273,59 @@ const Student = () => {
   if (error) {
     return <Alert description="Error loading students" type="error" showIcon />;
   }
+
+  const defaultValues = editingStudent
+    ? {
+        firstName: editingStudent.name?.firstName || '',
+        middleName: editingStudent.name?.middleName || '',
+        lastName: editingStudent.name?.lastName || '',
+        gender: editingStudent.gender || '',
+        dateOfBirth: editingStudent.dateOfBirth?.slice(0, 10) || '',
+        email: editingStudent.email,
+        contactNo: editingStudent.contactNo || '',
+        emergencyContactNo: editingStudent.emergencyContactNo || '',
+        bloodGroup: editingStudent.bloodGroup || '',
+        presentAddress: editingStudent.presentAddress || '',
+        permanentAddress: editingStudent.permanentAddress || '',
+        fatherName: editingStudent.guardian?.fatherName || '',
+        fatherOccupation: editingStudent.guardian?.fatherOccupation || '',
+        fatherContactNo: editingStudent.guardian?.fatherContactNo || '',
+        motherName: editingStudent.guardian?.motherName || '',
+        motherOccupation: editingStudent.guardian?.motherOccupation || '',
+        motherContactNo: editingStudent.guardian?.motherContactNo || '',
+        localGuardianName: editingStudent.localGuardian?.name || '',
+        localGuardianOccupation: editingStudent.localGuardian?.occupation || '',
+        localGuardianContactNo: editingStudent.localGuardian?.contactNo || '',
+        localGuardianAddress: editingStudent.localGuardian?.address || '',
+        admissionSemester: editingStudent.admissionSemester?._id || '',
+        academicDepartment: editingStudent.academicDepartment?._id || '',
+      }
+    : {
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        password: '',
+        gender: '',
+        dateOfBirth: '',
+        email: '',
+        contactNo: '',
+        emergencyContactNo: '',
+        bloodGroup: '',
+        presentAddress: '',
+        permanentAddress: '',
+        fatherName: '',
+        fatherOccupation: '',
+        fatherContactNo: '',
+        motherName: '',
+        motherOccupation: '',
+        motherContactNo: '',
+        localGuardianName: '',
+        localGuardianOccupation: '',
+        localGuardianContactNo: '',
+        localGuardianAddress: '',
+        admissionSemester: '',
+        academicDepartment: '',
+      };
 
   return (
     <div>
@@ -263,38 +337,28 @@ const Student = () => {
         }}
       >
         <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-          {/* Left Side - Title and Subtitle */}
           <Space orientation="vertical" size={4}>
-            <Title level={3} style={{ margin: 0, color: mode === 'dark' ? '#e5e7eb' : '#111827' }}>
+            <Title level={3} style={{ margin: 0 }}>
               Student Management
             </Title>
-            <Typography.Text style={{ color: mode === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 14 }}>
-              Manage student enrollment and academic information
-            </Typography.Text>
+            <Typography.Text type="secondary">Manage student enrollment and academic information</Typography.Text>
           </Space>
-
-          {/* Right Side - Buttons */}
-          <Space style={{ display: 'flex', gap: 8 }}>
+          <Space>
             <Button
               type="dashed"
               icon={<DeleteOutlined />}
               onClick={handleBulkDelete}
               disabled={selectedRowKeys.length === 0}
               danger
-              style={{
-                borderRadius: 8,
-                height: 40,
-              }}
             >
               Delete ({selectedRowKeys.length})
             </Button>
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={handleAddStudent}
-              style={{
-                borderRadius: 8,
-                height: 40,
+              onClick={() => {
+                setEditingStudent(null);
+                setIsModalVisible(true);
               }}
             >
               Add Student
@@ -302,123 +366,156 @@ const Student = () => {
           </Space>
         </Flex>
 
-        <Table
+        <Table<TStudent>
           columns={columns}
           dataSource={students}
           rowKey="_id"
-          rowSelection={rowSelection}
+          rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
+          loading={isFetching}
+          scroll={{ x: 1200 }}
+          locale={{ emptyText: 'No students found' }}
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize,
+            total: studentsData?.meta?.total ?? students.length,
             showSizeChanger: true,
             showQuickJumper: true,
-            style: { marginRight: 8 },
+            showTotal: (total) => `${total} student${total === 1 ? '' : 's'}`,
+            onChange: (page, size) => {
+              setCurrentPage(size !== pageSize ? 1 : page);
+              setPageSize(size);
+              setSelectedRowKeys([]);
+            },
           }}
         />
       </Card>
 
-      {/* Create and Edit Modal */}
       <Modal
         title={editingStudent ? 'Edit Student' : 'Create Student'}
         open={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
-        width={800}
-        destroyOnHidden={true}
+        width={900}
+        destroyOnHidden
+        styles={{ body: { maxHeight: '72vh', overflowY: 'auto', paddingRight: 8 } }}
       >
-        <UniForm
-          onSubmit={handleFormSubmit}
-          defaultValues={
-            editingStudent
-              ? {
-                  name: editingStudent.name,
-                  email: editingStudent.email,
-                  contactNo: editingStudent.contactNo || '',
-                  address: (editingStudent as any)?.address || '',
-                  academicDepartment: editingStudent.academicDepartment?._id,
-                  academicSemester: (editingStudent as any)?.academicSemester?._id || (editingStudent as any)?.admissionSemester?._id,
-                  gender: editingStudent.gender || '',
-                  bloodGroup: editingStudent.bloodGroup || '',
-                  dateOfBirth: editingStudent.dateOfBirth || '',
-                }
-              : {
-                  name: '',
-                  email: '',
-                  contactNo: '',
-                  address: '',
-                  academicDepartment: '',
-                  academicSemester: '',
-                  gender: '',
-                  bloodGroup: '',
-                  dateOfBirth: '',
-                }
-          }
-        >
+        <UniForm ref={formRef} onSubmit={handleFormSubmit} defaultValues={defaultValues}>
+          <Title level={5}>Account and personal information</Title>
           <Row gutter={[16, 0]}>
-            <Col span={12}>
-              <UniInput type="text" name="name" label="Full Name" required />
+            <Col span={8}>
+              <UniInput type="text" name="firstName" label="First Name" required />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="middleName" label="Middle Name" />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="lastName" label="Last Name" required />
             </Col>
             <Col span={12}>
               <UniInput type="email" name="email" label="Email Address" required />
             </Col>
-            <Col span={12}>
-              <UniInput type="text" name="contactNo" label="Contact Number" />
+            {!editingStudent ? (
+              <Col span={12}>
+                <UniInput type="password" name="password" label="Password (optional)" />
+              </Col>
+            ) : null}
+            <Col span={8}>
+              <UniSelect name="gender" label="Gender" required options={genderOptions} />
+            </Col>
+            <Col span={8}>
+              <UniSelect name="bloodGroup" label="Blood Group" required options={bloodGroupOptions} />
+            </Col>
+            <Col span={8}>
+              <UniInput type="date" name="dateOfBirth" label="Date of Birth" />
             </Col>
             <Col span={12}>
-              <UniInput type="text" name="address" label="Address" />
+              <UniInput type="text" name="contactNo" label="Contact Number" required />
             </Col>
+            <Col span={12}>
+              <UniInput type="text" name="emergencyContactNo" label="Emergency Contact" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="presentAddress" label="Present Address" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="permanentAddress" label="Permanent Address" required />
+            </Col>
+          </Row>
+
+          <Title level={5}>Academic information</Title>
+          <Row gutter={[16, 0]}>
             <Col span={12}>
               <UniSelect
                 name="academicDepartment"
                 label="Academic Department"
                 required
-                options={departments.map((dept: any) => ({
-                  value: dept._id,
-                  label: dept.name,
+                options={(departments as AcademicDepartment[]).map((department) => ({
+                  value: department._id,
+                  label: department.name,
                 }))}
               />
             </Col>
             <Col span={12}>
               <UniSelect
-                name="academicSemester"
-                label="Academic Semester"
+                name="admissionSemester"
+                label="Admission Semester"
                 required
-                options={semesters.map((semester: any) => ({
+                options={(semesters as AcademicSemester[]).map((semester) => ({
                   value: semester._id,
                   label: `${semester.name} ${semester.year}`,
                 }))}
               />
             </Col>
+          </Row>
+
+          <Title level={5}>Guardian information</Title>
+          <Row gutter={[16, 0]}>
             <Col span={8}>
-              <UniSelect
-                name="gender"
-                label="Gender"
-                options={genderOptions}
-              />
+              <UniInput type="text" name="fatherName" label="Father's Name" required />
             </Col>
             <Col span={8}>
-              <UniSelect
-                name="bloodGroup"
-                label="Blood Group"
-                options={bloodGroupOptions}
-              />
+              <UniInput type="text" name="fatherOccupation" label="Father's Occupation" required />
             </Col>
             <Col span={8}>
-              <UniDatePicker
-                name="dateOfBirth"
-                label="Date of Birth"
-              />
+              <UniInput type="text" name="fatherContactNo" label="Father's Contact" required />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="motherName" label="Mother's Name" required />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="motherOccupation" label="Mother's Occupation" required />
+            </Col>
+            <Col span={8}>
+              <UniInput type="text" name="motherContactNo" label="Mother's Contact" required />
             </Col>
           </Row>
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
+
+          <Title level={5}>Local guardian information</Title>
+          <Row gutter={[16, 0]}>
+            <Col span={12}>
+              <UniInput type="text" name="localGuardianName" label="Name" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="localGuardianOccupation" label="Occupation" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="localGuardianContactNo" label="Contact Number" required />
+            </Col>
+            <Col span={12}>
+              <UniInput type="text" name="localGuardianAddress" label="Address" required />
+            </Col>
+          </Row>
+
+          <div style={{ marginTop: 12, textAlign: 'right' }}>
             <Space>
-              <Button onClick={handleModalClose}>Cancel</Button>
+              <Button onClick={handleModalClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
               <Button
                 type="primary"
                 htmlType="submit"
-                style={{
-                  background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)',
-                  border: 'none',
-                }}
+                loading={isSubmitting}
+                style={{ background: 'linear-gradient(135deg, #0f6ad8 0%, #0ea5e9 100%)', border: 'none' }}
               >
                 {editingStudent ? 'Update' : 'Create'}
               </Button>

@@ -7,6 +7,7 @@ import handleDuplicateError from '../errors/handleDuplicateError';
 import handleValidationError from '../errors/handleValidationError';
 import handleZodError from '../errors/handleZodError';
 import { TErrorSources } from '../interface/error';
+import { logger } from '../utils/logger';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   // Setting Default Values
@@ -57,6 +58,14 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       },
     ];
   }
+
+  logger.error('HTTP request failed', {
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    message,
+    errorSources,
+  });
 
   return res.status(statusCode).json({
     success: false,
