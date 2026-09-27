@@ -1,11 +1,11 @@
-import { AuditLogService } from './auditLog.service';
+import { AuditLogServices } from './auditLog.service';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 const getAuditLogs = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuditLogService.getAuditLogs(req.query);
+  const result = await AuditLogServices.getAuditLogs(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -16,6 +16,6 @@ const getAuditLogs = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const AuditLogController = {
+export const AuditLogControllers = {
   getAuditLogs,
 };

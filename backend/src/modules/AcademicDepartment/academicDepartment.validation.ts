@@ -12,7 +12,7 @@ const updateAcademicDepartmentValidationSchema = z.object({
   body: departmentBodySchema.partial(),
 });
 
-export const AcademicDepartmentValidation = {
+export const AcademicDepartmentValidations = {
   createAcademicDepartmentValidationSchema,
   updateAcademicDepartmentValidationSchema,
 };

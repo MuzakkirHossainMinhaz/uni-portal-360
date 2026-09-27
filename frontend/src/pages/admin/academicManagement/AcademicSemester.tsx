@@ -29,10 +29,13 @@ const AcademicSemester = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const queryParams = useMemo(() => [
-    { name: 'page', value: currentPage },
-    { name: 'limit', value: pageSize },
-  ], [currentPage, pageSize]);
+  const queryParams = useMemo(
+    () => [
+      { name: 'page', value: currentPage },
+      { name: 'limit', value: pageSize },
+    ],
+    [currentPage, pageSize],
+  );
 
   // API hooks
   const { data: semestersData, isLoading, isFetching, error } = useGetAllAcademicSemestersQuery(queryParams);
@@ -266,21 +269,21 @@ const AcademicSemester = () => {
           defaultValues={
             editingSemester
               ? {
-                name:
-                  semesterOptions.find((option) => option.label === editingSemester.name)?.value ||
-                  editingSemester.code,
-                code: editingSemester.code,
-                year: editingSemester.year,
-                startMonth: editingSemester.startMonth,
-                endMonth: editingSemester.endMonth,
-              }
+                  name:
+                    semesterOptions.find((option) => option.label === editingSemester.name)?.value ||
+                    editingSemester.code,
+                  code: editingSemester.code,
+                  year: editingSemester.year,
+                  startMonth: editingSemester.startMonth,
+                  endMonth: editingSemester.endMonth,
+                }
               : {
-                name: '',
-                code: '',
-                year: '',
-                startMonth: '',
-                endMonth: '',
-              }
+                  name: '',
+                  code: '',
+                  year: '',
+                  startMonth: '',
+                  endMonth: '',
+                }
           }
         >
           <Row gutter={[16, 0]}>

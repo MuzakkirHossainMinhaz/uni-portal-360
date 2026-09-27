@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TAssignment } from './assignment.interface';
+import type { TAssignment } from './assignment.interface';
 
 const assignmentSchema = new Schema<TAssignment>(
   {

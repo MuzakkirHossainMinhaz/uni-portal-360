@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TSubmission } from './submission.interface';
+import type { TSubmission } from './submission.interface';
 
 const submissionSchema = new Schema<TSubmission>(
   {

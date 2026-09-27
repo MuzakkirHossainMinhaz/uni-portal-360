@@ -1,37 +1,18 @@
-import { TAdmin, TFaculty, TMeta, TQueryParam, TResponseRedux, TStudent } from '../../../types';
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type { TAdmin, TFaculty, TPaginatedResponse, TQueryParam, TResponse, TStudent } from '../../../types';
 
 import { baseApi } from '../../api/baseApi';
-
-type PaginatedUsers<T> = {
-  data: T[];
-  meta?: TMeta;
-};
 
 const userManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Student endpoints
-    getAllStudents: builder.query<PaginatedUsers<TStudent>, TQueryParam[] | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-
-        if (args) {
-          args.forEach((item: TQueryParam) => {
-            params.append(item.name, item.value as string);
-          });
-        }
-
-        return {
-          url: '/students',
-          method: 'GET',
-          params: params,
-        };
-      },
-      transformResponse: (response: TResponseRedux<TStudent[]>) => {
-        return {
-          data: response.data ?? [],
-          meta: response.meta,
-        };
-      },
+    getAllStudents: builder.query<TPaginatedResponse<TStudent>, TQueryParam[] | undefined>({
+      query: (args) => ({
+        url: '/students',
+        method: 'GET',
+        params: toQueryParams(args),
+      }),
+      transformResponse: (response: TResponse<TStudent[]>) => toPage(response),
       providesTags: ['Students'],
     }),
     getSingleStudent: builder.query<TStudent, string>({
@@ -39,7 +20,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/students/${id}`,
         method: 'GET',
       }),
-      transformResponse: (response: TResponseRedux<TStudent>) => response.data as TStudent,
+      transformResponse: (response: TResponse<TStudent>) => response.data as TStudent,
     }),
     addStudent: builder.mutation<TStudent[], FormData>({
       query: (data) => ({
@@ -47,7 +28,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TStudent[]>) => response.data ?? [],
+      transformResponse: (response: TResponse<TStudent[]>) => response.data ?? [],
       invalidatesTags: ['Students'],
     }),
     updateStudent: builder.mutation<TStudent, { id: string; data: unknown }>({
@@ -56,7 +37,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TStudent>) => response.data as TStudent,
+      transformResponse: (response: TResponse<TStudent>) => response.data as TStudent,
       invalidatesTags: ['Students'],
     }),
     deleteStudent: builder.mutation<TStudent, string>({
@@ -64,33 +45,18 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/students/${id}`,
         method: 'DELETE',
       }),
-      transformResponse: (response: TResponseRedux<TStudent>) => response.data as TStudent,
+      transformResponse: (response: TResponse<TStudent>) => response.data as TStudent,
       invalidatesTags: ['Students'],
     }),
 
     // Faculty endpoints
-    getAllFaculties: builder.query<PaginatedUsers<TFaculty>, TQueryParam[] | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-
-        if (args) {
-          args.forEach((item: TQueryParam) => {
-            params.append(item.name, item.value as string);
-          });
-        }
-
-        return {
-          url: '/faculties',
-          method: 'GET',
-          params: params,
-        };
-      },
-      transformResponse: (response: TResponseRedux<TFaculty[]>) => {
-        return {
-          data: response.data ?? [],
-          meta: response.meta,
-        };
-      },
+    getAllFaculties: builder.query<TPaginatedResponse<TFaculty>, TQueryParam[] | undefined>({
+      query: (args) => ({
+        url: '/faculties',
+        method: 'GET',
+        params: toQueryParams(args),
+      }),
+      transformResponse: (response: TResponse<TFaculty[]>) => toPage(response),
       providesTags: ['Faculties'],
     }),
     getSingleFaculty: builder.query<TFaculty, string>({
@@ -98,7 +64,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/faculties/${id}`,
         method: 'GET',
       }),
-      transformResponse: (response: TResponseRedux<TFaculty>) => response.data as TFaculty,
+      transformResponse: (response: TResponse<TFaculty>) => response.data as TFaculty,
     }),
     addFaculty: builder.mutation<TFaculty[], FormData>({
       query: (data) => ({
@@ -106,7 +72,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TFaculty[]>) => response.data ?? [],
+      transformResponse: (response: TResponse<TFaculty[]>) => response.data ?? [],
       invalidatesTags: ['Faculties'],
     }),
     updateFaculty: builder.mutation<TFaculty, { id: string; data: unknown }>({
@@ -115,7 +81,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TFaculty>) => response.data as TFaculty,
+      transformResponse: (response: TResponse<TFaculty>) => response.data as TFaculty,
       invalidatesTags: ['Faculties'],
     }),
     deleteFaculty: builder.mutation<TFaculty, string>({
@@ -123,31 +89,18 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/faculties/${id}`,
         method: 'DELETE',
       }),
-      transformResponse: (response: TResponseRedux<TFaculty>) => response.data as TFaculty,
+      transformResponse: (response: TResponse<TFaculty>) => response.data as TFaculty,
       invalidatesTags: ['Faculties'],
     }),
 
     // Admin endpoints
-    getAllAdmins: builder.query<PaginatedUsers<TAdmin>, TQueryParam[] | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-
-        if (args) {
-          args.forEach((item: TQueryParam) => {
-            params.append(item.name, item.value as string);
-          });
-        }
-
-        return {
-          url: '/admins',
-          method: 'GET',
-          params,
-        };
-      },
-      transformResponse: (response: TResponseRedux<TAdmin[]>) => ({
-        data: response.data ?? [],
-        meta: response.meta,
+    getAllAdmins: builder.query<TPaginatedResponse<TAdmin>, TQueryParam[] | undefined>({
+      query: (args) => ({
+        url: '/admins',
+        method: 'GET',
+        params: toQueryParams(args),
       }),
+      transformResponse: (response: TResponse<TAdmin[]>) => toPage(response),
       providesTags: ['Admins'],
     }),
     getSingleAdmin: builder.query<TAdmin, string>({
@@ -155,7 +108,7 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/admins/${id}`,
         method: 'GET',
       }),
-      transformResponse: (response: TResponseRedux<TAdmin>) => response.data as TAdmin,
+      transformResponse: (response: TResponse<TAdmin>) => response.data as TAdmin,
     }),
     addAdmin: builder.mutation<TAdmin[], FormData>({
       query: (data) => ({
@@ -163,7 +116,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TAdmin[]>) => response.data ?? [],
+      transformResponse: (response: TResponse<TAdmin[]>) => response.data ?? [],
       invalidatesTags: ['Admins'],
     }),
     updateAdmin: builder.mutation<TAdmin, { id: string; data: unknown }>({
@@ -172,7 +125,7 @@ const userManagementApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      transformResponse: (response: TResponseRedux<TAdmin>) => response.data as TAdmin,
+      transformResponse: (response: TResponse<TAdmin>) => response.data as TAdmin,
       invalidatesTags: ['Admins'],
     }),
     deleteAdmin: builder.mutation<TAdmin, string>({
@@ -180,11 +133,11 @@ const userManagementApi = baseApi.injectEndpoints({
         url: `/admins/${id}`,
         method: 'DELETE',
       }),
-      transformResponse: (response: TResponseRedux<TAdmin>) => response.data as TAdmin,
+      transformResponse: (response: TResponse<TAdmin>) => response.data as TAdmin,
       invalidatesTags: ['Admins'],
     }),
 
-    changePassword: builder.mutation<null, { oldPassword: string; newPassword: string }>({
+    changePassword: builder.mutation<TResponse<unknown>, { oldPassword: string; newPassword: string }>({
       query: (data) => ({
         url: '/auth/change-password',
         method: 'POST',

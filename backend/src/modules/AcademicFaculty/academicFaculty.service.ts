@@ -1,7 +1,8 @@
 import { AcademicFacultySearchableFields } from './academicFaculty.constant';
-import { TAcademicFaculty } from './academicFaculty.interface';
+import type { TAcademicFaculty } from './academicFaculty.interface';
 import { BaseService } from '../../shared/baseService';
 import { AcademicFacultyRepository } from './academicFaculty.repository';
+import { ensureAcademicRecordUnused } from '../../utils/academicReferences';
 
 const academicFacultyRepository = new AcademicFacultyRepository();
 
@@ -9,16 +10,20 @@ class AcademicFacultyService extends BaseService<TAcademicFaculty, TAcademicFacu
   constructor() {
     super(academicFacultyRepository);
   }
+  async deleteById(id: string) {
+    await ensureAcademicRecordUnused('academicFaculty', id);
+    return super.deleteById(id);
+  }
 }
 
 const academicFacultyService = new AcademicFacultyService();
 
 export const AcademicFacultyServices = {
-  createAcademicFacultyIntoDB: (payload: TAcademicFaculty) => academicFacultyService.create(payload),
-  getAllAcademicFacultiesFromDB: (query: Record<string, unknown>) => 
+  createAcademicFaculty: (payload: TAcademicFaculty) => academicFacultyService.create(payload),
+  getAllAcademicFaculties: (query: Record<string, unknown>) =>
     academicFacultyService.getAll(query, AcademicFacultySearchableFields),
-  getSingleAcademicFacultyFromDB: (id: string) => academicFacultyService.getById(id),
-  updateAcademicFacultyIntoDB: (id: string, payload: Partial<TAcademicFaculty>) => 
+  getSingleAcademicFaculty: (id: string) => academicFacultyService.getById(id),
+  updateAcademicFaculty: (id: string, payload: Partial<TAcademicFaculty>) =>
     academicFacultyService.updateById(id, payload),
-  deleteAcademicFacultyFromDB: (id: string) => academicFacultyService.deleteById(id),
+  deleteAcademicFaculty: (id: string) => academicFacultyService.deleteById(id),
 };

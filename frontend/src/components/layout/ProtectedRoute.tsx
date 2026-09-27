@@ -1,8 +1,10 @@
-import { ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { logout, selectCurrentUser, setPermissions, TUser, useCurrentToken } from '../../redux/features/auth/authSlice';
-import { useGetMyPermissionsQuery } from '../../redux/features/auth/authApi';
+import type { TUser } from '../../redux/features/auth/authSlice';
+import { logout, selectCurrentUser, setPermissions, useCurrentToken } from '../../redux/features/auth/authSlice';
+import { useGetMyPermissionsQuery } from '../../redux/features/auth/auth.api';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { verifyToken } from '../../utils/verifyToken';
 
@@ -32,7 +34,9 @@ const ProtectedRoute = ({ children, role, allowPasswordChange = false }: TProtec
   const allowedRoles = role?.split('|');
   const hasInvalidRole = Boolean(allowedRoles && !allowedRoles.includes(user?.role || ''));
   const shouldLogout = Boolean(token) && (hasInvalidSession || !currentUser);
-  const shouldLoadPermissions = Boolean(token && !shouldLogout && !currentUser?.needsPasswordChange && !currentUser?.permissions);
+  const shouldLoadPermissions = Boolean(
+    token && !shouldLogout && !currentUser?.needsPasswordChange && !currentUser?.permissions,
+  );
   const { data: permissions } = useGetMyPermissionsQuery(undefined, { skip: !shouldLoadPermissions });
 
   useEffect(() => {

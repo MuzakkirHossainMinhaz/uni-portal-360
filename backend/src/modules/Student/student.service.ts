@@ -7,15 +7,12 @@ import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.mod
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { studentSearchableFields } from './student.constant';
-import { TStudent } from './student.interface';
+import type { TStudent } from './student.interface';
 import { Student } from './student.model';
 
-const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+const getAllStudents = async (query: Record<string, unknown>) => {
   const studentQuery = new QueryBuilder(
-    Student.find()
-      .populate('user')
-      .populate('admissionSemester')
-      .populate('academicDepartment academicFaculty'),
+    Student.find().populate('user').populate('admissionSemester').populate('academicDepartment academicFaculty'),
     { sort: '-_id', ...query },
   )
     .search(studentSearchableFields)
@@ -31,14 +28,15 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
 
   return {
     meta,
-    result,
+    data: result,
   };
 };
 
-const getSingleStudentFromDB = async (id: string, requester?: { userId: string; role: string }) => {
+const getSingleStudent = async (id: string, requester?: { userId: string; role: string }) => {
   if (requester?.role === 'faculty') {
     const faculty = await Faculty.findOne({ id: requester.userId, isDeleted: { $ne: true } }).select('_id');
-    const teachesStudent = faculty && await EnrolledCourse.exists({ student: id, faculty: faculty._id, isEnrolled: true });
+    const teachesStudent =
+      faculty && (await EnrolledCourse.exists({ student: id, faculty: faculty._id, isEnrolled: true }));
     if (!teachesStudent) throw new AppError(httpStatus.FORBIDDEN, 'You cannot view this student');
 
     // Faculty only need identity and academic placement, not guardian/contact details.
@@ -53,7 +51,7 @@ const getSingleStudentFromDB = async (id: string, requester?: { userId: string; 
   return result;
 };
 
-const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
+const updateStudent = async (id: string, payload: Partial<TStudent>) => {
   const { name, guardian, localGuardian, ...remainingStudentData } = payload;
 
   const modifiedUpdatedData: Record<string, unknown> = {
@@ -114,7 +112,7 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
   }
 };
 
-const deleteStudentFromDB = async (id: string) => {
+const deleteStudent = async (id: string) => {
   const session = await mongoose.startSession();
 
   try {
@@ -150,8 +148,8 @@ const deleteStudentFromDB = async (id: string) => {
 };
 
 export const StudentServices = {
-  getAllStudentsFromDB,
-  getSingleStudentFromDB,
-  updateStudentIntoDB,
-  deleteStudentFromDB,
+  getAllStudents,
+  getSingleStudent,
+  updateStudent,
+  deleteStudent,
 };

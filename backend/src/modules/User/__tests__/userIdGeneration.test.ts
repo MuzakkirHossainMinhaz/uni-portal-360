@@ -1,7 +1,7 @@
 import { generateAdminId, generateFacultyId, generateStudentId } from '../user.utils';
 import { User } from '../user.model';
 import { UserIdCounter } from '../userIdCounter.model';
-import { TAcademicSemester } from '../../AcademicSemester/academicSemester.interface';
+import type { TAcademicSemester } from '../../AcademicSemester/academicSemester.interface';
 
 jest.mock('../user.model', () => ({ User: { aggregate: jest.fn() } }));
 jest.mock('../userIdCounter.model', () => ({
@@ -51,9 +51,9 @@ describe('user ID generation', () => {
     (UserIdCounter.findOneAndUpdate as jest.Mock).mockResolvedValue({ sequence: 16 });
 
     expect(await generateStudentId({ year: '2026', code: '01' } as TAcademicSemester)).toBe('2026010016');
-    expect(User.aggregate).toHaveBeenCalledWith(expect.arrayContaining([
-      { $match: { role: 'student', id: { $regex: '^202601[0-9]+$' } } },
-    ]));
+    expect(User.aggregate).toHaveBeenCalledWith(
+      expect.arrayContaining([{ $match: { role: 'student', id: { $regex: '^202601[0-9]+$' } } }]),
+    );
     expect(UserIdCounter.updateOne).toHaveBeenCalledWith(
       { _id: 'student:202601' },
       { $setOnInsert: { sequence: 15 } },

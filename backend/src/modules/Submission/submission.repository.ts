@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
+import type { Model } from 'mongoose';
 import { BaseRepository } from '../../shared/baseRepository';
-import { TSubmission } from './submission.interface';
+import type { TSubmission } from './submission.interface';
 import { Submission } from './submission.model';
 
 export class SubmissionRepository extends BaseRepository<TSubmission> {

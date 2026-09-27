@@ -1,6 +1,6 @@
 import { AcademicSemesterRepository } from '../academicSemester.repository';
 import { AcademicSemesterServices } from '../academicSemester.service';
-import { TAcademicSemester } from '../academicSemester.interface';
+import type { TAcademicSemester } from '../academicSemester.interface';
 
 const semester: TAcademicSemester = {
   name: 'Autumn',
@@ -16,9 +16,9 @@ describe('AcademicSemesterServices', () => {
   it('rejects a mismatched name and code before creating', async () => {
     const create = jest.spyOn(AcademicSemesterRepository.prototype, 'create').mockResolvedValue(semester);
 
-    await expect(
-      AcademicSemesterServices.createAcademicSemesterIntoDB({ ...semester, code: '02' }),
-    ).rejects.toMatchObject({ statusCode: 400 });
+    await expect(AcademicSemesterServices.createAcademicSemester({ ...semester, code: '02' })).rejects.toMatchObject({
+      statusCode: 400,
+    });
     expect(create).not.toHaveBeenCalled();
   });
 
@@ -26,7 +26,7 @@ describe('AcademicSemesterServices', () => {
     const update = jest.spyOn(AcademicSemesterRepository.prototype, 'updateById').mockResolvedValue(semester);
 
     await expect(
-      AcademicSemesterServices.updateAcademicSemesterIntoDB('semester-id', { name: 'Summer' }),
+      AcademicSemesterServices.updateAcademicSemester('semester-id', { name: 'Summer' }),
     ).rejects.toMatchObject({ statusCode: 400 });
     expect(update).not.toHaveBeenCalled();
   });
@@ -34,7 +34,7 @@ describe('AcademicSemesterServices', () => {
   it('passes a valid update to the repository', async () => {
     const update = jest.spyOn(AcademicSemesterRepository.prototype, 'updateById').mockResolvedValue(semester);
 
-    await AcademicSemesterServices.updateAcademicSemesterIntoDB('semester-id', {
+    await AcademicSemesterServices.updateAcademicSemester('semester-id', {
       name: 'Autumn',
       code: '01',
     });

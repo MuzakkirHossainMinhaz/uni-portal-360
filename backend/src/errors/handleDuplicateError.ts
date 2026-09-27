@@ -1,27 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { TErrorSources, TGenericErrorResponse } from '../interface/error';
-
-const handleDuplicateError = (err: any): TGenericErrorResponse => {
-  // Extract value within double quotes using regex
-  const match = err.message.match(/"([^"]*)"/);
-
-  // The extracted value will be in the first capturing group
-  const extractedMessage = match && match[1];
-
-  const errorSources: TErrorSources = [
-    {
-      path: '',
-      message: `${extractedMessage} is already exists`,
-    },
-  ];
-
-  const statusCode = 400;
-
-  return {
-    statusCode,
-    message: 'Invalid ID',
-    errorSources,
-  };
-};
-
+import type { TGenericErrorResponse } from '../interface/error';
+const handleDuplicateError = (err: {
+  keyValue?: Record<string, unknown>;
+  message?: string;
+}): TGenericErrorResponse => ({
+  statusCode: 409,
+  message: 'A record with these details already exists',
+  errorSources: [{ path: Object.keys(err.keyValue ?? {})[0] ?? '', message: 'This value must be unique' }],
+});
 export default handleDuplicateError;

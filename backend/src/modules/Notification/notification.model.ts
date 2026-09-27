@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TNotification } from './notification.interface';
+import type { TNotification } from './notification.interface';
 
 const notificationSchema = new Schema<TNotification>(
   {

@@ -1,5 +1,5 @@
 import { USER_ROLE } from './user.constant';
-import { TUserRole } from './user.interface';
+import type { TUserRole } from './user.interface';
 
 type RoleDescription = {
   label: string;

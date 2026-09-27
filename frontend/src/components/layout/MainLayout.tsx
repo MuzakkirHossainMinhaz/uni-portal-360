@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import { DesktopOutlined, LogoutOutlined, MoonOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Button, Dropdown, Layout, MenuProps, Space } from 'antd';
+import type { MenuProps } from 'antd';
+import { Avatar, Button, Dropdown, Layout, Space, Spin } from 'antd';
 import { Outlet } from 'react-router-dom';
 import { logout, selectCurrentUser } from '../../redux/features/auth/authSlice';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -115,7 +117,15 @@ const MainLayout = () => {
             padding: '16px',
           }}
         >
-          <Outlet />
+          <Suspense
+            fallback={
+              <Spin tip="Loading page">
+                <div style={{ minHeight: 240 }} />
+              </Spin>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </Content>
       </Layout>
     </Layout>

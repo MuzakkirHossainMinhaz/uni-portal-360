@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TAttendance } from './attendance.interface';
+import type { TAttendance } from './attendance.interface';
 
 const attendanceSchema = new Schema<TAttendance>(
   {

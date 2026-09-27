@@ -7,11 +7,12 @@ import { Course, CourseFaculty } from '../Course/course.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { SemesterRegistration } from '../SemesterRegistration/semesterRegistration.model';
 import { Student } from '../Student/student.model';
-import { TOfferedCourse } from './OfferedCourse.interface';
-import { OfferedCourse } from './OfferedCourse.model';
-import { hasTimeConflict } from './OfferedCourse.utils';
+import type { TOfferedCourse } from './offeredCourse.interface';
+import { OfferedCourse } from './offeredCourse.model';
+import { hasTimeConflict } from './offeredCourse.utils';
+import { getPagination } from '../../utils/pagination';
 
-const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
+const createOfferedCourse = async (payload: TOfferedCourse) => {
   const {
     semesterRegistration,
     academicFaculty,
@@ -23,21 +24,6 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
     startTime,
     endTime,
   } = payload;
-
-  /**
-   * Step 1: check if the semester registration id is exists!
-   * Step 2: check if the academic faculty id is exists!
-   * Step 3: check if the academic department id is exists!
-   * Step 4: check if the course id is exists!
-   * Step 5: check if the faculty id is exists!
-   * Step 6: check if the department is belong to the  faculty
-   * Step 7: check if the same offered course same section in same registered semester exists
-   * Step 8: get the schedules of the faculties
-   * Step 9: check if the faculty is available at that time. If not then throw error
-   * Step 10: create the offered course
-   */
-
-  //check if the semester registration id is exists!
   const isSemesterRegistrationExits = await SemesterRegistration.findById(semesterRegistration);
 
   if (!isSemesterRegistrationExits) {
@@ -72,8 +58,6 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   if (!isFacultyExits || isFacultyExits.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found !');
   }
-
-  // check if the department is belong to the  faculty
   const isDepartmentBelongToFaculty = await AcademicDepartment.findOne({
     _id: academicDepartment,
     academicFaculty,
@@ -88,11 +72,9 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   if (String(isFacultyExits.academicDepartment) !== String(academicDepartment)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Faculty member does not belong to the selected department');
   }
-  if (!await CourseFaculty.exists({ course, faculties: faculty })) {
+  if (!(await CourseFaculty.exists({ course, faculties: faculty }))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Assign this faculty member to the course first');
   }
-
-  // check if the same offered course same section in same registered semester exists
 
   const isSameOfferedCourseExistsWithSameRegisteredSemesterWithSameSection = await OfferedCourse.findOne({
     semesterRegistration,
@@ -103,8 +85,6 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   if (isSameOfferedCourseExistsWithSameRegisteredSemesterWithSameSection) {
     throw new AppError(httpStatus.BAD_REQUEST, `Offered course with same section is already exist!`);
   }
-
-  // get the schedules of the faculties
   const assignedSchedules = await OfferedCourse.find({
     semesterRegistration,
     faculty,
@@ -128,9 +108,11 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   return result;
 };
 
-const getAllOfferedCoursesFromDB = async (query: Record<string, unknown>) => {
+const getAllOfferedCourses = async (query: Record<string, unknown>, facultyUserId?: string) => {
+  const faculty = facultyUserId ? await Faculty.findOne({ id: facultyUserId }).select('_id') : null;
+  if (facultyUserId && !faculty) throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found');
   const offeredCourseQuery = new QueryBuilder(
-    OfferedCourse.find()
+    OfferedCourse.find(faculty ? { faculty: faculty._id } : {})
       .populate('semesterRegistration', 'status academicSemester')
       .populate('academicSemester', 'name year')
       .populate('academicFaculty', 'name')
@@ -138,37 +120,34 @@ const getAllOfferedCoursesFromDB = async (query: Record<string, unknown>) => {
       .populate('course', 'title prefix code credits')
       .populate('faculty', 'name id'),
     query,
-  ).filter().sort().paginate().fields();
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
   const result = await offeredCourseQuery.modelQuery;
   const meta = await offeredCourseQuery.countTotal();
 
   return {
     meta,
-    result,
+    data: result,
   };
 };
 
-const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, unknown>) => {
-  //pagination setup
-
-  const page = Number(query?.page) || 1;
-  const limit = Number(query?.limit) || 10;
-  const skip = (page - 1) * limit;
+const getMyOfferedCourses = async (userId: string, query: Record<string, unknown>) => {
+  const { page, limit, skip } = getPagination(query);
 
   const student = await Student.findOne({ id: userId });
-  // find the student
   if (!student) {
-    throw new AppError(httpStatus.NOT_FOUND, 'User is noty found');
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
   }
-
-  //find current ongoing semester
   const currentOngoingRegistrationSemester = await SemesterRegistration.findOne({
     status: 'ONGOING',
   });
 
   if (!currentOngoingRegistrationSemester) {
-    throw new AppError(httpStatus.NOT_FOUND, 'There is no ongoing semester registration!');
+    return { meta: { page, limit, total: 0, totalPages: 1, hasNext: false }, data: [] };
   }
 
   const aggregationQuery = [
@@ -236,6 +215,7 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
                   {
                     $eq: ['$isCompleted', true],
                   },
+                  { $gt: ['$gradePoints', 0] },
                 ],
               },
             },
@@ -246,6 +226,13 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
     },
     {
       $addFields: {
+        'course.preRequisiteCourses': {
+          $filter: {
+            input: '$course.preRequisiteCourses',
+            as: 'prerequisite',
+            cond: { $ne: ['$$prerequisite.isDeleted', true] },
+          },
+        },
         completedCourseIds: {
           $map: {
             input: '$completedCourses',
@@ -282,6 +269,8 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
     },
     {
       $match: {
+        'course.isDeleted': { $ne: true },
+        maxCapacity: { $gt: 0 },
         isAlreadyEnrolled: false,
         isPreRequisitesFulFilled: true,
       },
@@ -289,6 +278,7 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
   ];
 
   const paginationQuery = [
+    { $sort: { _id: 1 as const } },
     {
       $skip: skip,
     },
@@ -299,7 +289,8 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
 
   const result = await OfferedCourse.aggregate([...aggregationQuery, ...paginationQuery]);
 
-  const total = (await OfferedCourse.aggregate(aggregationQuery)).length;
+  const [count] = await OfferedCourse.aggregate([...aggregationQuery, { $count: 'total' }]);
+  const total = count?.total ?? 0;
   const totalPages = Math.ceil(total / limit) || 1;
   const hasNext = page < totalPages;
 
@@ -311,11 +302,11 @@ const getMyOfferedCoursesFromDB = async (userId: string, query: Record<string, u
       totalPages,
       hasNext,
     },
-    result,
+    data: result,
   };
 };
 
-const getSingleOfferedCourseFromDB = async (id: string) => {
+const getSingleOfferedCourse = async (id: string) => {
   const offeredCourse = await OfferedCourse.findById(id)
     .populate('semesterRegistration', 'status academicSemester')
     .populate('academicSemester', 'name year')
@@ -331,18 +322,10 @@ const getSingleOfferedCourseFromDB = async (id: string) => {
   return offeredCourse;
 };
 
-const updateOfferedCourseIntoDB = async (
+const updateOfferedCourse = async (
   id: string,
   payload: Partial<Pick<TOfferedCourse, 'faculty' | 'maxCapacity' | 'days' | 'startTime' | 'endTime'>>,
 ) => {
-  /**
-   * Step 1: check if the offered course exists
-   * Step 2: check if the faculty exists
-   * Step 3: check if the semester registration status is upcoming
-   * Step 4: check if the faculty is available at that time. If not then throw error
-   * Step 5: update the offered course
-   */
-
   const isOfferedCourseExists = await OfferedCourse.findById(id);
 
   if (!isOfferedCourseExists) {
@@ -363,9 +346,6 @@ const updateOfferedCourseIntoDB = async (
   }
 
   const semesterRegistration = isOfferedCourseExists.semesterRegistration;
-  // get the schedules of the faculties
-
-  // Checking the status of the semester registration
   const semesterRegistrationStatus = await SemesterRegistration.findById(semesterRegistration);
 
   if (semesterRegistrationStatus?.status !== 'UPCOMING') {
@@ -377,11 +357,9 @@ const updateOfferedCourseIntoDB = async (
   if (String(isFacultyExists.academicDepartment) !== String(isOfferedCourseExists.academicDepartment)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Faculty member does not belong to the course department');
   }
-  if (!await CourseFaculty.exists({ course: isOfferedCourseExists.course, faculties: faculty })) {
+  if (!(await CourseFaculty.exists({ course: isOfferedCourseExists.course, faculties: faculty }))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Assign this faculty member to the course first');
   }
-
-  // check if the faculty is available at that time.
   const assignedSchedules = await OfferedCourse.find({
     semesterRegistration,
     faculty,
@@ -406,12 +384,7 @@ const updateOfferedCourseIntoDB = async (
   return result;
 };
 
-const deleteOfferedCourseFromDB = async (id: string) => {
-  /**
-   * Step 1: check if the offered course exists
-   * Step 2: check if the semester registration status is upcoming
-   * Step 3: delete the offered course
-   */
+const deleteOfferedCourse = async (id: string) => {
   const isOfferedCourseExists = await OfferedCourse.findById(id);
 
   if (!isOfferedCourseExists) {
@@ -435,10 +408,10 @@ const deleteOfferedCourseFromDB = async (id: string) => {
 };
 
 export const OfferedCourseServices = {
-  createOfferedCourseIntoDB,
-  getAllOfferedCoursesFromDB,
-  getMyOfferedCoursesFromDB,
-  getSingleOfferedCourseFromDB,
-  deleteOfferedCourseFromDB,
-  updateOfferedCourseIntoDB,
+  createOfferedCourse,
+  getAllOfferedCourses,
+  getMyOfferedCourses,
+  getSingleOfferedCourse,
+  deleteOfferedCourse,
+  updateOfferedCourse,
 };

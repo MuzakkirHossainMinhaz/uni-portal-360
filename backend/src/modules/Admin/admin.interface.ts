@@ -1,4 +1,4 @@
-import { Model, Types } from 'mongoose';
+import type { Model, Types } from 'mongoose';
 
 export type TGender = 'male' | 'female' | 'other';
 export type TBloodGroup = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';

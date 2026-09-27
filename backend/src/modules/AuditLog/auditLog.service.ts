@@ -1,5 +1,6 @@
+import { getPagination } from '../../utils/pagination';
 import { AuditLog } from './auditLog.model';
-import { TAuditLog } from './auditLog.interface';
+import type { TAuditLog } from './auditLog.interface';
 import { logger } from '../../utils/logger';
 
 const createAuditLog = async (payload: Partial<TAuditLog>) => {
@@ -11,40 +12,51 @@ const createAuditLog = async (payload: Partial<TAuditLog>) => {
 };
 
 const getAuditLogs = async (query: Record<string, unknown>) => {
-  const { page = 1, limit = 20, userId, entityType, action, startDate, endDate, severity } = query;
+  const { userId, entityType, action, startDate, endDate, severity, status } = query;
+  const { page, limit, skip } = getPagination(query, 20);
 
   const filter: Record<string, unknown> = {};
 
   if (userId) filter.userId = userId;
   if (entityType) filter.entityType = entityType;
-  if (action) filter.action = { $regex: action, $options: 'i' };
-  if (severity) filter.severity = severity;
-
-  if (startDate && endDate) {
-    filter.createdAt = {
-      $gte: new Date(startDate as string),
-      $lte: new Date(endDate as string),
+  if (action)
+    filter.action = {
+      $regex: String(action)
+        .slice(0, 100)
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
     };
-  }
+  if (severity) filter.severity = severity;
+  if (status) filter.status = status;
 
-  const skip = (Number(page) - 1) * Number(limit);
+  const dateFilter: Record<string, Date> = {};
+  if (startDate) {
+    const start = new Date(String(startDate));
+    if (!Number.isNaN(start.getTime())) dateFilter.$gte = start;
+  }
+  if (endDate) {
+    const end = new Date(String(endDate));
+    if (!Number.isNaN(end.getTime())) {
+      end.setUTCDate(end.getUTCDate() + 1);
+      dateFilter.$lt = end;
+    }
+  }
+  if (Object.keys(dateFilter).length) filter.createdAt = dateFilter;
 
   const logs = await AuditLog.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(Number(limit))
+    .limit(limit)
     .populate('userId', 'email role id');
 
   const total = await AuditLog.countDocuments(filter);
-  const currentPage = Number(page);
-  const perPage = Number(limit);
-  const totalPages = Math.ceil(total / perPage) || 1;
-  const hasNext = currentPage < totalPages;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const hasNext = page < totalPages;
 
   return {
     meta: {
-      page: currentPage,
-      limit: perPage,
+      page,
+      limit,
       total,
       totalPages,
       hasNext,
@@ -53,7 +65,7 @@ const getAuditLogs = async (query: Record<string, unknown>) => {
   };
 };
 
-export const AuditLogService = {
+export const AuditLogServices = {
   createAuditLog,
   getAuditLogs,
 };

@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
+import type { Model } from 'mongoose';
 import { BaseRepository } from '../../shared/baseRepository';
-import { TNotification } from './notification.interface';
+import type { TNotification } from './notification.interface';
 import { Notification } from './notification.model';
 
 export class NotificationRepository extends BaseRepository<TNotification> {

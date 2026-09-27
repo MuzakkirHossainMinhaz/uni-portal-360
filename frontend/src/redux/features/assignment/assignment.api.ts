@@ -1,22 +1,22 @@
-import { TMeta, TResponseRedux } from '../../../types';
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type { TPaginatedResponse, TResponse } from '../../../types';
+
 import { baseApi } from '../../api/baseApi';
 
 type Assignment = {
   _id: string;
   title: string;
   description: string;
-  dueDate: string;
-  course: string;
-};
-
-type PaginatedAssignments = {
-  data?: Assignment[];
-  meta?: TMeta;
+  deadline: string;
+  offeredCourse: { _id: string; section: number; course?: { title: string } };
 };
 
 const assignmentApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createAssignment: builder.mutation<Assignment, Partial<Assignment>>({
+    createAssignment: builder.mutation<
+      TResponse<unknown>,
+      { title: string; offeredCourse: string; description?: string; deadline?: string }
+    >({
       query: (data) => ({
         url: '/assignments',
         method: 'POST',
@@ -24,25 +24,14 @@ const assignmentApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Assignment'],
     }),
-    getAllAssignments: builder.query<PaginatedAssignments, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/assignments',
-          method: 'GET',
-          params: params,
-        };
-      },
-      providesTags: ['Assignment'],
-      transformResponse: (response: TResponseRedux<Assignment[]>) => ({
-        data: response.data,
-        meta: response.meta,
+    getAllAssignments: builder.query<TPaginatedResponse<Assignment>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/assignments',
+        method: 'GET',
+        params: toQueryParams(args),
       }),
+      providesTags: ['Assignment'],
+      transformResponse: (response: TResponse<Assignment[]>) => toPage(response),
     }),
     getAssignmentById: builder.query<Assignment, string>({
       query: (id) => ({
@@ -50,12 +39,9 @@ const assignmentApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: ['Assignment'],
+      transformResponse: (response: { data: Assignment }) => response.data,
     }),
   }),
 });
 
-export const {
-  useCreateAssignmentMutation,
-  useGetAllAssignmentsQuery,
-  useGetAssignmentByIdQuery,
-} = assignmentApi;
+export const { useCreateAssignmentMutation, useGetAllAssignmentsQuery, useGetAssignmentByIdQuery } = assignmentApi;

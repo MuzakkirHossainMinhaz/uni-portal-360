@@ -2,8 +2,8 @@ import express from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
-import { OfferedCourseControllers } from './OfferedCourse.controller';
-import { OfferedCourseValidations } from './OfferedCourse.validation';
+import { OfferedCourseControllers } from './offeredCourse.controller';
+import { OfferedCourseValidations } from './offeredCourse.validation';
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.get('/my-offered-courses', auth(USER_ROLE.student), OfferedCourseControll
 router.get(
   '/:id',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
-  OfferedCourseControllers.getSingleOfferedCourses,
+  OfferedCourseControllers.getSingleOfferedCourse,
 );
 
 router.post(
@@ -35,6 +35,6 @@ router.patch(
   OfferedCourseControllers.updateOfferedCourse,
 );
 
-router.delete('/:id', auth(USER_ROLE.superAdmin, USER_ROLE.admin), OfferedCourseControllers.deleteOfferedCourseFromDB);
+router.delete('/:id', auth(USER_ROLE.superAdmin, USER_ROLE.admin), OfferedCourseControllers.deleteOfferedCourse);
 
-export const offeredCourseRoutes = router;
+export const OfferedCourseRoutes = router;

@@ -1,64 +1,65 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AcademicFacultyServices } from './academicFaculty.service';
 
 const createAcademicFaculty = catchAsync(async (req, res) => {
-  const result = await AcademicFacultyServices.createAcademicFacultyIntoDB(req.body);
+  const result = await AcademicFacultyServices.createAcademicFaculty(req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Academic faculty is created successfully',
+    message: 'Academic faculty created successfully',
     data: result,
   });
 });
 
 const getAllAcademicFaculties = catchAsync(async (req, res) => {
-  const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB(req.query);
+  const result = await AcademicFacultyServices.getAllAcademicFaculties(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Academic faculties are retrieved successfully',
+    message: 'Academic faculties retrieved successfully',
     meta: result.meta,
     data: result.data,
   });
 });
 
 const getSingleAcademicFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
+  const facultyId = getRouteParam(req, 'facultyId');
 
-  const result = await AcademicFacultyServices.getSingleAcademicFacultyFromDB(facultyId as string);
+  const result = await AcademicFacultyServices.getSingleAcademicFaculty(facultyId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Academic faculty is retrieved successfully',
+    message: 'Academic faculty retrieved successfully',
     data: result,
   });
 });
 
 const updateAcademicFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
-  const result = await AcademicFacultyServices.updateAcademicFacultyIntoDB(facultyId as string, req.body);
+  const facultyId = getRouteParam(req, 'facultyId');
+  const result = await AcademicFacultyServices.updateAcademicFaculty(facultyId, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Academic faculty is updated successfully',
+    message: 'Academic faculty updated successfully',
     data: result,
   });
 });
 
 const deleteAcademicFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
-  const result = await AcademicFacultyServices.deleteAcademicFacultyFromDB(facultyId as string);
+  const facultyId = getRouteParam(req, 'facultyId');
+  const result = await AcademicFacultyServices.deleteAcademicFaculty(facultyId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Academic faculty is deleted successfully',
+    message: 'Academic faculty deleted successfully',
     data: result,
   });
 });

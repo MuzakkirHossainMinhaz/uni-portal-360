@@ -36,5 +36,7 @@ export type TStudentEnrolledCourseSchedule = {
   offeredCourse: {
     section: number;
     days: string[];
+    startTime: string;
+    endTime: string;
   };
 };

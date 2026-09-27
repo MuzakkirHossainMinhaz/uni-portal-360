@@ -33,7 +33,7 @@ const AdminDashboard = () => {
     data: trendsData,
     isLoading: trendsLoading,
     isFetching: trendsFetching,
-  } = useGetEnrollmentTrendsQuery(queryParams);
+  } = useGetEnrollmentTrendsQuery(queryParams, { skip: period === 'custom' && !customRange });
 
   const formatXAxis = (tickItem: string) => {
     return tickItem;
@@ -129,7 +129,7 @@ const AdminDashboard = () => {
             <Skeleton loading={statsLoading} active avatar paragraph={{ rows: 1 }}>
               <Statistic
                 title={<Text type="secondary">Total Faculty</Text>}
-                value={stats?.totalFaculties}
+                value={stats?.totalFaculty}
                 prefix={
                   <TeamOutlined
                     style={{ color: '#fa8c16', backgroundColor: '#fff7e6', padding: 8, borderRadius: '50%' }}
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
         }}
       >
         <Card
-          title="Enrollment Growth"
+          title="Student Registrations"
           variant="borderless"
           styles={{
             header: {
@@ -198,9 +198,7 @@ const AdminDashboard = () => {
               {period === 'custom' && (
                 <RangePicker
                   onChange={(dates, dateStrings) => {
-                    if (dates) {
-                      setCustomRange([dateStrings[0], dateStrings[1]]);
-                    }
+                    setCustomRange(dates ? [dateStrings[0], dateStrings[1]] : null);
                   }}
                 />
               )}
@@ -261,7 +259,7 @@ const AdminDashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="count"
-                    name="Enrollments"
+                    name="Students registered"
                     stroke="#0f6ad8"
                     strokeWidth={3}
                     fillOpacity={1}

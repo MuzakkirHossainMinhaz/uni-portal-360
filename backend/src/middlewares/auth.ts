@@ -1,9 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import type { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import config from '../config';
 import AppError from '../errors/AppError';
-import { TUserRole } from '../modules/User/user.interface';
+import type { TUserRole } from '../modules/User/user.interface';
 import { User } from '../modules/User/user.model';
 import catchAsync from '../utils/catchAsync';
 
@@ -20,6 +21,9 @@ const authorize = (allowPasswordChange: boolean, requiredRoles: TUserRole[]) => 
     const decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
 
     const { role, userId, iat } = decoded;
+    if (decoded.purpose || decoded.aud) {
+      throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid session token');
+    }
 
     // checking if the user is exist
     const user = await User.isUserExistsByCustomId(userId);

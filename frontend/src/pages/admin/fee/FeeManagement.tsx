@@ -1,202 +1,330 @@
-import { App, Button, Modal, Table, Tag, Row, Col, Card, Space, Typography, Input } from 'antd';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  Alert,
+  App,
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Popconfirm,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import dayjs, { type Dayjs } from 'dayjs';
 import { useState } from 'react';
-import { SubmitHandler } from 'react-hook-form';
-import { useCreateFeeMutation, useGetAllFeesQuery } from '../../../redux/features/fee/fee.api';
-import moment from 'moment';
-import UniForm from '../../../components/form/UniForm';
-import UniInput from '../../../components/form/UniInput';
-import UniSelect from '../../../components/form/UniSelect';
-import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
+import { DownloadReceipt } from '../../../components/fee/DownloadReceipt';
+import CourseCard from '../courseManagement/CourseCard';
 import { useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
-import UniDatePicker from '../../../components/form/UniDatePicker';
-import PageHeader from '../../../components/layout/PageHeader';
-import { PlusOutlined, FilterOutlined } from '@ant-design/icons';
-import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
+import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
+import {
+  type CreateFeePayload,
+  type FeeItem,
+  useCreateFeeMutation,
+  useDeleteFeeMutation,
+  useGetAllFeesQuery,
+  useUpdateFeeMutation,
+} from '../../../redux/features/fee/fee.api';
 
-type FeeStudent = {
-  _id: string;
-  id: string;
-  fullName: string;
-};
-
-type FeeSemester = {
-  _id: string;
-  name: string;
-  year: string;
-};
-
-type AdminFeeItem = {
-  _id: string;
-  student: FeeStudent;
-  academicSemester: FeeSemester;
-  amount: number;
-  type: string;
-  status: 'Paid' | 'Pending' | 'Overdue';
-  dueDate: string;
-};
+type FeeForm = Omit<CreateFeePayload, 'dueDate'> & { dueDate: Dayjs };
+const feeTypes = ['TUITION', 'LIBRARY', 'EXAM', 'HOSTEL', 'MISC'].map((value) => ({ value, label: value }));
+const statuses = ['PENDING', 'OVERDUE', 'PARTIAL', 'PAID'].map((value) => ({ value, label: value }));
+const errorText = (error: unknown) => (error as { data?: { message?: string } })?.data?.message ?? 'Please try again.';
+const editable = (fee: FeeItem) => fee.status === 'PENDING' || fee.status === 'OVERDUE';
 
 const FeeManagement = () => {
   const { message } = App.useApp();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: fees, isLoading } = useGetAllFeesQuery(undefined);
-  const { data: students } = useGetAllStudentsQuery(undefined);
-  const { data: semesters } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }]);
-  const [createFee] = useCreateFeeMutation();
+  const [form] = Form.useForm<FeeForm>();
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const [studentId, setStudentId] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const [studentSearch, setStudentSearch] = useState('');
+  const [status, setStatus] = useState<string>();
+  const [type, setType] = useState<string>();
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<FeeItem | null>(null);
+  const params = { page: String(page), limit: String(size), studentId, status: status ?? '', type: type ?? '' };
+  const { data, isFetching, error, refetch } = useGetAllFeesQuery(params);
+  const { data: students, isFetching: loadingStudents } = useGetAllStudentsQuery(
+    [
+      { name: 'limit', value: 20 },
+      { name: 'searchTerm', value: studentSearch },
+    ],
+    { skip: !open || !!editing },
+  );
+  const { data: semesters } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }], {
+    skip: !open || !!editing,
+  });
+  const [create, { isLoading: creating }] = useCreateFeeMutation();
+  const [update, { isLoading: updating }] = useUpdateFeeMutation();
+  const [remove, { isLoading: removing }] = useDeleteFeeMutation();
 
-  const studentOptions =
-    students?.data?.map((item: FeeStudent) => ({
-      value: item._id,
-      label: `${item.fullName} (${item.id})`,
-    })) ?? [];
-
-  const semesterOptions =
-    semesters?.data?.map((item: FeeSemester) => ({
-      value: item._id,
-      label: `${item.name} ${item.year}`,
-    })) ?? [];
-
-  type CreateFeeFormValues = {
-    student: string;
-    academicSemester: string;
-    type: string;
-    amount: number;
-    dueDate: string;
+  const startCreate = () => {
+    setEditing(null);
+    form.resetFields();
+    setStudentSearch('');
+    setOpen(true);
   };
-
-  const handleCreateFee: SubmitHandler<CreateFeeFormValues> = async (data) => {
-    const hide = message.loading('Creating fee...', 0);
+  const startEdit = (fee: FeeItem) => {
+    setEditing(fee);
+    form.setFieldsValue({
+      type: fee.type,
+      amount: fee.amount,
+      dueDate: dayjs(fee.dueDate),
+      description: fee.description,
+    });
+    setOpen(true);
+  };
+  const save = async (values: FeeForm) => {
+    const payload = {
+      type: values.type,
+      amount: values.amount,
+      dueDate: values.dueDate.format('YYYY-MM-DD'),
+      description: values.description,
+    };
     try {
-      await createFee(data).unwrap();
-      message.success('Fee created successfully');
-      setIsModalOpen(false);
-    } catch {
-      message.error('Failed to create fee');
-    } finally {
-      hide();
+      if (editing) {
+        await update({ id: editing._id, data: payload }).unwrap();
+        message.success('Fee updated');
+      } else {
+        await create({ ...payload, student: values.student, academicSemester: values.academicSemester }).unwrap();
+        setPage(1);
+        message.success('Fee generated');
+      }
+      setOpen(false);
+      form.resetFields();
+    } catch (cause) {
+      message.error(errorText(cause));
+    }
+  };
+  const voidFee = async (id: string) => {
+    try {
+      await remove(id).unwrap();
+      message.success('Fee voided');
+    } catch (cause) {
+      message.error(errorText(cause));
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<FeeItem> = [
     {
-      title: 'Student ID',
-      dataIndex: 'student',
-      key: 'student',
-      render: (item: FeeStudent) => item?.id,
+      title: 'Student',
+      render: (_, fee) => (
+        <>
+          <Typography.Text strong>{fee.student?.id ?? '—'}</Typography.Text>
+          <br />
+          {fee.student?.fullName ?? '—'}
+        </>
+      ),
     },
     {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number) => <Typography.Text strong>${amount}</Typography.Text>,
+      title: 'Semester',
+      render: (_, fee) => (fee.academicSemester ? `${fee.academicSemester.name} ${fee.academicSemester.year}` : '—'),
     },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => <Tag color="blue">{type.toUpperCase()}</Tag>,
-    },
+    { title: 'Type', dataIndex: 'type', render: (value: string) => <Tag color="blue">{value}</Tag> },
+    { title: 'Amount', dataIndex: 'amount', render: (value: number) => `$${value.toFixed(2)}` },
+    { title: 'Due date', dataIndex: 'dueDate', render: (value: string) => dayjs(value).format('DD MMM YYYY') },
     {
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
-      render: (status: AdminFeeItem['status']) => {
-        let color = 'default';
-        if (status === 'Paid') color = 'success';
-        if (status === 'Pending') color = 'warning';
-        if (status === 'Overdue') color = 'error';
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
+      render: (value: FeeItem['status']) => (
+        <Tag color={value === 'PAID' ? 'green' : value === 'OVERDUE' ? 'red' : value === 'PARTIAL' ? 'orange' : 'gold'}>
+          {value}
+        </Tag>
+      ),
     },
     {
-        title: 'Due Date',
-        dataIndex: 'dueDate',
-        key: 'dueDate',
-        render: (date: string) => moment(date).format('YYYY-MM-DD'),
+      title: 'Actions',
+      render: (_, fee) => (
+        <Space>
+          {fee.status === 'PAID' ? <DownloadReceipt fee={fee} /> : null}
+          {editable(fee) ? (
+            <>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                aria-label={`Edit fee for ${fee.student?.id}`}
+                onClick={() => startEdit(fee)}
+              />
+              <Popconfirm
+                title="Void this fee?"
+                description="The student will no longer see it."
+                okText="Void"
+                okType="danger"
+                onConfirm={() => voidFee(fee._id)}
+              >
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  aria-label={`Void fee for ${fee.student?.id}`}
+                  disabled={removing}
+                />
+              </Popconfirm>
+            </>
+          ) : null}
+        </Space>
+      ),
     },
-    {
-        title: 'Action',
-        key: 'action',
-        render: (item: AdminFeeItem) =>
-          item.status === 'Paid' ? (
-            <DownloadReceipt fee={item} />
-          ) : (
-            <Button size="small" disabled>
-              Unpaid
-            </Button>
-          ),
-    }
   ];
 
   return (
-    <div>
-      <PageHeader
+    <>
+      <CourseCard
         title="Fee Management"
-        subTitle="Track payments, generate invoices, and manage student fees."
-        breadcrumbs={[
-            { title: 'Dashboard', href: '/admin/dashboard' },
-            { title: 'Fee Management' },
-        ]}
-      />
-
-      <Card bordered={false}>
-        <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
-            <Col>
-                 <Space>
-                    <Input placeholder="Search by Student ID" style={{ width: 250 }} />
-                    <Button icon={<FilterOutlined />}>Filter</Button>
-                 </Space>
-            </Col>
-            <Col>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
-                    Generate Fee
-                </Button>
-            </Col>
-        </Row>
-        
-        <Table 
-            loading={isLoading}
-            dataSource={fees?.data} 
-            columns={columns} 
+        subtitle="Generate fees, track payment status, and issue receipts"
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={startCreate}>
+            Generate Fee
+          </Button>
+        }
+      >
+        <Space wrap style={{ marginBottom: 16 }}>
+          <Input.Search
+            aria-label="Search by student ID"
+            placeholder="Student ID"
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
+            onSearch={(value) => {
+              setStudentId(value.trim());
+              setPage(1);
+            }}
+            allowClear
+            style={{ width: 220 }}
+          />
+          <Select
+            aria-label="Filter by fee status"
+            placeholder="Status"
+            allowClear
+            value={status}
+            onChange={(value) => {
+              setStatus(value);
+              setPage(1);
+            }}
+            options={statuses}
+            style={{ width: 140 }}
+          />
+          <Select
+            aria-label="Filter by fee type"
+            placeholder="Type"
+            allowClear
+            value={type}
+            onChange={(value) => {
+              setType(value);
+              setPage(1);
+            }}
+            options={feeTypes}
+            style={{ width: 140 }}
+          />
+          <Button
+            onClick={() => {
+              setStudentId('');
+              setSearchDraft('');
+              setStatus(undefined);
+              setType(undefined);
+              setPage(1);
+            }}
+          >
+            Clear filters
+          </Button>
+        </Space>
+        {error ? (
+          <Alert
+            type="error"
+            showIcon
+            message="Could not load fees"
+            description={errorText(error)}
+            action={<Button onClick={() => refetch()}>Retry</Button>}
+          />
+        ) : (
+          <Table<FeeItem>
             rowKey="_id"
-        />
-      </Card>
+            columns={columns}
+            dataSource={data?.data ?? []}
+            loading={isFetching}
+            scroll={{ x: 980 }}
+            pagination={{
+              current: page,
+              pageSize: size,
+              total: data?.meta?.total ?? 0,
+              showSizeChanger: true,
+              onChange: (next, nextSize) => {
+                setPage(nextSize !== size ? 1 : next);
+                setSize(nextSize);
+              },
+            }}
+          />
+        )}
+      </CourseCard>
 
       <Modal
-        title="Generate Fee"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        title={editing ? 'Edit Fee' : 'Generate Fee'}
+        open={open}
+        onCancel={() => {
+          setOpen(false);
+          form.resetFields();
+        }}
         footer={null}
+        destroyOnHidden
+        width={600}
       >
-        <UniForm<CreateFeeFormValues> onSubmit={handleCreateFee}>
-          <UniSelect
-            name="student"
-            label="Student"
-            options={studentOptions}
-          />
-          <UniSelect
-            name="academicSemester"
-            label="Semester"
-            options={semesterOptions}
-          />
-          <UniSelect
-            name="type"
-            label="Fee Type"
-            options={[
-                { value: 'Tuition', label: 'Tuition' },
-                { value: 'Library', label: 'Library' },
-                { value: 'Lab', label: 'Lab' },
-                { value: 'Exam', label: 'Exam' },
-                { value: 'Other', label: 'Other' },
-            ]}
-          />
-          <UniInput type="number" name="amount" label="Amount" />
-          <UniDatePicker name="dueDate" label="Due Date" />
-          <Button type="primary" htmlType="submit" block style={{ marginTop: 16 }}>
-            Create Fee
-          </Button>
-        </UniForm>
+        <Form<FeeForm> form={form} layout="vertical" onFinish={save}>
+          {!editing && (
+            <>
+              <Form.Item name="student" label="Student" rules={[{ required: true, message: 'Select a student' }]}>
+                <Select
+                  showSearch
+                  filterOption={false}
+                  onSearch={setStudentSearch}
+                  loading={loadingStudents}
+                  placeholder="Search by student ID or name"
+                  options={
+                    students?.data?.map((student) => ({
+                      value: student._id,
+                      label: `${student.fullName} (${student.id})`,
+                    })) ?? []
+                  }
+                />
+              </Form.Item>
+              <Form.Item name="academicSemester" label="Academic semester" rules={[{ required: true }]}>
+                <Select
+                  options={
+                    semesters?.data?.map((semester) => ({
+                      value: semester._id,
+                      label: `${semester.name} ${semester.year}`,
+                    })) ?? []
+                  }
+                />
+              </Form.Item>
+            </>
+          )}
+          <Form.Item name="type" label="Fee type" rules={[{ required: true }]}>
+            <Select options={feeTypes} />
+          </Form.Item>
+          <Form.Item name="amount" label="Amount" rules={[{ required: true }]}>
+            <InputNumber min={0.01} precision={2} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="dueDate" label="Due date" rules={[{ required: true }]}>
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea maxLength={500} rows={3} />
+          </Form.Item>
+          <Space style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={creating || updating}>
+              {editing ? 'Save changes' : 'Generate fee'}
+            </Button>
+          </Space>
+        </Form>
       </Modal>
-    </div>
+    </>
   );
 };
 

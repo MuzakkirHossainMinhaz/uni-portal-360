@@ -15,11 +15,6 @@ const router = express.Router();
  *       200:
  *         description: Semester results retrieved successfully
  */
-router.get(
-  '/my-results',
-  auth(USER_ROLE.student),
-  SemesterResultControllers.getMySemesterResults,
-);
+router.get('/my-results', auth(USER_ROLE.student), SemesterResultControllers.getMySemesterResults);
 
 export const SemesterResultRoutes = router;
-

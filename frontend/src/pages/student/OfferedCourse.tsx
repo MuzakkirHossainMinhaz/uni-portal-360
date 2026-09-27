@@ -1,120 +1,67 @@
-import { Button, Col, Row } from 'antd';
+import { Alert, App, Button, Card, Table } from 'antd';
+import { useState } from 'react';
+import PageHeader from '../../components/layout/PageHeader';
 import {
   useEnrolCourseMutation,
-  useGetAllOfferedCoursesQuery,
+  useGetMyOfferedCoursesQuery,
 } from '../../redux/features/student/studentCourseManagement.api';
-
-type OfferedCourseSection = {
-  section: number;
-  _id: string;
-  days: string[];
-  startTime: string;
-  endTime: string;
-};
-
-type GroupedCourseSections = {
-  [courseTitle: string]: {
-    courseTitle: string;
-    sections: OfferedCourseSection[];
-  };
-};
-
 const OfferedCourse = () => {
-  const { data: offeredCourseData } = useGetAllOfferedCoursesQuery(undefined);
-  const [enroll] = useEnrolCourseMutation();
-
-  const singleObject = offeredCourseData?.data?.reduce<GroupedCourseSections>(
-    (acc, item) => {
-      const key = item.course.title;
-      const existing = acc[key] ?? { courseTitle: key, sections: [] };
-      existing.sections.push({
-        section: item.section,
-        _id: item._id,
-        days: item.days,
-        startTime: item.startTime,
-        endTime: item.endTime,
-      });
-      acc[key] = existing;
-      return acc;
-    },
-    {},
-  );
-
-  const modifiedData =
-    Object.values(singleObject ?? {}) as {
-      courseTitle: string;
-      sections: OfferedCourseSection[];
-    }[];
-
+  const { message } = App.useApp();
+  const [page, setPage] = useState(1);
+  const { data, isFetching, isError, refetch } = useGetMyOfferedCoursesQuery([
+    { name: 'page', value: page },
+    { name: 'limit', value: 10 },
+  ]);
+  const [enroll, { isLoading: saving }] = useEnrolCourseMutation();
   const handleEnroll = async (id: string) => {
-    const enrollData = {
-      offeredCourse: id,
-    };
-
-    await enroll(enrollData);
+    try {
+      await enroll({ offeredCourse: id }).unwrap();
+      message.success('Course enrollment completed');
+    } catch (error) {
+      const failure = error as { data?: { message?: string } };
+      message.error(failure.data?.message ?? 'Could not enroll in this course');
+    }
   };
-
-  if (!modifiedData.length) {
-    return <p>No available courses</p>;
-  }
-
   return (
-    <Row gutter={[0, 20]}>
-      {modifiedData.map((item) => {
-        return (
-          <Col span={24} style={{ border: 'solid #d4d4d4 2px' }}>
-            <div style={{ padding: '10px' }}>
-              <h2>{item.courseTitle}</h2>
-            </div>
-            <div>
-              {item.sections.map((section) => {
-                return (
-                  <Row
-                    justify="space-between"
-                    align="middle"
-                    style={{ borderTop: 'solid #d4d4d4 2px', padding: '10px' }}
-                  >
-                    <Col span={5}>Section: {section.section} </Col>
-                    <Col span={5}>
-                      days:{' '}
-                      {section.days.map((day: string) => (
-                        <span> {day} </span>
-                      ))}
-                    </Col>
-                    <Col span={5}>Start Time: {section.startTime} </Col>
-                    <Col span={5}>End Time: {section.endTime} </Col>
-                    <Button onClick={() => handleEnroll(section._id)}>
-                      Enroll
-                    </Button>
-                  </Row>
-                );
-              })}
-            </div>
-          </Col>
-        );
-      })}
-    </Row>
+    <>
+      <PageHeader title="Offered Courses" subTitle="Choose an eligible section for the current registration period." />
+      {isError && (
+        <Alert
+          type="error"
+          message="Could not load offered courses"
+          action={<Button onClick={refetch}>Retry</Button>}
+        />
+      )}
+      <Card>
+        <Table
+          rowKey="_id"
+          loading={isFetching}
+          dataSource={data?.data ?? []}
+          scroll={{ x: 650 }}
+          pagination={{
+            current: page,
+            pageSize: 10,
+            total: data?.meta?.total,
+            onChange: setPage,
+            showSizeChanger: false,
+          }}
+          columns={[
+            { title: 'Course', dataIndex: ['course', 'title'] },
+            { title: 'Section', dataIndex: 'section' },
+            { title: 'Days', render: (_, row) => row.days.join(', ') },
+            { title: 'Time', render: (_, row) => `${row.startTime}–${row.endTime}` },
+            {
+              title: 'Action',
+              render: (_, row) => (
+                <Button type="primary" loading={saving} onClick={() => handleEnroll(row._id)}>
+                  Enroll
+                </Button>
+              ),
+            },
+          ]}
+        />
+      </Card>
+    </>
   );
 };
-
 export default OfferedCourse;
-
-// [
-//   { course: { title: 'React' }, section: 1, _id: 'sdfasdfasdfas45345' },
-//   { course: { title: 'React' }, section: 2, _id: 'sdfasdfasdfas45345' },
-//   { course: { title: 'Redux' }, section: 1, _id: 'sdfasdfasdfas45345' },
-// ];
-
-// [
-//   {
-//     courseTitle: 'React',
-//     sections: [
-//       { section: 1, _id: 'ADFa4345basdfa' },
-//       { section: 2, _id: 'ADFa4345basdf3' },
-//     ],
-//   },
-//   {
-//     courseTitle: 'Redux',
-//     sections: [{ section: 1, _id: 'ADFa4345basdfa' }],
-//   },
-// ];

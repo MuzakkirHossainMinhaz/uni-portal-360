@@ -1,7 +1,8 @@
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, Typography } from 'antd';
 import { useState } from 'react';
-import { TUser, useCurrentToken } from '../../redux/features/auth/authSlice';
+import type { TUser } from '../../redux/features/auth/authSlice';
+import { useCurrentToken } from '../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
 import { adminPaths } from '../../routes/admin.routes';
 import { facultyPaths } from '../../routes/faculty.routes';

@@ -1,11 +1,11 @@
-import { TAcademicDepartment, TAcademicFaculty, TAcademicSemester } from '.';
+import type { TAcademicDepartment, TAcademicFaculty, TAcademicSemester } from '.';
 
 export interface TStudent {
   _id: string;
   id: string;
   user: TUser;
   name: TName;
-  gender: string;
+  gender: 'male' | 'female' | 'other';
   dateOfBirth: string;
   email: string;
   contactNo: string;

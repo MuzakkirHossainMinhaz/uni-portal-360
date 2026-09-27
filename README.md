@@ -329,14 +329,14 @@ Uni Portal 360 models a modern university’s core processes. Below is a high‑
 ### 3.8 Fees & Receipts
 
 - **Admin Fee Management**
-  - Generate fee items for students per semester (amount, type, due date, status).
-  - List and filter all fees.
+  - Generate fee items for students per semester (amount, type, due date, description).
+  - Search by student ID, filter by type/status, and edit or void unpaid fees. Paid fees remain immutable.
 
 - **Student Fee View**
   - Students can:
     - See all fee items (pending/overdue/paid)
-    - Pay a fee (simulated payment via transaction ID)
-    - View total pending dues summary.
+    - Record a simulated payment; the server generates its transaction ID and checks fee ownership.
+    - View an unpaid dues summary across all fee pages.
 
 - **PDF Receipt**
   - After payment, students can download a PDF receipt with:
@@ -358,8 +358,8 @@ Uni Portal 360 models a modern university’s core processes. Below is a high‑
     - Delete notifications
 
 - **Audit Logs**
-  - Backend keeps audit logs of important actions (who did what, when, from which IP/user‑agent).
-  - Admins can fetch logs via dedicated routes.
+  - Backend records authenticated create, update, delete and simulated payment requests (who acted, when, result, route, IP and user agent). Request bodies and query strings are not logged.
+  - Admins can filter and inspect paginated logs in the System → Audit Logs page.
   - Scheduled cleanup task to keep the log size manageable.
 
 ### 3.10 Analytics Dashboards
@@ -419,3 +419,13 @@ Use this README as a starting point to:
 - Clone and run the application locally.
 - Understand the major domains and flows.
 - Extend modules (e.g., add new analytics, reports, or integrations) while reusing the existing patterns.
+
+## Quality verification
+
+After installing dependencies in both applications, run `npm run check` from the repository root for formatting, lint, builds, and unit tests. Use Node 24 LTS. Run `npm run format` to apply the shared formatting rules. Each application also exposes `format`, `format:check`, `lint`, `lint:fix`, `build`, and `check` scripts.
+
+The backend also provides `npm run test:smoke` for the main HTTP workflows against a disposable local MongoDB database. It requires transaction support, refuses remote database URLs, and cleans up only the generated test database. External email and Cloudinary delivery are not invoked.
+
+See [the application quality review](docs/application-quality-review.md) for changes, verification results, and remaining browser/external-service checks.
+
+See [the code conventions](docs/code-conventions.md) for module structure, naming, shared API helpers, and contribution guidance.

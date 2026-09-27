@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
+import type { Model } from 'mongoose';
 import { BaseRepository } from '../../shared/baseRepository';
-import { TFee } from './fee.interface';
+import type { TFee } from './fee.interface';
 import { Fee } from './fee.model';
 
 export class FeeRepository extends BaseRepository<TFee> {

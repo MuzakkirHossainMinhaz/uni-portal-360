@@ -1,53 +1,36 @@
-import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
-import { TAuditLog } from '../modules/AuditLog/auditLog.interface';
-import { AuditLogService } from '../modules/AuditLog/auditLog.service';
+import type { NextFunction, Request, Response } from 'express';
+import { AuditLogServices } from '../modules/AuditLog/auditLog.service';
+import { User } from '../modules/User/user.model';
 import { logger } from '../utils/logger';
 
-export const auditLogger = (action: string, entityType: string, severity: TAuditLog['severity'] = 'LOW') => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    // Intercept response to get ID or success status
-    // Note: This simple interception has limitations with streams, but works for JSON APIs.
+const actions: Record<string, string> = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
 
-    // We can't easily hook into res.send in a way that guarantees we get the body before finish
-    // without potentially breaking streams or other middleware if not careful.
-    // Instead, we will log on 'finish' and do our best to extract ID from params or req body.
+// Attach before API routes so the finish handler can observe the authenticated user.
+export const auditLogger = (req: Request, res: Response, next: NextFunction) => {
+  if (!actions[req.method]) return next();
 
-    res.on('finish', () => {
-      // Only log if user is authenticated
-      if (req.user && req.user.userId) {
-        const rawEntityId = req.params.id;
-        const entityId = Array.isArray(rawEntityId) ? rawEntityId[0] : rawEntityId;
+  res.on('finish', () => {
+    if (!req.user?.userId) return;
+    void (async () => {
+      const user = await User.findOne({ id: req.user.userId }).select('_id');
+      if (!user) return;
 
-        const logData: Partial<TAuditLog> = {
-          userId: new Types.ObjectId(req.user.userId),
-          action,
-          entityType,
-          entityId,
-          ipAddress: req.ip,
-          userAgent: req.get('User-Agent'),
-          severity,
-          status: res.statusCode >= 400 ? 'FAILURE' : 'SUCCESS',
-          metadata: {
-            method: req.method,
-            url: req.originalUrl,
-            statusCode: res.statusCode,
-          },
-        };
-
-        // Capture Request Body for Create/Update actions (exclude sensitive fields)
-        if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-          const safeBody = { ...req.body };
-          delete safeBody.password;
-          logData.newValues = safeBody;
-        }
-
-        AuditLogService.createAuditLog(logData).catch((error) => {
-          logger.error('Failed to create audit log from middleware', error);
-        });
-      }
-    });
-
-    next();
-  };
+      const path = req.originalUrl.split('?')[0];
+      const entityType = path.split('/')[3] || 'system';
+      const entityId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const action = path.endsWith('/pay') ? 'PAY' : actions[req.method];
+      await AuditLogServices.createAuditLog({
+        userId: user._id,
+        action,
+        entityType,
+        entityId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        severity: req.method === 'DELETE' || res.statusCode >= 400 ? 'MEDIUM' : 'LOW',
+        status: res.statusCode >= 400 ? 'FAILURE' : 'SUCCESS',
+        metadata: { method: req.method, path, statusCode: res.statusCode },
+      });
+    })().catch((error) => logger.error('Failed to record audit event', error));
+  });
+  next();
 };

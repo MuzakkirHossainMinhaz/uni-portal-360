@@ -1,8 +1,10 @@
 import catchAsync from '../../utils/catchAsync';
 import { TranscriptServices } from './transcript.service';
+import AppError from '../../errors/AppError';
 
 const generateTranscript = catchAsync(async (req, res) => {
-  const { userId } = req.user;
+  const userId = req.user.role === 'student' ? req.user.userId : req.query.studentId;
+  if (typeof userId !== 'string' || !userId) throw new AppError(400, 'Student ID is required');
   const doc = await TranscriptServices.generateTranscript(userId);
 
   // Set response headers for PDF download

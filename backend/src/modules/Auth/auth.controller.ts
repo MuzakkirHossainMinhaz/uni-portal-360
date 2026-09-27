@@ -10,16 +10,16 @@ const loginUser = catchAsync(async (req, res) => {
   const { refreshToken, accessToken, needsPasswordChange, permissions } = result;
 
   res.cookie('refreshToken', refreshToken, {
-    secure: config.NODE_ENV === 'PRODUCTION',
+    secure: config.NODE_ENV?.toLowerCase() === 'production',
     httpOnly: true,
-    sameSite: 'none',
+    sameSite: config.NODE_ENV?.toLowerCase() === 'production' ? 'none' : 'lax',
     maxAge: 1000 * 60 * 60 * 24 * 365,
   });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'User is logged in successfully!',
+    message: 'User logged in successfully',
     data: {
       accessToken,
       needsPasswordChange,
@@ -35,7 +35,7 @@ const changePassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Password is updated successfully!',
+    message: 'Password updated successfully',
     data: result,
   });
 });
@@ -47,7 +47,7 @@ const refreshToken = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Access token is retrieved successfully!',
+    message: 'Access token retrieved successfully',
     data: result,
   });
 });
@@ -58,7 +58,7 @@ const forgetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Reset link is generated successfully!',
+    message: 'Reset link generated successfully',
     data: result,
   });
 });
@@ -74,7 +74,7 @@ const resetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Password reset successfully!',
+    message: 'Password reset successfully',
     data: result,
   });
 });

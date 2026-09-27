@@ -5,7 +5,7 @@ import { AttendanceServices } from './attendance.service';
 
 const createAttendance = catchAsync(async (req, res) => {
   const { userId } = req.user; // Faculty ID
-  const result = await AttendanceServices.createAttendanceIntoDB(req.body, userId);
+  const result = await AttendanceServices.createAttendance(req.body, userId);
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -13,6 +13,15 @@ const createAttendance = catchAsync(async (req, res) => {
     message: 'Attendance marked successfully',
     data: result,
   });
+});
+
+const getFacultyAttendanceSheet = catchAsync(async (req, res) => {
+  const result = await AttendanceServices.getFacultyAttendanceSheet(
+    req.user.userId,
+    req.query.offeredCourse as string,
+    req.query.date as string,
+  );
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Attendance sheet retrieved', data: result });
 });
 
 const getMyAttendance = catchAsync(async (req, res) => {
@@ -24,7 +33,7 @@ const getMyAttendance = catchAsync(async (req, res) => {
     success: true,
     message: 'My attendance records retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
@@ -36,7 +45,7 @@ const getAttendanceReport = catchAsync(async (req, res) => {
     success: true,
     message: 'Attendance report retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
@@ -53,21 +62,21 @@ const getLowAttendanceStudents = catchAsync(async (req, res) => {
 });
 
 const getAttendanceAnalytics = catchAsync(async (req, res) => {
-    const result = await AttendanceServices.getAttendanceAnalytics();
+  const result = await AttendanceServices.getAttendanceAnalytics();
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Attendance analytics retrieved successfully',
-        data: result
-    })
-})
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Attendance analytics retrieved successfully',
+    data: result,
+  });
+});
 
 export const AttendanceControllers = {
+  getFacultyAttendanceSheet,
   createAttendance,
   getMyAttendance,
   getAttendanceReport,
   getLowAttendanceStudents,
-  getAttendanceAnalytics
+  getAttendanceAnalytics,
 };
-

@@ -4,10 +4,10 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { User } from '../User/user.model';
 import { AdminSearchableFields } from './admin.constant';
-import { TAdmin } from './admin.interface';
+import type { TAdmin } from './admin.interface';
 import { Admin } from './admin.model';
 
-const getAllAdminsFromDB = async (query: Record<string, unknown>) => {
+const getAllAdmins = async (query: Record<string, unknown>) => {
   const adminQuery = new QueryBuilder(Admin.find(), { sort: '-_id', ...query })
     .search(AdminSearchableFields)
     .filter()
@@ -20,17 +20,17 @@ const getAllAdminsFromDB = async (query: Record<string, unknown>) => {
   const result = await adminQuery.modelQuery;
   const meta = await adminQuery.countTotal();
   return {
-    result,
+    data: result,
     meta,
   };
 };
 
-const getSingleAdminFromDB = async (id: string) => {
+const getSingleAdmin = async (id: string) => {
   const result = await Admin.findById(id);
   return result;
 };
 
-const updateAdminIntoDB = async (id: string, payload: Partial<TAdmin>) => {
+const updateAdmin = async (id: string, payload: Partial<TAdmin>) => {
   const { name, ...remainingAdminData } = payload;
 
   const modifiedUpdatedData: Record<string, unknown> = {
@@ -73,7 +73,7 @@ const updateAdminIntoDB = async (id: string, payload: Partial<TAdmin>) => {
   }
 };
 
-const deleteAdminFromDB = async (id: string) => {
+const deleteAdmin = async (id: string) => {
   const session = await mongoose.startSession();
 
   try {
@@ -105,8 +105,8 @@ const deleteAdminFromDB = async (id: string) => {
 };
 
 export const AdminServices = {
-  getAllAdminsFromDB,
-  getSingleAdminFromDB,
-  updateAdminIntoDB,
-  deleteAdminFromDB,
+  getAllAdmins,
+  getSingleAdmin,
+  updateAdmin,
+  deleteAdmin,
 };

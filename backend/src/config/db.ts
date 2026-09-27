@@ -8,7 +8,7 @@ const superUser = {
   password: '123456',
   needsPasswordChange: false,
   role: USER_ROLE.superAdmin,
-  status: 'active',
+  status: 'in-progress',
   isDeleted: false,
 };
 

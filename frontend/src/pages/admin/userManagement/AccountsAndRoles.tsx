@@ -1,10 +1,8 @@
 import { Alert, Button, Card, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link } from 'react-router-dom';
-import {
-  RoleGuide,
-  useGetRoleGuideQuery
-} from '../../../redux/features/admin/userDirectory.api';
+import type { RoleGuide } from '../../../redux/features/admin/userDirectory.api';
+import { useGetRoleGuideQuery } from '../../../redux/features/admin/userDirectory.api';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -77,7 +75,6 @@ const AccountsAndRoles = () => {
           Role totals include deleted accounts. Unknown stored roles are marked unsupported.
         </Paragraph>
       </Card>
-
     </Space>
   );
 };

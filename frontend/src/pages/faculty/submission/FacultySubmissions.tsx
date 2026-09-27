@@ -2,10 +2,13 @@ import { App, Button, Form, Input, InputNumber, Modal, Table, Card, Space, Tag, 
 import { UserOutlined, DownloadOutlined, StarOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useGetAllSubmissionsQuery, useGradeSubmissionMutation } from '../../../redux/features/submission/submission.api';
+import {
+  useGetAllSubmissionsQuery,
+  useGradeSubmissionMutation,
+} from '../../../redux/features/submission/submission.api';
 import PageHeader from '../../../components/layout/PageHeader';
 import dayjs from 'dayjs';
-import { TSubmission } from '../../../types/submission.type';
+import type { TSubmission } from '../../../types/submission.type';
 
 const { Text } = Typography;
 
@@ -18,8 +21,7 @@ const FacultySubmissions = () => {
   const { message } = App.useApp();
   const { assignmentId } = useParams();
   const submissionsQuery = assignmentId ? { assignment: assignmentId } : undefined;
-  const { data: submissions, isLoading } =
-    useGetAllSubmissionsQuery(submissionsQuery);
+  const { data: submissions, isLoading } = useGetAllSubmissionsQuery(submissionsQuery);
   const [gradeSubmission, { isLoading: isGrading }] = useGradeSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<TSubmission | null>(null);
@@ -61,22 +63,20 @@ const FacultySubmissions = () => {
       dataIndex: ['student', 'fullName'],
       key: 'studentName',
       render: (text: string, record: TSubmission) => (
-          <Space>
-              <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#0f6ad8' }} />
-              <div>
-                  <Text strong>{text}</Text>
-                  <div style={{ fontSize: 12, color: '#8c8c8c' }}>{record.student?.id}</div>
-              </div>
-          </Space>
-      )
+        <Space>
+          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#0f6ad8' }} />
+          <div>
+            <Text strong>{text}</Text>
+            <div style={{ fontSize: 12, color: '#8c8c8c' }}>{record.student?.id}</div>
+          </div>
+        </Space>
+      ),
     },
     {
       title: 'Submitted At',
       dataIndex: 'submittedAt',
       key: 'submittedAt',
-      render: (date: string) => (
-          <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>
-      ),
+      render: (date: string) => <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>,
     },
     {
       title: 'File',
@@ -84,7 +84,9 @@ const FacultySubmissions = () => {
       key: 'fileUrl',
       render: (url: string) => (
         <a href={url} target="_blank" rel="noopener noreferrer">
-          <Button icon={<DownloadOutlined />} size="small">View File</Button>
+          <Button icon={<DownloadOutlined />} size="small">
+            View File
+          </Button>
         </a>
       ),
     },
@@ -92,9 +94,8 @@ const FacultySubmissions = () => {
       title: 'Grade',
       dataIndex: 'grade',
       key: 'grade',
-      render: (grade?: number) => (
-          grade !== undefined ? <Tag color="green">{grade}/100</Tag> : <Tag color="warning">Pending</Tag>
-      ),
+      render: (grade?: number) =>
+        grade !== undefined ? <Tag color="green">{grade}/100</Tag> : <Tag color="warning">Pending</Tag>,
     },
     {
       title: 'Feedback',
@@ -119,34 +120,25 @@ const FacultySubmissions = () => {
         title="Submissions"
         subTitle="Review and grade student submissions."
         breadcrumbs={[
-            { title: 'Dashboard', href: '/faculty/dashboard' },
-            { title: 'Assignments', href: '/faculty/assignments' }, // Assuming this route exists
-            { title: 'Submissions' },
+          { title: 'Dashboard', href: '/faculty/dashboard' },
+          { title: 'Assignments', href: '/faculty/assignments' }, // Assuming this route exists
+          { title: 'Submissions' },
         ]}
       />
 
       <Card bordered={false}>
-          <Table
-            dataSource={submissions?.data}
-            columns={columns}
-            loading={isLoading}
-            rowKey="_id"
-            pagination={{ pageSize: 10 }}
-          />
+        <Table
+          dataSource={submissions?.data}
+          columns={columns}
+          loading={isLoading}
+          rowKey="_id"
+          pagination={{ pageSize: 10 }}
+        />
       </Card>
 
-      <Modal
-        title="Grade Submission"
-        open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
+      <Modal title="Grade Submission" open={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
         <Form form={form} onFinish={handleGrade} layout="vertical">
-          <Form.Item 
-            label="Grade" 
-            name="grade" 
-            rules={[{ required: true, message: 'Please enter grade' }]}
-          >
+          <Form.Item label="Grade" name="grade" rules={[{ required: true, message: 'Please enter grade' }]}>
             <InputNumber min={0} max={100} style={{ width: '100%' }} size="large" />
           </Form.Item>
           <Form.Item label="Feedback" name="feedback">

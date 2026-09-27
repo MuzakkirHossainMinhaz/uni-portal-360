@@ -39,7 +39,7 @@ describe('profile updates keep linked accounts consistent', () => {
     (Admin.findById as jest.Mock).mockReturnValue(currentQuery());
     (Admin.findByIdAndUpdate as jest.Mock).mockResolvedValue({ email: 'new@example.com' });
 
-    await AdminServices.updateAdminIntoDB('admin-id', { email: 'new@example.com' });
+    await AdminServices.updateAdmin('admin-id', { email: 'new@example.com' });
 
     expect(User.findByIdAndUpdate).toHaveBeenCalledWith(
       'account-id',
@@ -61,7 +61,7 @@ describe('profile updates keep linked accounts consistent', () => {
     });
     (Faculty.findByIdAndUpdate as jest.Mock).mockResolvedValue({});
 
-    await FacultyServices.updateFacultyIntoDB('profile-id', {
+    await FacultyServices.updateFaculty('profile-id', {
       email: 'new@example.com',
       academicDepartment: 'department-id' as never,
     });
@@ -81,7 +81,7 @@ describe('profile updates keep linked accounts consistent', () => {
     });
     (Student.findByIdAndUpdate as jest.Mock).mockResolvedValue({});
 
-    await StudentServices.updateStudentIntoDB('profile-id', {
+    await StudentServices.updateStudent('profile-id', {
       email: 'new@example.com',
       academicDepartment: 'department-id' as never,
     });
@@ -98,7 +98,7 @@ describe('profile updates keep linked accounts consistent', () => {
     (Admin.findById as jest.Mock).mockReturnValue(currentQuery());
     (User.findByIdAndUpdate as jest.Mock).mockRejectedValue(new Error('duplicate email'));
 
-    await expect(AdminServices.updateAdminIntoDB('admin-id', { email: 'new@example.com' })).rejects.toThrow();
+    await expect(AdminServices.updateAdmin('admin-id', { email: 'new@example.com' })).rejects.toThrow();
     expect(Admin.findByIdAndUpdate).not.toHaveBeenCalled();
     expect(session.abortTransaction).toHaveBeenCalled();
   });

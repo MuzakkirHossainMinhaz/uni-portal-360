@@ -26,12 +26,12 @@ const NotificationBell = () => {
   const { mode } = useThemeMode();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  
+
   const { data: notificationsData, isLoading } = useGetUserNotificationsQuery(
     { limit: '10' },
     { pollingInterval: 30000 },
   );
-  
+
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
@@ -75,9 +75,7 @@ const NotificationBell = () => {
       style={{
         width: 350,
         backgroundColor: isDark ? '#020617' : '#ffffff',
-        boxShadow: isDark
-          ? '0 24px 80px rgba(15,23,42,0.9)'
-          : '0 16px 40px rgba(15,23,42,0.18)',
+        boxShadow: isDark ? '0 24px 80px rgba(15,23,42,0.9)' : '0 16px 40px rgba(15,23,42,0.18)',
         borderRadius: 16,
         border: isDark ? '1px solid rgba(148,163,184,0.35)' : '1px solid #e5e7eb',
       }}
@@ -85,9 +83,7 @@ const NotificationBell = () => {
       <div
         style={{
           padding: '12px 16px',
-          borderBottom: isDark
-            ? '1px solid rgba(148,163,184,0.24)'
-            : '1px solid #e5e7eb',
+          borderBottom: isDark ? '1px solid rgba(148,163,184,0.24)' : '1px solid #e5e7eb',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -102,10 +98,12 @@ const NotificationBell = () => {
           </Button>
         )}
       </div>
-      
+
       <div style={{ maxHeight: 400, overflowY: 'auto' }}>
         {isLoading ? (
-          <div style={{ padding: 20, textAlign: 'center' }}><Spin /></div>
+          <div style={{ padding: 20, textAlign: 'center' }}>
+            <Spin />
+          </div>
         ) : notifications.length === 0 ? (
           <div
             style={{
@@ -126,43 +124,37 @@ const NotificationBell = () => {
                 style={{
                   padding: '12px 16px',
                   cursor: 'pointer',
-                  backgroundColor: item.read
-                    ? 'transparent'
-                    : isDark
-                    ? 'rgba(37,99,235,0.12)'
-                    : '#eff6ff',
+                  backgroundColor: item.read ? 'transparent' : isDark ? 'rgba(37,99,235,0.12)' : '#eff6ff',
                   transition: 'background-color 0.3s',
-                  borderBottom: isDark
-                    ? '1px solid rgba(30,64,175,0.35)'
-                    : '1px solid #e5e7eb',
+                  borderBottom: isDark ? '1px solid rgba(30,64,175,0.35)' : '1px solid #e5e7eb',
                 }}
                 onClick={() => handleNotificationClick(item)}
                 actions={[
-                  <Button 
-                    type="text" 
-                    size="small" 
-                    icon={<DeleteOutlined />} 
-                    onClick={(e) => handleDelete(e, item._id)} 
-                  />
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={(e) => handleDelete(e, item._id)}
+                  />,
                 ]}
               >
                 <List.Item.Meta
                   title={
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Text strong={!item.read}>{item.title}</Text>
+                      <Text strong={!item.read}>{item.title}</Text>
                     </div>
                   }
                   description={
                     <div>
-                        <div style={{ fontSize: 13, marginBottom: 4 }}>{item.message}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Text type="secondary" style={{ fontSize: 11 }}>
-                                {new Date(item.createdAt).toLocaleTimeString()}
-                            </Text>
-                            <Text type="secondary" style={{ fontSize: 11 }}>
-                                {new Date(item.createdAt).toLocaleDateString()}
-                            </Text>
-                        </div>
+                      <div style={{ fontSize: 13, marginBottom: 4 }}>{item.message}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {new Date(item.createdAt).toLocaleTimeString()}
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </Text>
+                      </div>
                     </div>
                   }
                 />
@@ -175,12 +167,12 @@ const NotificationBell = () => {
   );
 
   return (
-    <Dropdown 
-        popupRender={() => notificationList} 
-        trigger={['click']}
-        open={open}
-        onOpenChange={setOpen}
-        placement="bottomRight"
+    <Dropdown
+      popupRender={() => notificationList}
+      trigger={['click']}
+      open={open}
+      onOpenChange={setOpen}
+      placement="bottomRight"
     >
       <Badge count={unreadCount} overflowCount={99}>
         <Button shape="circle" icon={<BellOutlined />} />

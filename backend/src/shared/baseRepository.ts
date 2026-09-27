@@ -1,13 +1,6 @@
-import { Model, UpdateQuery } from 'mongoose';
+import type { Model, UpdateQuery } from 'mongoose';
 import QueryBuilder from '../builder/QueryBuilder';
-
-export type TPaginationMeta = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-};
+import type { TPaginationMeta } from '../utils/pagination';
 
 export type TPaginatedResult<T> = {
   meta: TPaginationMeta;
@@ -78,6 +71,7 @@ export abstract class BaseRepository<T, TCreate = Partial<T>, TUpdate = Partial<
   async updateById(id: string, payload: TUpdate): Promise<T | null> {
     const result = await this.model.findByIdAndUpdate(id, payload as unknown as UpdateQuery<T>, {
       returnDocument: 'after',
+      runValidators: true,
     });
     return result as T | null;
   }

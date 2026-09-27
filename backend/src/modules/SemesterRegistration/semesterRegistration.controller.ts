@@ -1,70 +1,71 @@
-import { Request, Response } from 'express';
+import { getRouteParam } from '../../utils/getRouteParam';
+import type { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { SemesterRegistrationService } from './semesterRegistration.service';
+import { SemesterRegistrationServices } from './semesterRegistration.service';
 
 const createSemesterRegistration = catchAsync(async (req: Request, res: Response) => {
-  const result = await SemesterRegistrationService.createSemesterRegistrationIntoDB(req.body);
+  const result = await SemesterRegistrationServices.createSemesterRegistration(req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Semester Registration is created successfully!',
+    message: 'Semester registration created successfully',
     data: result,
   });
 });
 
 const getAllSemesterRegistrations = catchAsync(async (req: Request, res: Response) => {
-  const result = await SemesterRegistrationService.getAllSemesterRegistrationsFromDB(req.query);
+  const result = await SemesterRegistrationServices.getAllSemesterRegistrations(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Semester Registration is retrieved successfully !',
+    message: 'Semester registration retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
 const getSingleSemesterRegistration = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = getRouteParam(req, 'id');
 
-  const result = await SemesterRegistrationService.getSingleSemesterRegistrationsFromDB(id as string);
+  const result = await SemesterRegistrationServices.getSingleSemesterRegistrations(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Semester Registration is retrieved successfully',
+    message: 'Semester registration retrieved successfully',
     data: result,
   });
 });
 
 const updateSemesterRegistration = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await SemesterRegistrationService.updateSemesterRegistrationIntoDB(id as string, req.body);
+  const id = getRouteParam(req, 'id');
+  const result = await SemesterRegistrationServices.updateSemesterRegistration(id, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Semester Registration is updated successfully',
+    message: 'Semester registration updated successfully',
     data: result,
   });
 });
 
 const deleteSemesterRegistration = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await SemesterRegistrationService.deleteSemesterRegistrationFromDB(id as string);
+  const id = getRouteParam(req, 'id');
+  const result = await SemesterRegistrationServices.deleteSemesterRegistration(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Semester Registration is updated successfully',
+    message: 'Semester registration updated successfully',
     data: result,
   });
 });
 
-export const SemesterRegistrationController = {
+export const SemesterRegistrationControllers = {
   createSemesterRegistration,
   getAllSemesterRegistrations,
   getSingleSemesterRegistration,

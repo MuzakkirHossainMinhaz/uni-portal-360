@@ -31,7 +31,12 @@ router.patch(
   CourseControllers.updateCourse,
 );
 
-router.delete('/:id', auth(USER_ROLE.superAdmin, USER_ROLE.admin), checkPermission('deleteCourse'), CourseControllers.deleteCourse);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  checkPermission('deleteCourse'),
+  CourseControllers.deleteCourse,
+);
 
 router.put(
   '/:courseId/assign-faculties',

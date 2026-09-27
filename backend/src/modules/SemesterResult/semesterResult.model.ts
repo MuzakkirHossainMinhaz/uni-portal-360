@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TSemesterResult } from './semesterResult.interface';
+import type { TSemesterResult } from './semesterResult.interface';
 
 const semesterResultSchema = new Schema<TSemesterResult>(
   {

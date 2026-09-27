@@ -1,4 +1,4 @@
-import { TAcademicSemester } from '.';
+import type { TAcademicSemester } from '.';
 
 export type TSemester = {
   _id: string;

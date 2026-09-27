@@ -1,4 +1,5 @@
-import { Card, Col, Row, Table, Tag } from 'antd';
+import { useState } from 'react';
+import { Alert, Card, Col, Row, Table, Tag } from 'antd';
 import moment from 'moment';
 import { useGetMyAttendanceQuery } from '../../../redux/features/attendance/attendance.api';
 
@@ -12,7 +13,12 @@ type AttendanceRecord = {
 };
 
 const StudentAttendance = () => {
-  const { data: attendanceData, isLoading } = useGetMyAttendanceQuery(undefined);
+  const [page, setPage] = useState(1);
+  const {
+    data: attendanceData,
+    isLoading,
+    isError,
+  } = useGetMyAttendanceQuery({ page: String(page), limit: '10', sort: '-date' });
 
   const columns = [
     {
@@ -25,8 +31,7 @@ const StudentAttendance = () => {
       title: 'Course',
       dataIndex: 'offeredCourse',
       key: 'course',
-      render: (item: AttendanceRecord['offeredCourse']) =>
-        item?.course?.title || 'N/A',
+      render: (item: AttendanceRecord['offeredCourse']) => item?.course?.title || 'N/A',
     },
     {
       title: 'Status',
@@ -53,47 +58,55 @@ const StudentAttendance = () => {
   const attendanceList = attendanceData?.data as AttendanceRecord[] | undefined;
 
   const totalClasses = attendanceList?.length || 0;
-  const presentCount =
-    attendanceList?.filter((a) => a.status === 'Present').length || 0;
-  const absentCount =
-    attendanceList?.filter((a) => a.status === 'Absent').length || 0;
-  const lateCount =
-    attendanceList?.filter((a) => a.status === 'Late').length || 0;
-  const attendancePercentage = totalClasses > 0 ? ((presentCount / totalClasses) * 100).toFixed(2) : 0;
+  const presentCount = attendanceList?.filter((a) => a.status === 'Present').length || 0;
+  const absentCount = attendanceList?.filter((a) => a.status === 'Absent').length || 0;
+  const lateCount = attendanceList?.filter((a) => a.status === 'Late').length || 0;
+  const attendancePercentage = totalClasses > 0 ? (((presentCount + lateCount) / totalClasses) * 100).toFixed(2) : 0;
 
   return (
     <div>
       <h1 style={{ marginBottom: '20px' }}>My Attendance</h1>
-      
+
       <Row gutter={16} style={{ marginBottom: '20px' }}>
-        <Col span={6}>
-          <Card title="Total Classes" bordered={false}>
+        <Col xs={12} lg={6}>
+          <Card title="Classes on this page" bordered={false}>
             {totalClasses}
           </Card>
         </Col>
-        <Col span={6}>
-          <Card title="Present %" bordered={false} style={{ color: Number(attendancePercentage) < 75 ? 'red' : 'green' }}>
+        <Col xs={12} lg={6}>
+          <Card
+            title="Attended on this page"
+            bordered={false}
+            style={{ color: Number(attendancePercentage) < 75 ? 'red' : 'green' }}
+          >
             {attendancePercentage}%
           </Card>
         </Col>
-        <Col span={6}>
-          <Card title="Absences" bordered={false}>
+        <Col xs={12} lg={6}>
+          <Card title="Absences on this page" bordered={false}>
             {absentCount}
           </Card>
         </Col>
-        <Col span={6}>
-          <Card title="Late" bordered={false}>
+        <Col xs={12} lg={6}>
+          <Card title="Late on this page" bordered={false}>
             {lateCount}
           </Card>
         </Col>
       </Row>
 
+      {isError && <Alert type="error" message="Could not load attendance" />}
       <Table
         loading={isLoading}
         columns={columns}
         dataSource={attendanceData?.data}
         rowKey="_id"
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: page,
+          pageSize: 10,
+          total: attendanceData?.meta?.total,
+          onChange: setPage,
+          showSizeChanger: false,
+        }}
       />
     </div>
   );

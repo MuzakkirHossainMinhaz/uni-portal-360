@@ -1,4 +1,4 @@
-import { TResponse } from '../../../types';
+import type { TResponse } from '../../../types';
 import { baseApi } from '../../api/baseApi';
 
 type LoginData = {

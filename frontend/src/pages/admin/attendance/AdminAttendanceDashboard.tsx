@@ -1,68 +1,53 @@
-import { Card, Col, Row, Statistic, Table, Tabs } from 'antd';
-import { useGetAttendanceAnalyticsQuery, useGetLowAttendanceStudentsQuery } from '../../../redux/features/attendance/attendance.api';
-
+import { Alert, Card, Col, Row, Statistic, Table } from 'antd';
+import PageHeader from '../../../components/layout/PageHeader';
+import {
+  useGetAttendanceAnalyticsQuery,
+  useGetLowAttendanceStudentsQuery,
+} from '../../../redux/features/attendance/attendance.api';
 const AdminAttendanceDashboard = () => {
-  const { data: analyticsData, isLoading: isAnalyticsLoading } = useGetAttendanceAnalyticsQuery(undefined);
-  const { data: lowAttendanceData, isLoading: isLowAttendanceLoading } = useGetLowAttendanceStudentsQuery({ threshold: '75' });
-
-  const lowAttendanceColumns = [
-    {
-      title: 'Student ID',
-      dataIndex: ['studentDetails', 'id'],
-      key: 'studentId',
-    },
-    {
-      title: 'Name',
-      dataIndex: ['studentDetails', 'fullName'],
-      key: 'name',
-    },
-    {
-      title: 'Course',
-      dataIndex: ['courseDetails', 'course', 'title'], // Assuming populated
-      key: 'course',
-    },
-    {
-      title: 'Attendance %',
-      dataIndex: 'percentage',
-      key: 'percentage',
-      render: (val: number) => <span style={{ color: 'red' }}>{val.toFixed(2)}%</span>,
-    },
-  ];
-
+  const analytics = useGetAttendanceAnalyticsQuery();
+  const lowAttendance = useGetLowAttendanceStudentsQuery({ threshold: '75' });
   return (
-    <div>
-      <h1 style={{ marginBottom: '20px' }}>Attendance Analytics</h1>
-      
-      <Row gutter={16} style={{ marginBottom: '20px' }}>
-        <Col span={8}>
-          <Card>
-            <Statistic title="Total Attendance Records" value={analyticsData?.data?.totalAttendance} loading={isAnalyticsLoading} />
+    <>
+      <PageHeader
+        title="Attendance Analytics"
+        subTitle="Attendance records and students below 75% participation. Late attendance counts as participation."
+      />
+      {(analytics.isError || lowAttendance.isError) && (
+        <Alert type="error" showIcon message="Could not load attendance analytics" />
+      )}
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card loading={analytics.isLoading}>
+            <Statistic title="Attendance records" value={analytics.data?.data?.totalAttendance ?? '—'} />
           </Card>
         </Col>
-        {/* Add more summary cards here */}
+        {['Present', 'Absent', 'Late'].map((status) => (
+          <Col key={status} xs={24} sm={12} lg={6}>
+            <Card loading={analytics.isLoading}>
+              <Statistic
+                title={status}
+                value={analytics.data?.data?.statusBreakdown.find((item) => item._id === status)?.count ?? 0}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
-
-      <Tabs defaultActiveKey="1" items={[
-          {
-              key: '1',
-              label: 'Low Attendance Alert',
-              children: (
-                  <Table 
-                      columns={lowAttendanceColumns} 
-                      dataSource={lowAttendanceData?.data} 
-                      loading={isLowAttendanceLoading}
-                      rowKey={(record) => `${record.student}-${record.offeredCourse}`}
-                  />
-              )
-          },
-          {
-              key: '2',
-              label: 'Overall Trends',
-              children: <p>Chart component would go here</p>
-          }
-      ]} />
-    </div>
+      <Card title="Students below 75% attendance">
+        <Table
+          rowKey={(row) => `${row.student}-${row.offeredCourse}`}
+          loading={lowAttendance.isLoading}
+          dataSource={lowAttendance.data?.data ?? []}
+          scroll={{ x: 550 }}
+          columns={[
+            { title: 'Student ID', dataIndex: ['studentDetails', 'id'] },
+            { title: 'Name', dataIndex: ['studentDetails', 'fullName'] },
+            { title: 'Course', dataIndex: ['courseDetails', 'course', 'title'] },
+            { title: 'Attendance', dataIndex: 'percentage', render: (value: number) => `${value.toFixed(2)}%` },
+          ]}
+        />
+      </Card>
+    </>
   );
 };
-
 export default AdminAttendanceDashboard;

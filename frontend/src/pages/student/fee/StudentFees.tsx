@@ -1,101 +1,138 @@
-import { App, Button, Card, Col, Row, Statistic, Table, Tag } from 'antd';
-import { useGetMyFeesQuery, usePayFeeMutation } from '../../../redux/features/fee/fee.api';
-import moment from 'moment';
-import { DownloadReceipt } from '../../../components/fee/FeeReceipt';
+import { Alert, App, Button, Card, Col, Row, Select, Statistic, Table, Tag } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
+import { useState } from 'react';
+import { DownloadReceipt } from '../../../components/fee/DownloadReceipt';
+import {
+  type FeeItem,
+  useGetMyFeesQuery,
+  useGetMyFeeSummaryQuery,
+  usePayFeeMutation,
+} from '../../../redux/features/fee/fee.api';
 
 const StudentFees = () => {
-  const { message } = App.useApp();
-  const { data: fees, isFetching } = useGetMyFeesQuery(undefined);
+  const { message, modal } = App.useApp();
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const [status, setStatus] = useState<string>();
+  const { data, isFetching, error, refetch } = useGetMyFeesQuery({
+    page: String(page),
+    limit: String(size),
+    status: status ?? '',
+  });
+  const { data: summary } = useGetMyFeeSummaryQuery();
   const [payFee, { isLoading: isPaying }] = usePayFeeMutation();
 
-  const handlePay = async (id: string) => {
+  const pay = async (id: string) => {
     try {
-      const transactionId = `TXN-${Math.floor(Math.random() * 1000000)}`;
-      await payFee({ id, transactionId }).unwrap();
-      message.success('Fee paid successfully');
-    } catch {
-      message.error('Payment failed');
+      await payFee(id).unwrap();
+      message.success('Simulated payment recorded');
+    } catch (cause) {
+      message.error((cause as { data?: { message?: string } })?.data?.message ?? 'Could not record payment');
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<FeeItem> = [
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
+      title: 'Semester',
+      render: (_, item) =>
+        item.academicSemester ? `${item.academicSemester.name} ${item.academicSemester.year}` : '—',
     },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number) => `$${amount.toFixed(2)}`,
-    },
-    {
-      title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
-      render: (date: string) => moment(date).format('YYYY-MM-DD'),
-    },
+    { title: 'Type', dataIndex: 'type' },
+    { title: 'Amount', dataIndex: 'amount', render: (amount: number) => `$${amount.toFixed(2)}` },
+    { title: 'Due date', dataIndex: 'dueDate', render: (date: string) => dayjs(date).format('DD MMM YYYY') },
     {
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        let color: string = 'default';
-        if (status === 'Paid') color = 'success';
-        if (status === 'Pending') color = 'warning';
-        if (status === 'Overdue') color = 'error';
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
+      render: (value: FeeItem['status']) => (
+        <Tag color={value === 'PAID' ? 'green' : value === 'OVERDUE' ? 'red' : 'gold'}>{value}</Tag>
+      ),
     },
     {
       title: 'Action',
-      key: 'action',
-      render: (item: any) =>
+      render: (_, item) =>
         item.status === 'PAID' ? (
           <DownloadReceipt fee={item} />
-        ) : (
+        ) : item.status === 'PENDING' || item.status === 'OVERDUE' ? (
           <Button
             type="primary"
             size="small"
-            onClick={() => handlePay(item._id)}
             loading={isPaying}
+            onClick={() =>
+              modal.confirm({
+                title: 'Record a simulated payment?',
+                content: 'This records a demo transaction. No money is transferred.',
+                onOk: () => pay(item._id),
+              })
+            }
           >
-            Pay Now
+            Simulate payment
           </Button>
+        ) : (
+          '—'
         ),
     },
   ];
 
-  const pendingAmount =
-    fees?.data
-      ?.filter((f) => f.status === 'Pending' || f.status === 'Overdue')
-      .reduce((acc: number, curr) => acc + curr.amount, 0) || 0;
-
   return (
     <div>
-      <h1 style={{ marginBottom: 20 }}>My Fees</h1>
-      
+      <h1>My Fees</h1>
+      <Alert
+        type="info"
+        showIcon
+        message="Payments on this portal are simulated. No money is transferred."
+        style={{ marginBottom: 20 }}
+      />
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
+        <Col xs={24} sm={12} md={8}>
           <Card>
-            <Statistic
-              title="Pending Dues"
-              value={pendingAmount}
-              precision={2}
-              prefix="$"
-              valueStyle={{ color: '#0f6ad8', fontWeight: 600 }}
-            />
+            <Statistic title="Unpaid dues" value={summary?.unpaidAmount ?? 0} precision={2} prefix="$" />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8}>
+          <Card>
+            <Statistic title="Unpaid items" value={summary?.unpaidCount ?? 0} />
           </Card>
         </Col>
       </Row>
-
-      <Table
-        loading={isFetching}
-        columns={columns}
-        dataSource={fees?.data}
-        rowKey="_id"
+      <Select
+        aria-label="Filter fees by status"
+        placeholder="Filter status"
+        allowClear
+        value={status}
+        onChange={(value) => {
+          setStatus(value);
+          setPage(1);
+        }}
+        options={['PENDING', 'OVERDUE', 'PARTIAL', 'PAID'].map((value) => ({ value, label: value }))}
+        style={{ width: 180, marginBottom: 16 }}
       />
+      {error ? (
+        <Alert
+          type="error"
+          showIcon
+          message="Could not load fees"
+          action={<Button onClick={() => refetch()}>Retry</Button>}
+        />
+      ) : (
+        <Table<FeeItem>
+          rowKey="_id"
+          columns={columns}
+          dataSource={data?.data ?? []}
+          loading={isFetching}
+          scroll={{ x: 760 }}
+          pagination={{
+            current: page,
+            pageSize: size,
+            total: data?.meta?.total ?? 0,
+            showSizeChanger: true,
+            onChange: (next, nextSize) => {
+              setPage(nextSize !== size ? 1 : next);
+              setSize(nextSize);
+            },
+          }}
+        />
+      )}
     </div>
   );
 };

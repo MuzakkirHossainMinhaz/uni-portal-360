@@ -2,24 +2,26 @@ import httpStatus from 'http-status';
 import mongoose, { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
-import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
-import { TAttendance } from './attendance.interface';
+import { Attendance } from './attendance.model';
+import { requireFacultyCourse, requireStudent } from '../../utils/academicAccess';
+import QueryBuilder from '../../builder/QueryBuilder';
+import type { TAttendance } from './attendance.interface';
 import { AttendanceRepository } from './attendance.repository';
 
 const attendanceRepository = new AttendanceRepository();
 
-const createAttendanceIntoDB = async (payload: {
-  offeredCourse: string;
-  date: string;
-  attendanceList: { student: string; status: 'Present' | 'Absent' | 'Late'; remark?: string }[];
-}, facultyId: string) => {
+const createAttendance = async (
+  payload: {
+    offeredCourse: string;
+    date: string;
+    attendanceList: { student: string; status: 'Present' | 'Absent' | 'Late'; remark?: string }[];
+  },
+  facultyId: string,
+) => {
   const { offeredCourse, date, attendanceList } = payload;
 
   // 1. Verify OfferedCourse exists and belongs to the faculty
-  const isOfferedCourseExists = await OfferedCourse.findOne({
-    _id: offeredCourse,
-    faculty: facultyId,
-  });
+  const isOfferedCourseExists = await requireFacultyCourse(facultyId, offeredCourse);
 
   if (!isOfferedCourseExists) {
     throw new AppError(httpStatus.NOT_FOUND, 'Offered Course not found or does not belong to the faculty');
@@ -32,19 +34,16 @@ const createAttendanceIntoDB = async (payload: {
 
     const attendanceRecords: TAttendance[] = [];
 
+    const enrolledStudents = await EnrolledCourse.find({ offeredCourse, isEnrolled: true })
+      .select('student')
+      .session(session);
+    const enrolledIds = new Set(enrolledStudents.map((item) => String(item.student)));
     for (const record of attendanceList) {
       // 2. Verify Student is enrolled in this OfferedCourse
-      const isStudentEnrolled = await EnrolledCourse.findOne({
-        offeredCourse,
-        student: record.student,
-        isEnrolled: true,
-      });
+      const isStudentEnrolled = enrolledIds.has(record.student);
 
       if (!isStudentEnrolled) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          `Student ${record.student} is not enrolled in this course`,
-        );
+        throw new AppError(httpStatus.BAD_REQUEST, `Student ${record.student} is not enrolled in this course`);
       }
 
       // 3. Prepare Attendance Record
@@ -87,18 +86,56 @@ const createAttendanceIntoDB = async (payload: {
 };
 
 const getStudentAttendance = async (studentId: string, query: Record<string, unknown>) => {
-  // Add studentId to query to enforce security
-  const secureQuery = { ...query, student: studentId };
-  const { meta, data } = await attendanceRepository.findAll(secureQuery);
-  return { meta, result: data };
+  const student = await requireStudent(studentId);
+  const qb = new QueryBuilder(
+    Attendance.find({ student: student._id }).populate({
+      path: 'offeredCourse',
+      populate: { path: 'course', select: 'title' },
+    }),
+    query,
+  )
+    .filter()
+    .sort()
+    .paginate();
+  return { meta: await qb.countTotal(), data: await qb.modelQuery };
+};
+
+const getFacultyAttendanceSheet = async (userId: string, offeredCourse: string, date: string) => {
+  await requireFacultyCourse(userId, offeredCourse);
+  const [enrollments, records] = await Promise.all([
+    EnrolledCourse.find({ offeredCourse, isEnrolled: true }).populate('student', 'id name').sort('student'),
+    Attendance.find({ offeredCourse, date: new Date(date) }),
+  ]);
+  const byStudent = new Map(records.map((record) => [String(record.student), record]));
+  return enrollments
+    .map((enrollment) => {
+      const student = enrollment.student as unknown as {
+        _id: Types.ObjectId;
+        id: string;
+        name: { firstName: string; middleName?: string; lastName: string };
+      } | null;
+      if (!student) return null;
+      const record = byStudent.get(String(student._id));
+      return {
+        student: student._id,
+        id: student.id,
+        name: [student.name.firstName, student.name.middleName, student.name.lastName].filter(Boolean).join(' '),
+        status: record?.status ?? null,
+        remark: record?.remark ?? '',
+      };
+    })
+    .filter(Boolean);
 };
 
 const getAttendanceReport = async (query: Record<string, unknown>) => {
   const { meta, data } = await attendanceRepository.findAll(query);
-  return { meta, result: data };
+  return { meta, data: data };
 };
 
 const getLowAttendanceStudents = async (threshold: number = 75) => {
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Threshold must be between 0 and 100');
+  }
   // Aggregate to calculate attendance percentage per student per course
   const lowAttendanceList = await attendanceRepository.aggregate([
     {
@@ -107,7 +144,7 @@ const getLowAttendanceStudents = async (threshold: number = 75) => {
         totalClasses: { $sum: 1 },
         presentCount: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'Present'] }, 1, 0],
+            $cond: [{ $in: ['$status', ['Present', 'Late']] }, 1, 0],
           },
         },
       },
@@ -141,43 +178,72 @@ const getLowAttendanceStudents = async (threshold: number = 75) => {
       $unwind: '$studentDetails',
     },
     {
-        $lookup: {
-            from: 'offeredcourses',
-            localField: 'offeredCourse',
-            foreignField: '_id',
-            as: 'courseDetails'
-        }
+      $lookup: {
+        from: 'offeredcourses',
+        localField: 'offeredCourse',
+        foreignField: '_id',
+        as: 'courseDetails',
+      },
     },
     {
-        $unwind: '$courseDetails'
-    }
+      $unwind: '$courseDetails',
+    },
+    {
+      $lookup: { from: 'courses', localField: 'courseDetails.course', foreignField: '_id', as: 'courseDetails.course' },
+    },
+    { $unwind: '$courseDetails.course' },
+    {
+      $project: {
+        student: 1,
+        offeredCourse: 1,
+        totalClasses: 1,
+        presentCount: 1,
+        percentage: 1,
+        'courseDetails.course.title': 1,
+        'studentDetails.id': 1,
+        'studentDetails.fullName': {
+          $trim: {
+            input: {
+              $concat: [
+                '$studentDetails.name.firstName',
+                ' ',
+                { $ifNull: ['$studentDetails.name.middleName', ''] },
+                ' ',
+                '$studentDetails.name.lastName',
+              ],
+            },
+          },
+        },
+      },
+    },
   ]);
 
   return lowAttendanceList;
 };
 
 const getAttendanceAnalytics = async () => {
-    const totalAttendance = await attendanceRepository.countDocuments();
-    
-    const statusBreakdown = await attendanceRepository.aggregate([
-        {
-            $group: {
-                _id: '$status',
-                count: { $sum: 1 }
-            }
-        }
-    ]);
+  const totalAttendance = await attendanceRepository.countDocuments();
 
-    return {
-        totalAttendance,
-        statusBreakdown
-    };
-}
+  const statusBreakdown = await attendanceRepository.aggregate([
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  return {
+    totalAttendance,
+    statusBreakdown,
+  };
+};
 
 export const AttendanceServices = {
-  createAttendanceIntoDB,
+  getFacultyAttendanceSheet,
+  createAttendance,
   getStudentAttendance,
   getAttendanceReport,
   getLowAttendanceStudents,
-  getAttendanceAnalytics
+  getAttendanceAnalytics,
 };

@@ -16,13 +16,13 @@ router.post(
 
 router.get(
   '/',
-  auth(USER_ROLE.faculty, USER_ROLE.student, USER_ROLE.admin),
+  auth(USER_ROLE.faculty, USER_ROLE.student, USER_ROLE.admin, USER_ROLE.superAdmin),
   AssignmentControllers.getAllAssignments,
 );
 
 router.get(
   '/:id',
-  auth(USER_ROLE.faculty, USER_ROLE.student, USER_ROLE.admin),
+  auth(USER_ROLE.faculty, USER_ROLE.student, USER_ROLE.admin, USER_ROLE.superAdmin),
   AssignmentControllers.getAssignmentById,
 );
 
@@ -33,10 +33,6 @@ router.patch(
   AssignmentControllers.updateAssignment,
 );
 
-router.delete(
-  '/:id',
-  auth(USER_ROLE.faculty),
-  AssignmentControllers.deleteAssignment,
-);
+router.delete('/:id', auth(USER_ROLE.faculty), AssignmentControllers.deleteAssignment);
 
 export const AssignmentRoutes = router;

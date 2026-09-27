@@ -20,8 +20,14 @@ const UniInput = ({ type, name, label, disabled, required }: TInputProps) => {
     <div style={{ marginBottom: '12px' }}>
       <Controller
         name={name}
-        render={({ field }) => (
-          <Form.Item label={label} required={required}>
+        rules={{ required: required ? `${label ?? name} is required` : false }}
+        render={({ field, fieldState: { error } }) => (
+          <Form.Item
+            label={label}
+            required={required}
+            validateStatus={error ? 'error' : undefined}
+            help={error?.message}
+          >
             {isPassword ? (
               <Input.Password {...field} id={name} size="large" disabled={disabled} required={required} />
             ) : (

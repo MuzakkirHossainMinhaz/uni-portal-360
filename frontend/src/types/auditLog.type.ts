@@ -1,6 +1,8 @@
 export type TAuditLogUser = {
   _id: string;
   email: string;
+  id?: string;
+  role?: string;
 };
 
 export type TAuditLog = {
@@ -16,4 +18,5 @@ export type TAuditLog = {
   createdAt: string;
   oldValues?: Record<string, unknown>;
   newValues?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 };

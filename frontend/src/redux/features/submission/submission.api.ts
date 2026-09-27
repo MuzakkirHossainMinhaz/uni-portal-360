@@ -1,15 +1,12 @@
-import { TMeta, TResponseRedux } from '../../../types';
-import { TSubmission } from '../../../types/submission.type';
-import { baseApi } from '../../api/baseApi';
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type { TPaginatedResponse, TResponse } from '../../../types';
 
-type PaginatedSubmissions = {
-  data?: TSubmission[];
-  meta?: TMeta;
-};
+import type { TSubmission } from '../../../types/submission.type';
+import { baseApi } from '../../api/baseApi';
 
 const submissionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createSubmission: builder.mutation<TSubmission, unknown>({
+    createSubmission: builder.mutation<TResponse<unknown>, unknown>({
       query: (data) => ({
         url: '/submissions/submit',
         method: 'POST',
@@ -17,27 +14,16 @@ const submissionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Submission'],
     }),
-    getAllSubmissions: builder.query<PaginatedSubmissions, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/submissions',
-          method: 'GET',
-          params: params,
-        };
-      },
-      providesTags: ['Submission'],
-      transformResponse: (response: TResponseRedux<TSubmission[]>) => ({
-        data: response.data,
-        meta: response.meta,
+    getAllSubmissions: builder.query<TPaginatedResponse<TSubmission>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/submissions',
+        method: 'GET',
+        params: toQueryParams(args),
       }),
+      providesTags: ['Submission'],
+      transformResponse: (response: TResponse<TSubmission[]>) => toPage(response),
     }),
-    gradeSubmission: builder.mutation<TSubmission, { id: string; data: Partial<TSubmission> }>({
+    gradeSubmission: builder.mutation<TResponse<unknown>, { id: string; data: Partial<TSubmission> }>({
       query: ({ id, data }) => ({
         url: `/submissions/${id}/grade`,
         method: 'PATCH',
@@ -48,8 +34,4 @@ const submissionApi = baseApi.injectEndpoints({
   }),
 });
 
-export const {
-  useCreateSubmissionMutation,
-  useGetAllSubmissionsQuery,
-  useGradeSubmissionMutation,
-} = submissionApi;
+export const { useCreateSubmissionMutation, useGetAllSubmissionsQuery, useGradeSubmissionMutation } = submissionApi;

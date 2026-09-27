@@ -27,10 +27,13 @@ const AcademicDepartment = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const queryParams = useMemo(() => [
-    { name: 'page', value: currentPage },
-    { name: 'limit', value: pageSize },
-  ], [currentPage, pageSize]);
+  const queryParams = useMemo(
+    () => [
+      { name: 'page', value: currentPage },
+      { name: 'limit', value: pageSize },
+    ],
+    [currentPage, pageSize],
+  );
 
   // API hooks
   const { data: departmentsData, isLoading, isFetching, error } = useGetAllAcademicDepartmentsQuery(queryParams);
@@ -262,15 +265,15 @@ const AcademicDepartment = () => {
           defaultValues={
             editingDepartment
               ? {
-                name: editingDepartment.name,
-                description: editingDepartment.description || '',
-                academicFaculty: editingDepartment.academicFaculty?._id,
-              }
+                  name: editingDepartment.name,
+                  description: editingDepartment.description || '',
+                  academicFaculty: editingDepartment.academicFaculty?._id,
+                }
               : {
-                name: '',
-                description: '',
-                academicFaculty: '',
-              }
+                  name: '',
+                  description: '',
+                  academicFaculty: '',
+                }
           }
         >
           <Row gutter={[16, 0]}>

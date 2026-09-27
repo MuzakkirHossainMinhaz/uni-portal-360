@@ -1,138 +1,96 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
+import { logger } from '../../utils/logger';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
+import { NotificationServices } from '../Notification/notification.service';
 import { Student } from '../Student/student.model';
 import { SemesterResult } from './semesterResult.model';
 
-import { NotificationServices } from '../Notification/notification.service';
-
-const calculateSemesterGPA = async (studentId: string, academicSemesterId: string) => {
-  const session = await mongoose.startSession();
+const calculateSemesterGPA = async (
+  studentId: string,
+  academicSemesterId: string,
+  externalSession?: mongoose.ClientSession,
+) => {
+  const session = externalSession ?? (await mongoose.startSession());
+  let semesterResult;
   try {
-    session.startTransaction();
-
-    // 1. Get all enrolled courses for the student in this semester
+    if (!externalSession) session.startTransaction();
     const enrolledCourses = await EnrolledCourse.find({
       student: studentId,
       academicSemester: academicSemesterId,
-      isCompleted: true, // Only include completed courses
-    }).populate('course');
-
-    if (!enrolledCourses.length) {
+      isCompleted: true,
+    })
+      .session(session)
+      .populate('course');
+    if (!enrolledCourses.length)
       throw new AppError(httpStatus.NOT_FOUND, 'No completed courses found for this semester');
-    }
 
     let totalCredits = 0;
     let totalGradePoints = 0;
-
-    const completedCourseIds = [];
-
-    // 2. Calculate GPA
-    for (const course of enrolledCourses) {
-      const courseDetails = course.course as { credits?: number } | null;
-      const credit = courseDetails?.credits;
-      const gradePoints = course.gradePoints;
-
-      // Only count credits if gradePoints > 0 (passed)
-      // Or should we count F (0.0) in GPA? Usually yes.
-      // Assuming F is 0.0 and counted in GPA calculation.
-      
-      if (credit) {
-        totalCredits += credit;
-        totalGradePoints += credit * gradePoints;
-        completedCourseIds.push(course._id);
+    const completedCourses = [];
+    for (const enrollment of enrolledCourses) {
+      const credits = (enrollment.course as { credits?: number } | null)?.credits;
+      if (credits && credits > 0) {
+        totalCredits += credits;
+        totalGradePoints += credits * enrollment.gradePoints;
+        completedCourses.push(enrollment._id);
       }
     }
-    
-    // Calculate GPA
-    const gpa = totalCredits > 0 ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
-
-    // 3. Update or Create Semester Result
-    const semesterResult = await SemesterResult.findOneAndUpdate(
-      {
-        student: studentId,
-        academicSemester: academicSemesterId,
-      },
+    const gpa = totalCredits ? Number((totalGradePoints / totalCredits).toFixed(2)) : 0;
+    semesterResult = await SemesterResult.findOneAndUpdate(
+      { student: studentId, academicSemester: academicSemesterId },
       {
         student: studentId,
         academicSemester: academicSemesterId,
         totalCredits,
         totalGradePoints,
         gpa,
-        completedCourses: completedCourseIds,
+        completedCourses,
       },
-      {
-        upsert: true,
-        returnDocument: 'after',
-        session,
-      },
+      { upsert: true, returnDocument: 'after', session, runValidators: true },
     );
+    const results = await SemesterResult.find({ student: studentId }).session(session);
+    const credits = results.reduce((sum, result) => sum + result.totalCredits, 0);
+    const points = results.reduce((sum, result) => sum + result.totalGradePoints, 0);
+    const cgpa = credits ? Number((points / credits).toFixed(2)) : 0;
+    await Student.findByIdAndUpdate(studentId, { cgpa }, { session });
+    if (!externalSession) await session.commitTransaction();
+  } catch (error) {
+    if (!externalSession) await session.abortTransaction();
+    throw error;
+  } finally {
+    if (!externalSession) await session.endSession();
+  }
 
-    // 4. Update CGPA
-    // Fetch all semester results for the student (including the one just updated/created)
-    // We need to re-fetch or use the updated one.
-    // Since we are in a transaction, we can just find all.
-    
-    const allSemesterResults = await SemesterResult.find({ student: studentId }).session(session);
+  if (!externalSession) await notifyResultPublished(studentId, semesterResult.gpa);
+  return semesterResult;
+};
 
-    let totalCumulativeCredits = 0;
-    let totalCumulativeGradePoints = 0;
-
-    for (const result of allSemesterResults) {
-      totalCumulativeCredits += result.totalCredits;
-      totalCumulativeGradePoints += result.totalGradePoints;
-    }
-
-    const cgpa =
-      totalCumulativeCredits > 0
-        ? Number((totalCumulativeGradePoints / totalCumulativeCredits).toFixed(2))
-        : 0;
-
-    await Student.findByIdAndUpdate(
-      studentId,
-      { cgpa },
-      { session },
-    );
-
-    await session.commitTransaction();
-    await session.endSession();
-
-    // Trigger Notification
-    // We need the user ID associated with the student
-    const student = await Student.findById(studentId).populate('user');
-    if (student && student.user && typeof student.user === 'object' && '_id' in student.user) {
+const notifyResultPublished = async (studentId: string, gpa: number) => {
+  // A notification failure must not turn a committed result into an API failure.
+  try {
+    const student = await Student.findById(studentId).select('user');
+    if (student?.user)
       await NotificationServices.createNotification({
-        userId: (student.user as { _id: mongoose.Types.ObjectId })._id,
+        userId: student.user,
         title: 'Results Published',
-        message: `Your results for the semester have been updated. Your new GPA is ${gpa}.`,
+        message: `Your semester results have been updated. Your GPA is ${gpa}.`,
         type: 'RESULT_PUBLISHED',
         priority: 'HIGH',
         read: false,
         isDeleted: false,
         actionUrl: '/student/results',
       });
-    }
-
-    return semesterResult;
-  } catch (err) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      err instanceof Error ? err.message : 'Failed to calculate semester GPA',
-    );
+  } catch (error) {
+    logger.error('Results saved, but notification failed', error);
   }
 };
 
-const getMySemesterResults = async (studentId: string, _query: Record<string, unknown>) => {
-    const result = await SemesterResult.find({ student: studentId })
-        .populate('academicSemester')
-        .sort({ createdAt: -1 }); // Most recent first
-    return result;
-}
-
-export const SemesterResultServices = {
-  calculateSemesterGPA,
-  getMySemesterResults,
+const getMySemesterResults = async (userId: string, _query: Record<string, unknown>) => {
+  const student = await Student.findOne({ id: userId }).select('_id');
+  if (!student) throw new AppError(httpStatus.NOT_FOUND, 'Student not found');
+  return SemesterResult.find({ student: student._id }).populate('academicSemester').sort({ createdAt: -1 });
 };
+
+export const SemesterResultServices = { calculateSemesterGPA, getMySemesterResults, notifyResultPublished };

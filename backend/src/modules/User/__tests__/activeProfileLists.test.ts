@@ -9,9 +9,9 @@ describe('profile list pagination', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it.each([
-    ['admins', Admin, AdminServices.getAllAdminsFromDB],
-    ['faculties', Faculty, FacultyServices.getAllFacultiesFromDB],
-    ['students', Student, StudentServices.getAllStudentsFromDB],
+    ['admins', Admin, AdminServices.getAllAdmins],
+    ['faculties', Faculty, FacultyServices.getAllFaculties],
+    ['students', Student, StudentServices.getAllStudents],
   ])('counts only active %s', async (_label, model, list) => {
     const filter: Record<string, unknown> = {};
     const countDocuments = jest.fn().mockResolvedValue(2);

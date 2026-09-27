@@ -1,4 +1,5 @@
-import { Button, Card, Table, Tag, Typography, Space } from 'antd';
+import { useState } from 'react';
+import { Alert, Button, Card, Table, Tag, Typography, Space } from 'antd';
 import { useGetAllAssignmentsQuery } from '../../../redux/features/assignment/assignment.api';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -8,7 +9,8 @@ import dayjs from 'dayjs';
 const { Text } = Typography;
 
 const FacultyAssignments = () => {
-  const { data: assignments, isLoading } = useGetAllAssignmentsQuery(undefined);
+  const [page, setPage] = useState(1);
+  const { data: assignments, isLoading, isError } = useGetAllAssignmentsQuery({ page: String(page), limit: '10' });
 
   const columns = [
     {
@@ -21,21 +23,20 @@ const FacultyAssignments = () => {
       title: 'Course Section',
       dataIndex: ['offeredCourse', 'section'],
       key: 'section',
-      render: (text?: string | number) =>
-        text ? <Tag color="blue">{text}</Tag> : 'N/A',
+      render: (text?: string | number) => (text ? <Tag color="blue">{text}</Tag> : 'N/A'),
     },
     {
       title: 'Deadline',
       dataIndex: 'deadline',
       key: 'deadline',
       render: (date: string) => {
-          const isExpired = dayjs().isAfter(dayjs(date));
-          return (
-              <Space orientation="vertical" size={0}>
-                  <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>
-                  {isExpired ? <Tag color="error">Closed</Tag> : <Tag color="success">Active</Tag>}
-              </Space>
-          );
+        const isExpired = dayjs().isAfter(dayjs(date));
+        return (
+          <Space orientation="vertical" size={0}>
+            <Text>{dayjs(date).format('MMM D, YYYY h:mm A')}</Text>
+            {isExpired ? <Tag color="error">Closed</Tag> : <Tag color="success">Active</Tag>}
+          </Space>
+        );
       },
     },
     {
@@ -43,7 +44,9 @@ const FacultyAssignments = () => {
       key: 'action',
       render: (_: unknown, record: { _id: string }) => (
         <Link to={`/faculty/submissions/${record._id}`}>
-          <Button icon={<EyeOutlined />} size="small">View Submissions</Button>
+          <Button icon={<EyeOutlined />} size="small">
+            View Submissions
+          </Button>
         </Link>
       ),
     },
@@ -54,25 +57,25 @@ const FacultyAssignments = () => {
       <PageHeader
         title="Assignments"
         subTitle="Manage assignments for your courses."
-        breadcrumbs={[
-            { title: 'Dashboard', href: '/faculty/dashboard' },
-            { title: 'Assignments' },
-        ]}
+        breadcrumbs={[{ title: 'Dashboard', href: '/faculty/dashboard' }, { title: 'Assignments' }]}
         extra={
-            <Link to="/faculty/create-assignment">
-                <Button type="primary" icon={<PlusOutlined />}>Create Assignment</Button>
-            </Link>
+          <Link to="/faculty/create-assignment">
+            <Button type="primary" icon={<PlusOutlined />}>
+              Create Assignment
+            </Button>
+          </Link>
         }
       />
 
+      {isError && <Alert type="error" showIcon message="Could not load assignments" />}
       <Card bordered={false}>
-          <Table
-            dataSource={assignments?.data}
-            columns={columns}
-            loading={isLoading}
-            rowKey="_id"
-            pagination={{ pageSize: 10 }}
-          />
+        <Table
+          dataSource={assignments?.data}
+          columns={columns}
+          loading={isLoading}
+          rowKey="_id"
+          pagination={{ current: page, pageSize: 10, total: assignments?.meta?.total, onChange: setPage }}
+        />
       </Card>
     </div>
   );

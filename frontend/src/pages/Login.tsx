@@ -1,11 +1,12 @@
 import { Button, Col, Image, Row, Typography } from 'antd';
-import { FieldValues } from 'react-hook-form';
+import type { FieldValues } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import UniForm from '../components/form/UniForm';
 import UniInput from '../components/form/UniInput';
-import { useLoginMutation } from '../redux/features/auth/authApi';
-import { TUser, setUser } from '../redux/features/auth/authSlice';
+import { useLoginMutation } from '../redux/features/auth/auth.api';
+import type { TUser } from '../redux/features/auth/authSlice';
+import { setUser } from '../redux/features/auth/authSlice';
 import { useAppDispatch } from '../redux/hooks';
 import { verifyToken } from '../utils/verifyToken';
 
@@ -32,14 +33,16 @@ const Login = () => {
       }
 
       const user = verifyToken(res.data.accessToken) as TUser;
-      dispatch(setUser({
-        user: {
-          ...user,
-          permissions: res.data.permissions,
-          needsPasswordChange: res.data.needsPasswordChange,
-        },
-        token: res.data.accessToken,
-      }));
+      dispatch(
+        setUser({
+          user: {
+            ...user,
+            permissions: res.data.permissions,
+            needsPasswordChange: res.data.needsPasswordChange,
+          },
+          token: res.data.accessToken,
+        }),
+      );
       toast.success('Logged in', { id: toastId, duration: 2000 });
 
       if (res.data.needsPasswordChange) {

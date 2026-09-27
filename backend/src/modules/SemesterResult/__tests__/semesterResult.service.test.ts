@@ -34,8 +34,9 @@ describe('SemesterResultServices', () => {
     it('should calculate GPA correctly', async () => {
       // Mock EnrolledCourse.find
       (EnrolledCourse.find as jest.Mock).mockReturnValue({
-        populate: jest.fn().mockResolvedValue(mockEnrolledCourses),
+        session: jest.fn().mockReturnValue({ populate: jest.fn().mockResolvedValue(mockEnrolledCourses) }),
       });
+      (Student.findById as jest.Mock).mockReturnValue({ select: jest.fn().mockResolvedValue(null) });
 
       // Mock SemesterResult.findOneAndUpdate
       (SemesterResult.findOneAndUpdate as jest.Mock).mockResolvedValue({
@@ -48,9 +49,7 @@ describe('SemesterResultServices', () => {
 
       // Mock SemesterResult.find for CGPA
       (SemesterResult.find as jest.Mock).mockReturnValue({
-        session: jest.fn().mockResolvedValue([
-          { totalCredits: 6, totalGradePoints: 21 },
-        ]),
+        session: jest.fn().mockResolvedValue([{ totalCredits: 6, totalGradePoints: 21 }]),
       });
 
       // Mock Student.findByIdAndUpdate
@@ -68,14 +67,9 @@ describe('SemesterResultServices', () => {
         abortTransaction: jest.fn(),
         endSession: jest.fn(),
       };
-      jest
-        .spyOn(mongoose, 'startSession')
-        .mockResolvedValue(mockSession as unknown as mongoose.ClientSession);
+      jest.spyOn(mongoose, 'startSession').mockResolvedValue(mockSession as unknown as mongoose.ClientSession);
 
-      const result = await SemesterResultServices.calculateSemesterGPA(
-        mockStudentId,
-        mockSemesterId
-      );
+      const result = await SemesterResultServices.calculateSemesterGPA(mockStudentId, mockSemesterId);
 
       // Assertions
       expect(result.gpa).toBe(3.5); // (12 + 9) / 6 = 3.5
@@ -85,11 +79,7 @@ describe('SemesterResultServices', () => {
         isCompleted: true,
       });
       expect(SemesterResult.findOneAndUpdate).toHaveBeenCalled();
-      expect(Student.findByIdAndUpdate).toHaveBeenCalledWith(
-        mockStudentId,
-        { cgpa: 3.5 },
-        expect.anything()
-      );
+      expect(Student.findByIdAndUpdate).toHaveBeenCalledWith(mockStudentId, { cgpa: 3.5 }, expect.anything());
     });
   });
 });

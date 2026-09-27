@@ -1,4 +1,4 @@
-import { ErrorRequestHandler } from 'express';
+import type { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import config from '../config';
 import AppError from '../errors/AppError';
@@ -6,7 +6,7 @@ import handleCastError from '../errors/handleCastError';
 import handleDuplicateError from '../errors/handleDuplicateError';
 import handleValidationError from '../errors/handleValidationError';
 import handleZodError from '../errors/handleZodError';
-import { TErrorSources } from '../interface/error';
+import type { TErrorSources } from '../interface/error';
 import { logger } from '../utils/logger';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
@@ -28,6 +28,10 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   } else if (['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(err?.name)) {
     statusCode = 401;
     message = 'Your session is invalid or expired';
+    errorSources = [{ path: '', message }];
+  } else if (err?.name === 'MulterError' || (err instanceof SyntaxError && 'body' in err)) {
+    statusCode = 400;
+    message = err?.code === 'LIMIT_FILE_SIZE' ? 'File size must not exceed 10 MB' : 'Invalid request data';
     errorSources = [{ path: '', message }];
   } else if (err?.name === 'ValidationError') {
     const simplifiedError = handleValidationError(err);

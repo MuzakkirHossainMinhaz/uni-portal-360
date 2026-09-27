@@ -1,159 +1,154 @@
-import { App, Button, Card, Col, DatePicker, Row, Select, Table, Empty, Typography, Space, Badge, Avatar, Form } from 'antd';
+import { Alert, App, Button, Card, DatePicker, Empty, Form, Input, Select, Space, Table } from 'antd';
 import { useState } from 'react';
-import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
-import PageHeader from '../../../components/layout/PageHeader';
-import { BookOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-
-const { Text } = Typography;
-
-type FacultyCourse = {
-  _id: string;
-  course: {
-    title: string;
-  };
-  section: string;
-  days: string[];
-};
+import { useGetFacultyOfferingsQuery } from '../../../redux/features/faculty/facultyCourses.api';
+import type { AttendanceSheetRow, AttendanceStatus } from '../../../redux/features/attendance/attendance.api';
+import {
+  useCreateAttendanceMutation,
+  useGetFacultyAttendanceSheetQuery,
+} from '../../../redux/features/attendance/attendance.api';
+import PageHeader from '../../../components/layout/PageHeader';
 
 const FacultyAttendance = () => {
   const { message } = App.useApp();
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
-
-  const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
-
-  const courseOptions =
-    facultyCourses?.data?.map((item) => {
-      const course = (item as unknown as FacultyCourse).course;
-      const section = (item as unknown as FacultyCourse).section;
-      const days = (item as unknown as FacultyCourse).days;
-      return {
-        value: (item as unknown as FacultyCourse)._id,
-        label: `${course.title} (${section})`,
-        desc: days.join(', '),
-      };
-    }) ?? [];
-
-  const columns = [
-      {
-          title: 'Student Name',
-          dataIndex: 'name',
-          key: 'name',
-          render: (text: string) => (
-              <Space>
-                  <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#0f6ad8' }} />
-                  <Text strong>{text}</Text>
-              </Space>
-          )
-      },
-      {
-          title: 'Roll Number',
-          dataIndex: 'roll',
-          key: 'roll',
-      },
-      {
-          title: 'Status',
-          key: 'status',
-          render: () => (
-              <Space>
-                  <Button type="primary" size="small" style={{ backgroundColor: '#52c41a' }}>Present</Button>
-                  <Button size="small" danger>Absent</Button>
-                  <Button size="small" style={{ borderColor: '#fa8c16', color: '#fa8c16' }}>Late</Button>
-              </Space>
-          )
-      }
-  ];
-
-  const mockData = [
-      { key: '1', name: 'John Doe', roll: '2023001' },
-      { key: '2', name: 'Jane Smith', roll: '2023002' },
-      { key: '3', name: 'Alice Johnson', roll: '2023003' },
-  ];
-
+  const [course, setCourse] = useState('');
+  const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [changes, setChanges] = useState<Record<string, Partial<AttendanceSheetRow>>>({});
+  const courses = useGetFacultyOfferingsQuery();
+  const sheet = useGetFacultyAttendanceSheetQuery({ offeredCourse: course, date }, { skip: !course });
+  const [save, { isLoading: saving }] = useCreateAttendanceMutation();
+  const rows = (sheet.currentData?.data ?? []).map((row) => ({ ...row, ...changes[row.student] }));
+  const change = (student: string, patch: Partial<AttendanceSheetRow>) =>
+    setChanges((value) => ({ ...value, [student]: { ...value[student], ...patch } }));
+  const submit = async () => {
+    if (rows.some((row) => !row.status)) {
+      message.error('Choose a status for every student.');
+      return;
+    }
+    try {
+      await save({
+        offeredCourse: course,
+        date,
+        attendanceList: rows.map(({ student, status, remark }) => ({ student, status, remark })),
+      }).unwrap();
+      setChanges({});
+      message.success('Attendance saved');
+    } catch {
+      message.error('Could not save attendance. Please try again.');
+    }
+  };
   return (
     <div>
-      <PageHeader
-        title="Mark Attendance"
-        subTitle="Record daily attendance for your courses."
-        breadcrumbs={[
-            { title: 'Dashboard', href: '/faculty/dashboard' },
-            { title: 'Attendance' },
-        ]}
-      />
-
-      <Row gutter={[24, 24]}>
-          <Col xs={24} lg={8}>
-            <Card title="Session Details" bordered={false} style={{ height: '100%' }}>
-                <Form layout="vertical">
-                    <Form.Item label="Select Course">
-                         <Select
-                            placeholder="Choose a course"
-                            options={courseOptions}
-                            onChange={(value) => setSelectedCourse(value)}
-                            loading={isCoursesLoading}
-                            size="large"
-                            suffixIcon={<BookOutlined />}
-                        />
-                    </Form.Item>
-                    <Form.Item label="Date">
-                        <DatePicker 
-                          style={{ width: '100%' }} 
-                          defaultValue={dayjs()}
-                          onChange={(_, dateString) => setSelectedDate(dateString as string)}
-                          size="large"
-                        />
-                    </Form.Item>
-                    
-                    {selectedCourse && (
-                         <div style={{ marginTop: 24, padding: 16, background: '#f8fafc', borderRadius: 8 }}>
-                            <Text type="secondary" style={{ fontSize: 12 }}>Selected Course Info</Text>
-                            <div style={{ marginTop: 8 }}>
-                                <Badge status="processing" text={<Text strong>Active Session</Text>} />
-                            </div>
-                         </div>
-                    )}
-                </Form>
-            </Card>
-          </Col>
-          
-          <Col xs={24} lg={16}>
-              <Card 
-                title={selectedCourse ? "Student List" : "Attendance Sheet"} 
-                bordered={false}
-                extra={
-                  selectedCourse && (
-                    <Button
-                      type="primary"
-                      onClick={() =>
-                        message.success(`Saved attendance for ${selectedDate}`)
-                      }
-                    >
-                      Save Attendance
-                    </Button>
+      <PageHeader title="Mark Attendance" subTitle="Record and review daily attendance for your courses." />
+      <Card>
+        {(courses.isError || sheet.isError) && (
+          <Alert
+            type="error"
+            showIcon
+            message="Could not load attendance. Please retry."
+            action={
+              <Button
+                onClick={() => {
+                  courses.refetch();
+                  if (course) sheet.refetch();
+                }}
+              >
+                Retry
+              </Button>
+            }
+          />
+        )}
+        <Form layout="vertical">
+          <Form.Item label="Course">
+            <Select
+              value={course || undefined}
+              placeholder="Choose a course"
+              loading={courses.isLoading}
+              disabled={saving}
+              options={courses.data?.data.map((item) => ({
+                value: item._id,
+                label: `${item.course?.title ?? 'Course'} — section ${item.section}`,
+              }))}
+              onChange={(value) => {
+                setCourse(value);
+                setChanges({});
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="Date">
+            <DatePicker
+              value={dayjs(date)}
+              allowClear={false}
+              disabled={saving}
+              onChange={(value) => {
+                if (value) setDate(value.format('YYYY-MM-DD'));
+                setChanges({});
+              }}
+            />
+          </Form.Item>
+        </Form>
+        {course ? (
+          <>
+            <Space style={{ marginBottom: 16 }} wrap>
+              <Button
+                disabled={!rows.length || sheet.isFetching || saving}
+                onClick={() =>
+                  setChanges(
+                    Object.fromEntries(rows.map((row) => [row.student, { status: 'Present', remark: row.remark }])),
                   )
                 }
-                style={{ minHeight: 400 }}
               >
-                {selectedCourse ? (
-                     <Table 
-                        dataSource={mockData} 
-                        columns={columns} 
-                        pagination={false}
-                        rowClassName="editable-row"
-                     />
-                ) : (
-                    <Empty 
-                        image={Empty.PRESENTED_IMAGE_SIMPLE} 
-                        description="Please select a course to view student list"
-                        style={{ margin: '60px 0' }}
+                Mark all present
+              </Button>
+              <Button
+                type="primary"
+                loading={saving}
+                disabled={!rows.length || sheet.isFetching || sheet.isError}
+                onClick={submit}
+              >
+                Save attendance
+              </Button>
+            </Space>
+            <Table
+              rowKey="student"
+              dataSource={rows}
+              loading={sheet.isFetching}
+              scroll={{ x: 650 }}
+              pagination={{ pageSize: 20 }}
+              columns={[
+                { title: 'Student ID', dataIndex: 'id' },
+                { title: 'Name', dataIndex: 'name' },
+                {
+                  title: 'Status',
+                  render: (_, row) => (
+                    <Select
+                      style={{ width: 125 }}
+                      placeholder="Choose status"
+                      value={row.status ?? undefined}
+                      disabled={saving}
+                      options={['Present', 'Absent', 'Late'].map((value) => ({ value, label: value }))}
+                      onChange={(status: AttendanceStatus) => change(row.student, { status })}
                     />
-                )}
-              </Card>
-          </Col>
-      </Row>
+                  ),
+                },
+                {
+                  title: 'Remark',
+                  render: (_, row) => (
+                    <Input
+                      value={row.remark}
+                      disabled={saving}
+                      onChange={(event) => change(row.student, { remark: event.target.value })}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </>
+        ) : (
+          <Empty description="Select a course to load its students" />
+        )}
+      </Card>
     </div>
   );
 };
-
 export default FacultyAttendance;

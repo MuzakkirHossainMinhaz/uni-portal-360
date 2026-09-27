@@ -5,19 +5,19 @@ import AppError from '../../errors/AppError';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
 import { AcademicSemester } from '../AcademicSemester/academicSemester.model';
-import { TAdmin } from '../Admin/admin.interface';
+import type { TAdmin } from '../Admin/admin.interface';
 import { Admin } from '../Admin/admin.model';
-import { TFaculty } from '../Faculty/faculty.interface';
+import type { TFaculty } from '../Faculty/faculty.interface';
 import { Faculty } from '../Faculty/faculty.model';
-import { TStudent } from '../Student/student.interface';
+import type { TStudent } from '../Student/student.interface';
 import { Student } from '../Student/student.model';
-import { TUser } from './user.interface';
+import type { TUser } from './user.interface';
 import { User } from './user.model';
 import { generateAdminId, generateFacultyId, generateStudentId } from './user.utils';
-import { Express } from 'express';
-import { RBACService } from '../RBAC/rbac.service';
+import type { Express } from 'express';
+import { RBACServices } from '../RBAC/rbac.service';
 
-const createStudentIntoDB = async (
+const createStudent = async (
   file: Express.Multer.File | undefined,
   password: string | undefined,
   payload: TStudent,
@@ -93,7 +93,7 @@ const createStudentIntoDB = async (
   }
 };
 
-const createFacultyIntoDB = async (
+const createFaculty = async (
   file: Express.Multer.File | undefined,
   password: string | undefined,
   payload: TFaculty,
@@ -163,11 +163,7 @@ const createFacultyIntoDB = async (
   }
 };
 
-const createAdminIntoDB = async (
-  file: Express.Multer.File | undefined,
-  password: string | undefined,
-  payload: TAdmin,
-) => {
+const createAdmin = async (file: Express.Multer.File | undefined, password: string | undefined, payload: TAdmin) => {
   // create a user object
   const userData: Partial<TUser> = {};
 
@@ -237,16 +233,12 @@ const getMe = async (userId: string, role: string) => {
     result = await Admin.findOne({ id: userId }).populate('user');
   }
 
-  const permissions = await RBACService.getRolePermissions(role);
+  const permissions = await RBACServices.getRolePermissions(role);
 
   return { ...result?.toObject(), permissions };
 };
 
-const changeStatus = async (
-  id: string,
-  payload: { status: string },
-  actor: { userId: string; role: string },
-) => {
+const changeStatus = async (id: string, payload: { status: string }, actor: { userId: string; role: string }) => {
   const target = await User.findById(id);
   if (!target) throw new AppError(httpStatus.NOT_FOUND, 'Account not found');
   if (target.role === 'superAdmin' && actor.role !== 'superAdmin') {
@@ -263,9 +255,9 @@ const changeStatus = async (
 };
 
 export const UserServices = {
-  createStudentIntoDB,
-  createFacultyIntoDB,
-  createAdminIntoDB,
+  createStudent,
+  createFaculty,
+  createAdmin,
   getMe,
   changeStatus,
 };

@@ -1,7 +1,7 @@
 import { logger } from '../../utils/logger';
 import { Permission, Role, RolePermission } from './rbac.model';
 import { USER_ROLE } from '../User/user.constant';
-import { TUserRole } from '../User/user.interface';
+import type { TUserRole } from '../User/user.interface';
 
 const ROLES = Object.values(USER_ROLE);
 
@@ -227,7 +227,9 @@ const getRolePermissions = async (roleName: string): Promise<string[]> => {
         return rp.permissionId;
       }
       const populated: unknown = rp.permissionId;
-      return typeof populated === 'object' && populated !== null && 'name' in populated &&
+      return typeof populated === 'object' &&
+        populated !== null &&
+        'name' in populated &&
         typeof populated.name === 'string'
         ? populated.name
         : '';
@@ -235,7 +237,7 @@ const getRolePermissions = async (roleName: string): Promise<string[]> => {
     .filter(Boolean);
 };
 
-export const RBACService = {
+export const RBACServices = {
   seedRBAC,
   hasPermission,
   getRolePermissions,

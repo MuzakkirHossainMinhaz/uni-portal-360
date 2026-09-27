@@ -2,7 +2,8 @@ import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useRef, useState } from 'react';
-import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
+import type { UniFormHandle } from '../../../components/form/UniForm';
+import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
@@ -15,7 +16,7 @@ import {
   useUpdateFacultyMutation,
 } from '../../../redux/features/admin/userManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
-import { TFaculty } from '../../../types';
+import type { TFaculty } from '../../../types';
 import { logger } from '../../../utils/logger';
 
 const { Title } = Typography;
@@ -333,7 +334,7 @@ const Faculty = () => {
               onClick={handleBulkDelete}
               disabled={selectedRowKeys.length === 0}
               danger
-              style={{ borderRadius: 8, height: 40, }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Delete ({selectedRowKeys.length})
             </Button>
@@ -341,7 +342,7 @@ const Faculty = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleAddFaculty}
-              style={{ borderRadius: 8, height: 40, }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Add Faculty
             </Button>
@@ -385,36 +386,36 @@ const Faculty = () => {
           defaultValues={
             editingFaculty
               ? {
-                firstName: editingFaculty.name?.firstName || '',
-                middleName: editingFaculty.name?.middleName || '',
-                lastName: editingFaculty.name?.lastName || '',
-                designation: editingFaculty.designation || '',
-                gender: editingFaculty.gender || '',
-                dateOfBirth: editingFaculty.dateOfBirth?.slice(0, 10) || '',
-                email: editingFaculty.email,
-                contactNo: editingFaculty.contactNo || '',
-                emergencyContactNo: editingFaculty.emergencyContactNo || '',
-                bloodGroup: editingFaculty.bloodGroup || '',
-                presentAddress: editingFaculty.presentAddress || '',
-                permanentAddress: editingFaculty.permanentAddress || '',
-                academicDepartment: editingFaculty.academicDepartment?._id,
-              }
+                  firstName: editingFaculty.name?.firstName || '',
+                  middleName: editingFaculty.name?.middleName || '',
+                  lastName: editingFaculty.name?.lastName || '',
+                  designation: editingFaculty.designation || '',
+                  gender: editingFaculty.gender || undefined,
+                  dateOfBirth: editingFaculty.dateOfBirth?.slice(0, 10) || '',
+                  email: editingFaculty.email,
+                  contactNo: editingFaculty.contactNo || '',
+                  emergencyContactNo: editingFaculty.emergencyContactNo || '',
+                  bloodGroup: editingFaculty.bloodGroup || '',
+                  presentAddress: editingFaculty.presentAddress || '',
+                  permanentAddress: editingFaculty.permanentAddress || '',
+                  academicDepartment: editingFaculty.academicDepartment?._id,
+                }
               : {
-                firstName: '',
-                middleName: '',
-                lastName: '',
-                password: '',
-                designation: '',
-                gender: '',
-                dateOfBirth: '',
-                email: '',
-                contactNo: '',
-                emergencyContactNo: '',
-                bloodGroup: '',
-                presentAddress: '',
-                permanentAddress: '',
-                academicDepartment: '',
-              }
+                  firstName: '',
+                  middleName: '',
+                  lastName: '',
+                  password: '',
+                  designation: '',
+                  gender: undefined,
+                  dateOfBirth: '',
+                  email: '',
+                  contactNo: '',
+                  emergencyContactNo: '',
+                  bloodGroup: '',
+                  presentAddress: '',
+                  permanentAddress: '',
+                  academicDepartment: '',
+                }
           }
         >
           <Row gutter={[16, 0]}>

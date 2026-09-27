@@ -1,6 +1,7 @@
-import { Button, Card, Col, Row, Table, Tag } from 'antd';
+import { useState } from 'react';
+import { Alert, App, Button, Card, Col, Row, Table, Tag } from 'antd';
 import { useGetMySemesterResultsQuery } from '../../../redux/features/student/semesterResult.api';
-import { selectCurrentUser } from '../../../redux/features/auth/authSlice';
+import { selectCurrentUser, useCurrentToken } from '../../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../../redux/hooks';
 
 type SemesterResult = {
@@ -15,47 +16,40 @@ type SemesterResult = {
 };
 
 const StudentResults = () => {
-  const { data: semesterResults, isLoading } = useGetMySemesterResultsQuery(undefined);
+  const { data: semesterResults, isLoading, isError } = useGetMySemesterResultsQuery(undefined);
   const user = useAppSelector(selectCurrentUser);
 
+  const { message } = App.useApp();
+  const token = useAppSelector(useCurrentToken);
+  const [downloading, setDownloading] = useState(false);
   const handleDownloadTranscript = async () => {
-      // In a real app, you would use RTK Query mutation or fetch to get the blob
-      // and trigger a download.
-      // For now, a simple window.open or direct link works if using cookies for auth,
-      // but since we likely use Bearer tokens, we need to fetch with headers.
-      
-      try {
-          const token = localStorage.getItem('token'); // Assuming token is stored here or in state
-          const response = await fetch('http://localhost:5000/api/v1/transcript', {
-              headers: {
-                  'Authorization': `${token}` // Adjust based on your auth header format (e.g. `Bearer ${token}`)
-              }
-          });
-          
-          if (!response.ok) throw new Error('Download failed');
-          
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Transcript_${user?.userId}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-      } catch (error) {
-          console.error('Error downloading transcript:', error);
-          alert('Failed to download transcript');
-      }
+    setDownloading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/transcript`, {
+        headers: { authorization: token ?? '' },
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Could not download transcript');
+      const url = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `Transcript_${user?.userId}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      message.error('Could not download transcript. Check that results have been published.');
+    } finally {
+      setDownloading(false);
+    }
   };
-
   const columns = [
     {
       title: 'Semester',
       dataIndex: ['academicSemester', 'name'],
       key: 'semester',
-      render: (text: string, record: SemesterResult) =>
-        `${text} ${record.academicSemester.year}`,
+      render: (text: string, record: SemesterResult) => `${text} ${record.academicSemester.year}`,
     },
     {
       title: 'Credits',
@@ -66,11 +60,7 @@ const StudentResults = () => {
       title: 'GPA',
       dataIndex: 'gpa',
       key: 'gpa',
-      render: (gpa: number) => (
-        <Tag color={gpa >= 3.0 ? 'green' : gpa >= 2.0 ? 'orange' : 'red'}>
-          {gpa.toFixed(2)}
-        </Tag>
-      ),
+      render: (gpa: number) => <Tag color={gpa >= 3.0 ? 'green' : gpa >= 2.0 ? 'orange' : 'red'}>{gpa.toFixed(2)}</Tag>,
     },
     {
       title: 'Completed Courses',
@@ -83,11 +73,14 @@ const StudentResults = () => {
   return (
     <div>
       <h1 style={{ marginBottom: '20px' }}>Academic Results</h1>
-      
+
+      {isError && <Alert type="error" message="Could not load results" />}
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={24}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-             <Button type="primary" onClick={handleDownloadTranscript}>Download Official Transcript</Button>
+            <Button type="primary" onClick={handleDownloadTranscript} loading={downloading}>
+              Download Official Transcript
+            </Button>
           </div>
           <Card title="Result History">
             <Table

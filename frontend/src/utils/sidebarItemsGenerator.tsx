@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { TSidebarItem, TUserPath } from '../types';
+import type { TSidebarItem, TUserPath } from '../types';
 import {
   DashboardOutlined,
   BookOutlined,
@@ -13,12 +13,12 @@ import {
   BankOutlined,
   AppstoreOutlined,
   SafetyCertificateOutlined,
-  SolutionOutlined
+  SolutionOutlined,
 } from '@ant-design/icons';
 
 const getIconForItem = (itemName: string) => {
   const iconMap: { [key: string]: React.ReactNode } = {
-    'Dashboard': <DashboardOutlined />,
+    Dashboard: <DashboardOutlined />,
     'Academic Management': <AppstoreOutlined />,
     'Create A. Semester': <CalendarOutlined />,
     'Academic Semester': <CalendarOutlined />,
@@ -29,21 +29,21 @@ const getIconForItem = (itemName: string) => {
     'User Management': <UserOutlined />,
     'All Accounts & Roles': <TeamOutlined />,
     'Create Student': <ReadOutlined />,
-    'Students': <ReadOutlined />,
+    Students: <ReadOutlined />,
     'Create Admin': <SafetyCertificateOutlined />,
-    'Admins': <SafetyCertificateOutlined />,
+    Admins: <SafetyCertificateOutlined />,
     'Create Faculty': <SolutionOutlined />,
-    'Faculty': <SolutionOutlined />,
+    Faculty: <SolutionOutlined />,
     'Course Management': <BookOutlined />,
-    'Semesters': <CalendarOutlined />,
-    'Courses': <BookOutlined />,
+    Semesters: <CalendarOutlined />,
+    Courses: <BookOutlined />,
     'Offered Courses': <ReadOutlined />,
     'Fee Management': <DollarOutlined />,
     'Manage Fees': <DollarOutlined />,
-    'System': <SettingOutlined />,
+    System: <SettingOutlined />,
     'Audit Logs': <AuditOutlined />,
   };
-  
+
   return iconMap[itemName] || <DashboardOutlined />;
 };
 

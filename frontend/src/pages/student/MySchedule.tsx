@@ -1,24 +1,46 @@
+import { Alert, Button, Card, Table } from 'antd';
+import { useState } from 'react';
+import PageHeader from '../../components/layout/PageHeader';
 import { useGetAllEnrolledCoursesQuery } from '../../redux/features/student/studentCourseManagement.api';
-import { TStudentEnrolledCourseSchedule } from '../../types/studentCourse.type';
-
 const MySchedule = () => {
-  const { data } = useGetAllEnrolledCoursesQuery(undefined);
-
+  const [page, setPage] = useState(1);
+  const { data, isFetching, isError, refetch } = useGetAllEnrolledCoursesQuery([
+    { name: 'page', value: page },
+    { name: 'limit', value: 10 },
+    { name: 'isCompleted', value: 'false' },
+  ]);
   return (
-    <div>
-      {data?.data?.map((item: TStudentEnrolledCourseSchedule) => (
-        <div key={item._id}>
-          <div>{item.course.title}</div>
-          <div>{item.offeredCourse.section}</div>
-          <div>
-            {item.offeredCourse.days.map((day) => (
-              <span key={day}> {day}</span>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
+    <>
+      <PageHeader title="My Schedule" subTitle="Weekly schedules for your current enrolled courses." />
+      {isError && (
+        <Alert type="error" message="Could not load schedule" action={<Button onClick={refetch}>Retry</Button>} />
+      )}
+      <Card>
+        <Table
+          rowKey="_id"
+          loading={isFetching}
+          dataSource={data?.data ?? []}
+          scroll={{ x: 550 }}
+          pagination={{
+            current: page,
+            pageSize: 10,
+            total: data?.meta?.total,
+            onChange: setPage,
+            showSizeChanger: false,
+          }}
+          columns={[
+            { title: 'Course', dataIndex: ['course', 'title'] },
+            { title: 'Section', dataIndex: ['offeredCourse', 'section'] },
+            { title: 'Days', render: (_, row) => row.offeredCourse?.days.join(', ') ?? 'Unavailable' },
+            {
+              title: 'Time',
+              render: (_, row) =>
+                row.offeredCourse ? `${row.offeredCourse.startTime}–${row.offeredCourse.endTime}` : 'Unavailable',
+            },
+          ]}
+        />
+      </Card>
+    </>
   );
 };
-
 export default MySchedule;

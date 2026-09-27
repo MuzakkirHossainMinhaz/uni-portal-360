@@ -13,8 +13,8 @@ import { EnrolledCourseRoutes } from '../modules/EnrolledCourse/enrolledCourse.r
 import { FacultyRoutes } from '../modules/Faculty/faculty.route';
 import { FeeRoutes } from '../modules/Fee/fee.route';
 import { NotificationRoutes } from '../modules/Notification/notification.route';
-import { offeredCourseRoutes } from '../modules/OfferedCourse/OfferedCourse.route';
-import { semesterRegistrationRoutes } from '../modules/SemesterRegistration/semesterRegistration.route';
+import { OfferedCourseRoutes } from '../modules/OfferedCourse/offeredCourse.route';
+import { SemesterRegistrationRoutes } from '../modules/SemesterRegistration/semesterRegistration.route';
 import { SemesterResultRoutes } from '../modules/SemesterResult/semesterResult.route';
 import { StudentRoutes } from '../modules/Student/student.route';
 import { SubmissionRoutes } from '../modules/Submission/submission.route';
@@ -58,11 +58,11 @@ const moduleRoutes = [
   },
   {
     path: '/semester-registrations',
-    route: semesterRegistrationRoutes,
+    route: SemesterRegistrationRoutes,
   },
   {
     path: '/offered-courses',
-    route: offeredCourseRoutes,
+    route: OfferedCourseRoutes,
   },
   {
     path: '/auth',

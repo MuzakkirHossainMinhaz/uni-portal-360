@@ -1,6 +1,7 @@
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import { typescriptRules } from '../eslint.rules.mjs';
 
 export default [
   {
@@ -21,14 +22,7 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-        },
-      ],
+      ...typescriptRules,
       'react-refresh/only-export-components': 'off',
     },
   },

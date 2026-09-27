@@ -2,7 +2,8 @@ import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useRef, useState } from 'react';
-import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
+import type { UniFormHandle } from '../../../components/form/UniForm';
+import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
@@ -18,7 +19,7 @@ import {
   useUpdateStudentMutation,
 } from '../../../redux/features/admin/userManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
-import { TStudent } from '../../../types';
+import type { TStudent } from '../../../types';
 import { logger } from '../../../utils/logger';
 
 const { Title } = Typography;
@@ -275,58 +276,58 @@ const Student = () => {
     return <Alert description="Error loading students" type="error" showIcon />;
   }
 
-  const defaultValues = editingStudent
+  const defaultValues: Partial<StudentFormValues> = editingStudent
     ? {
-      firstName: editingStudent.name?.firstName || '',
-      middleName: editingStudent.name?.middleName || '',
-      lastName: editingStudent.name?.lastName || '',
-      gender: editingStudent.gender || '',
-      dateOfBirth: editingStudent.dateOfBirth?.slice(0, 10) || '',
-      email: editingStudent.email,
-      contactNo: editingStudent.contactNo || '',
-      emergencyContactNo: editingStudent.emergencyContactNo || '',
-      bloodGroup: editingStudent.bloodGroup || '',
-      presentAddress: editingStudent.presentAddress || '',
-      permanentAddress: editingStudent.permanentAddress || '',
-      fatherName: editingStudent.guardian?.fatherName || '',
-      fatherOccupation: editingStudent.guardian?.fatherOccupation || '',
-      fatherContactNo: editingStudent.guardian?.fatherContactNo || '',
-      motherName: editingStudent.guardian?.motherName || '',
-      motherOccupation: editingStudent.guardian?.motherOccupation || '',
-      motherContactNo: editingStudent.guardian?.motherContactNo || '',
-      localGuardianName: editingStudent.localGuardian?.name || '',
-      localGuardianOccupation: editingStudent.localGuardian?.occupation || '',
-      localGuardianContactNo: editingStudent.localGuardian?.contactNo || '',
-      localGuardianAddress: editingStudent.localGuardian?.address || '',
-      admissionSemester: editingStudent.admissionSemester?._id || '',
-      academicDepartment: editingStudent.academicDepartment?._id || '',
-    }
+        firstName: editingStudent.name?.firstName || '',
+        middleName: editingStudent.name?.middleName || '',
+        lastName: editingStudent.name?.lastName || '',
+        gender: editingStudent.gender || undefined,
+        dateOfBirth: editingStudent.dateOfBirth?.slice(0, 10) || '',
+        email: editingStudent.email,
+        contactNo: editingStudent.contactNo || '',
+        emergencyContactNo: editingStudent.emergencyContactNo || '',
+        bloodGroup: editingStudent.bloodGroup || '',
+        presentAddress: editingStudent.presentAddress || '',
+        permanentAddress: editingStudent.permanentAddress || '',
+        fatherName: editingStudent.guardian?.fatherName || '',
+        fatherOccupation: editingStudent.guardian?.fatherOccupation || '',
+        fatherContactNo: editingStudent.guardian?.fatherContactNo || '',
+        motherName: editingStudent.guardian?.motherName || '',
+        motherOccupation: editingStudent.guardian?.motherOccupation || '',
+        motherContactNo: editingStudent.guardian?.motherContactNo || '',
+        localGuardianName: editingStudent.localGuardian?.name || '',
+        localGuardianOccupation: editingStudent.localGuardian?.occupation || '',
+        localGuardianContactNo: editingStudent.localGuardian?.contactNo || '',
+        localGuardianAddress: editingStudent.localGuardian?.address || '',
+        admissionSemester: editingStudent.admissionSemester?._id || '',
+        academicDepartment: editingStudent.academicDepartment?._id || '',
+      }
     : {
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      password: '',
-      gender: '',
-      dateOfBirth: '',
-      email: '',
-      contactNo: '',
-      emergencyContactNo: '',
-      bloodGroup: '',
-      presentAddress: '',
-      permanentAddress: '',
-      fatherName: '',
-      fatherOccupation: '',
-      fatherContactNo: '',
-      motherName: '',
-      motherOccupation: '',
-      motherContactNo: '',
-      localGuardianName: '',
-      localGuardianOccupation: '',
-      localGuardianContactNo: '',
-      localGuardianAddress: '',
-      admissionSemester: '',
-      academicDepartment: '',
-    };
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        password: '',
+        gender: undefined,
+        dateOfBirth: '',
+        email: '',
+        contactNo: '',
+        emergencyContactNo: '',
+        bloodGroup: '',
+        presentAddress: '',
+        permanentAddress: '',
+        fatherName: '',
+        fatherOccupation: '',
+        fatherContactNo: '',
+        motherName: '',
+        motherOccupation: '',
+        motherContactNo: '',
+        localGuardianName: '',
+        localGuardianOccupation: '',
+        localGuardianContactNo: '',
+        localGuardianAddress: '',
+        admissionSemester: '',
+        academicDepartment: '',
+      };
 
   return (
     <div>
@@ -353,7 +354,7 @@ const Student = () => {
               onClick={handleBulkDelete}
               disabled={selectedRowKeys.length === 0}
               danger
-              style={{ borderRadius: 8, height: 40, }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Delete ({selectedRowKeys.length})
             </Button>
@@ -364,7 +365,7 @@ const Student = () => {
                 setEditingStudent(null);
                 setIsModalVisible(true);
               }}
-              style={{ borderRadius: 8, height: 40, }}
+              style={{ borderRadius: 8, height: 40 }}
             >
               Add Student
             </Button>

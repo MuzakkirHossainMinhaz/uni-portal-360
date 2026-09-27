@@ -1,53 +1,54 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { FacultyServices } from './faculty.service';
 
 const getSingleFaculty = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await FacultyServices.getSingleFacultyFromDB(id as string);
+  const id = getRouteParam(req, 'id');
+  const result = await FacultyServices.getSingleFaculty(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculty is retrieved successfully',
+    message: 'Faculty retrieved successfully',
     data: result,
   });
 });
 
 const getAllFaculties = catchAsync(async (req, res) => {
-  const result = await FacultyServices.getAllFacultiesFromDB(req.query);
+  const result = await FacultyServices.getAllFaculties(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculties are retrieved successfully',
+    message: 'Faculties retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
 const updateFaculty = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const id = getRouteParam(req, 'id');
   const { faculty } = req.body;
-  const result = await FacultyServices.updateFacultyIntoDB(id as string, faculty);
+  const result = await FacultyServices.updateFaculty(id, faculty);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculty is updated successfully',
+    message: 'Faculty updated successfully',
     data: result,
   });
 });
 
 const deleteFaculty = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await FacultyServices.deleteFacultyFromDB(id as string);
+  const id = getRouteParam(req, 'id');
+  const result = await FacultyServices.deleteFaculty(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculty is deleted successfully',
+    message: 'Faculty deleted successfully',
     data: result,
   });
 });

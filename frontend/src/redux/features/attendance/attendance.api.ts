@@ -1,17 +1,22 @@
-import { TMeta, TResponseRedux } from '../../../types';
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type { TPaginatedResponse, TResponse } from '../../../types';
+
 import { baseApi } from '../../api/baseApi';
 
-type PaginatedResponse<T> = {
-  data?: T;
-  meta?: TMeta;
+export type AttendanceStatus = 'Present' | 'Absent' | 'Late';
+export type AttendanceSheetRow = {
+  student: string;
+  id: string;
+  name: string;
+  status: AttendanceStatus | null;
+  remark: string;
 };
-
 type AttendanceRecord = {
   _id: string;
   student: string;
-  offeredCourse: string;
+  offeredCourse: { course?: { title: string } } | null;
   date: string;
-  status: 'PRESENT' | 'ABSENT' | 'LATE';
+  status: AttendanceStatus;
 };
 
 type LowAttendanceStudent = {
@@ -31,11 +36,16 @@ type LowAttendanceStudent = {
 
 type AttendanceAnalytics = {
   totalAttendance: number;
+  statusBreakdown: { _id: string; count: number }[];
 };
 
 const attendanceApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    createAttendance: builder.mutation<AttendanceRecord, unknown>({
+    getFacultyAttendanceSheet: builder.query<{ data: AttendanceSheetRow[] }, { offeredCourse: string; date: string }>({
+      query: (params) => ({ url: '/attendance/sheet', params }),
+      providesTags: ['Attendance'],
+    }),
+    createAttendance: builder.mutation<TResponse<unknown>, unknown>({
       query: (data) => ({
         url: '/attendance',
         method: 'POST',
@@ -43,73 +53,43 @@ const attendanceApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Attendance'],
     }),
-    getMyAttendance: builder.query<PaginatedResponse<AttendanceRecord[]>, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/attendance/my-attendance',
-          method: 'GET',
-          params: params,
-        };
-      },
-      providesTags: ['Attendance'],
-      transformResponse: (response: TResponseRedux<AttendanceRecord[]>) => ({
-        data: response.data,
-        meta: response.meta,
+    getMyAttendance: builder.query<TPaginatedResponse<AttendanceRecord>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/attendance/my-attendance',
+        method: 'GET',
+        params: toQueryParams(args),
       }),
-    }),
-    getAttendanceReport: builder.query<PaginatedResponse<AttendanceRecord[]>, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/attendance/admin/report',
-          method: 'GET',
-          params: params,
-        };
-      },
       providesTags: ['Attendance'],
-      transformResponse: (response: TResponseRedux<AttendanceRecord[]>) => ({
-        data: response.data,
-        meta: response.meta,
-      }),
+      transformResponse: (response: TResponse<AttendanceRecord[]>) => toPage(response),
     }),
-    getLowAttendanceStudents: builder.query<PaginatedResponse<LowAttendanceStudent[]>, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/attendance/admin/low-attendance',
-          method: 'GET',
-          params: params,
-        };
-      },
+    getAttendanceReport: builder.query<TPaginatedResponse<AttendanceRecord>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/attendance/admin/report',
+        method: 'GET',
+        params: toQueryParams(args),
+      }),
       providesTags: ['Attendance'],
-      transformResponse: (response: TResponseRedux<LowAttendanceStudent[]>) => ({
-        data: response.data,
-        meta: response.meta,
-      }),
+      transformResponse: (response: TResponse<AttendanceRecord[]>) => toPage(response),
     }),
-    getAttendanceAnalytics: builder.query<PaginatedResponse<AttendanceAnalytics>, void>({
+    getLowAttendanceStudents: builder.query<
+      TPaginatedResponse<LowAttendanceStudent>,
+      Record<string, string> | undefined
+    >({
+      query: (args) => ({
+        url: '/attendance/admin/low-attendance',
+        method: 'GET',
+        params: toQueryParams(args),
+      }),
+      providesTags: ['Attendance'],
+      transformResponse: (response: TResponse<LowAttendanceStudent[]>) => toPage(response),
+    }),
+    getAttendanceAnalytics: builder.query<Pick<TResponse<AttendanceAnalytics>, 'data' | 'meta'>, void>({
       query: () => ({
         url: '/attendance/admin/analytics',
         method: 'GET',
       }),
       providesTags: ['Attendance'],
-      transformResponse: (response: TResponseRedux<AttendanceAnalytics>) => ({
+      transformResponse: (response: TResponse<AttendanceAnalytics>) => ({
         data: response.data,
         meta: response.meta,
       }),
@@ -118,9 +98,10 @@ const attendanceApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetFacultyAttendanceSheetQuery,
   useCreateAttendanceMutation,
   useGetMyAttendanceQuery,
   useGetAttendanceReportQuery,
   useGetLowAttendanceStudentsQuery,
-  useGetAttendanceAnalyticsQuery
+  useGetAttendanceAnalyticsQuery,
 } = attendanceApi;

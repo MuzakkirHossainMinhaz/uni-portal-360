@@ -5,11 +5,11 @@ import { SemesterResult } from '../SemesterResult/semesterResult.model';
 import { Student } from '../Student/student.model';
 
 type PopulatedDepartment = {
-  title?: string;
+  name?: string;
 };
 
 type PopulatedFaculty = {
-  title?: string;
+  name?: string;
 };
 
 type PopulatedSemester = {
@@ -59,11 +59,8 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
   if (!semesterResults.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'No academic records found for this student');
   }
-  
-  doc
-    .fontSize(20)
-    .text('OFFICIAL ACADEMIC TRANSCRIPT', { align: 'center', underline: true })
-    .moveDown();
+
+  doc.fontSize(20).text('OFFICIAL ACADEMIC TRANSCRIPT', { align: 'center', underline: true }).moveDown();
 
   const studentName = `${student.name.firstName} ${student.name.middleName ?? ''} ${student.name.lastName}`
     .replace(/\s+/g, ' ')
@@ -73,10 +70,8 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
     .fontSize(12)
     .text(`Student Name: ${studentName}`)
     .text(`Student ID: ${student.id}`)
-    .text(
-      `Department: ${(student.academicDepartment as PopulatedDepartment | null)?.title ?? 'N/A'}`,
-    )
-    .text(`Faculty: ${(student.academicFaculty as PopulatedFaculty | null)?.title ?? 'N/A'}`)
+    .text(`Department: ${(student.academicDepartment as PopulatedDepartment | null)?.name ?? 'N/A'}`)
+    .text(`Faculty: ${(student.academicFaculty as PopulatedFaculty | null)?.name ?? 'N/A'}`)
     .text(`Date Issued: ${new Date().toLocaleDateString()}`)
     .moveDown();
 
@@ -85,13 +80,8 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
   for (const result of semesterResults) {
     const semesterInfo = result.academicSemester as PopulatedSemester | null;
     const semesterName = `${semesterInfo?.name ?? ''} ${semesterInfo?.year ?? ''}`.trim();
-    
-    doc
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text(semesterName)
-      .font('Helvetica')
-      .fontSize(10);
+
+    doc.fontSize(14).font('Helvetica-Bold').text(semesterName).font('Helvetica').fontSize(10);
 
     const tableTop = doc.y + 10;
     const col1 = 50; // Code
@@ -111,37 +101,37 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
 
     for (const enrolledCourse of result.completedCourses as unknown as CompletedCourse[]) {
       // Check for page break
-       if (yPosition > 700) {
-           doc.addPage();
-           yPosition = 50;
-       }
+      if (yPosition > 700) {
+        doc.addPage();
+        yPosition = 50;
+      }
 
       const courseDetails = enrolledCourse.course;
-      
-       doc
+
+      doc
         .text(courseDetails.code || 'N/A', col1, yPosition)
         .text(courseDetails.title.substring(0, 45) || 'N/A', col2, yPosition)
         .text(courseDetails.credits.toString(), col3, yPosition)
         .text(enrolledCourse.gradePoints.toString(), col4, yPosition)
         .text(enrolledCourse.grade, col5, yPosition);
 
-       yPosition += 15;
+      yPosition += 15;
     }
-    
+
     yPosition += 10;
     doc
-        .font('Helvetica-Bold')
-        .text(`Semester GPA: ${result.gpa.toFixed(2)}`, col1, yPosition)
-        .text(`Credits: ${result.totalCredits}`, col3, yPosition)
-        .font('Helvetica')
-        .moveDown(2);
-        
+      .font('Helvetica-Bold')
+      .text(`Semester GPA: ${result.gpa.toFixed(2)}`, col1, yPosition)
+      .text(`Credits: ${result.totalCredits}`, col3, yPosition)
+      .font('Helvetica')
+      .moveDown(2);
+
     doc.y = yPosition + 30; // Update cursor for next loop
   }
 
   doc.moveDown();
   doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown();
-  
+
   doc
     .fontSize(14)
     .font('Helvetica-Bold')

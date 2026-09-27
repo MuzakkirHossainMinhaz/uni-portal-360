@@ -1,40 +1,29 @@
-import {
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type {
   TAcademicDepartment,
   TAcademicFaculty,
   TAcademicSemester,
-  TMeta,
+  TPaginatedResponse,
   TQueryParam,
-  TResponseRedux,
+  TResponse,
 } from '../../../types';
 import { baseApi } from '../../api/baseApi';
 
-type AcademicPage<T> = { data: T[]; meta?: TMeta };
 type SemesterPayload = Pick<TAcademicSemester, 'name' | 'year' | 'code' | 'startMonth' | 'endMonth'>;
 type FacultyPayload = Pick<TAcademicFaculty, 'name' | 'description'>;
 type DepartmentPayload = { name: string; description?: string; academicFaculty: string };
 
-const toQueryParams = (args?: TQueryParam[]) => {
-  const params = new URLSearchParams();
-  args?.forEach(({ name, value }) => params.append(name, String(value)));
-  return params;
-};
-
-const toPage = <T>(response: TResponseRedux<T[]>): AcademicPage<T> => ({
-  data: response.data ?? [],
-  meta: response.meta,
-});
-
 export const academicManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Academic Semester endpoints
-    getAllAcademicSemesters: builder.query<AcademicPage<TAcademicSemester>, TQueryParam[] | undefined>({
+    getAllAcademicSemesters: builder.query<TPaginatedResponse<TAcademicSemester>, TQueryParam[] | undefined>({
       query: (args) => ({
         url: '/academic-semesters',
         method: 'GET',
         params: toQueryParams(args),
       }),
       providesTags: ['AcademicSemesters'],
-      transformResponse: (response: TResponseRedux<TAcademicSemester[]>) => toPage(response),
+      transformResponse: (response: TResponse<TAcademicSemester[]>) => toPage(response),
     }),
 
     getSingleAcademicSemester: builder.query<TAcademicSemester | undefined, string>({
@@ -43,10 +32,10 @@ export const academicManagementApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: ['AcademicSemesters'],
-      transformResponse: (response: TResponseRedux<TAcademicSemester>) => response.data,
+      transformResponse: (response: TResponse<TAcademicSemester>) => response.data,
     }),
 
-    createAcademicSemester: builder.mutation<unknown, SemesterPayload>({
+    createAcademicSemester: builder.mutation<TResponse<unknown>, SemesterPayload>({
       query: (data) => ({
         url: '/academic-semesters',
         method: 'POST',
@@ -55,7 +44,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicSemesters'],
     }),
 
-    updateAcademicSemester: builder.mutation<unknown, { id: string; data: Partial<SemesterPayload> }>({
+    updateAcademicSemester: builder.mutation<TResponse<unknown>, { id: string; data: Partial<SemesterPayload> }>({
       query: ({ id, data }) => ({
         url: `/academic-semesters/${id}`,
         method: 'PATCH',
@@ -64,7 +53,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicSemesters'],
     }),
 
-    deleteAcademicSemester: builder.mutation<unknown, string>({
+    deleteAcademicSemester: builder.mutation<TResponse<unknown>, string>({
       query: (id: string) => ({
         url: `/academic-semesters/${id}`,
         method: 'DELETE',
@@ -73,14 +62,14 @@ export const academicManagementApi = baseApi.injectEndpoints({
     }),
 
     // Academic Faculty endpoints
-    getAllAcademicFaculties: builder.query<AcademicPage<TAcademicFaculty>, TQueryParam[] | undefined>({
+    getAllAcademicFaculties: builder.query<TPaginatedResponse<TAcademicFaculty>, TQueryParam[] | undefined>({
       query: (args) => ({
         url: '/academic-faculties',
         method: 'GET',
         params: toQueryParams(args),
       }),
       providesTags: ['AcademicFaculties'],
-      transformResponse: (response: TResponseRedux<TAcademicFaculty[]>) => toPage(response),
+      transformResponse: (response: TResponse<TAcademicFaculty[]>) => toPage(response),
     }),
 
     getSingleAcademicFaculty: builder.query<TAcademicFaculty | undefined, string>({
@@ -89,10 +78,10 @@ export const academicManagementApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: ['AcademicFaculties'],
-      transformResponse: (response: TResponseRedux<TAcademicFaculty>) => response.data,
+      transformResponse: (response: TResponse<TAcademicFaculty>) => response.data,
     }),
 
-    createAcademicFaculty: builder.mutation<unknown, FacultyPayload>({
+    createAcademicFaculty: builder.mutation<TResponse<unknown>, FacultyPayload>({
       query: (data) => ({
         url: '/academic-faculties',
         method: 'POST',
@@ -101,7 +90,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicFaculties'],
     }),
 
-    updateAcademicFaculty: builder.mutation<unknown, { id: string; data: Partial<FacultyPayload> }>({
+    updateAcademicFaculty: builder.mutation<TResponse<unknown>, { id: string; data: Partial<FacultyPayload> }>({
       query: ({ id, data }) => ({
         url: `/academic-faculties/${id}`,
         method: 'PATCH',
@@ -110,7 +99,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicFaculties'],
     }),
 
-    deleteAcademicFaculty: builder.mutation<unknown, string>({
+    deleteAcademicFaculty: builder.mutation<TResponse<unknown>, string>({
       query: (id: string) => ({
         url: `/academic-faculties/${id}`,
         method: 'DELETE',
@@ -119,14 +108,14 @@ export const academicManagementApi = baseApi.injectEndpoints({
     }),
 
     // Academic Department endpoints
-    getAllAcademicDepartments: builder.query<AcademicPage<TAcademicDepartment>, TQueryParam[] | undefined>({
+    getAllAcademicDepartments: builder.query<TPaginatedResponse<TAcademicDepartment>, TQueryParam[] | undefined>({
       query: (args) => ({
         url: '/academic-departments',
         method: 'GET',
         params: toQueryParams(args),
       }),
       providesTags: ['AcademicDepartments'],
-      transformResponse: (response: TResponseRedux<TAcademicDepartment[]>) => toPage(response),
+      transformResponse: (response: TResponse<TAcademicDepartment[]>) => toPage(response),
     }),
 
     getSingleAcademicDepartment: builder.query<TAcademicDepartment | undefined, string>({
@@ -135,10 +124,10 @@ export const academicManagementApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
       providesTags: ['AcademicDepartments'],
-      transformResponse: (response: TResponseRedux<TAcademicDepartment>) => response.data,
+      transformResponse: (response: TResponse<TAcademicDepartment>) => response.data,
     }),
 
-    createAcademicDepartment: builder.mutation<unknown, DepartmentPayload>({
+    createAcademicDepartment: builder.mutation<TResponse<unknown>, DepartmentPayload>({
       query: (data) => ({
         url: '/academic-departments',
         method: 'POST',
@@ -147,7 +136,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicDepartments'],
     }),
 
-    updateAcademicDepartment: builder.mutation<unknown, { id: string; data: Partial<DepartmentPayload> }>({
+    updateAcademicDepartment: builder.mutation<TResponse<unknown>, { id: string; data: Partial<DepartmentPayload> }>({
       query: ({ id, data }) => ({
         url: `/academic-departments/${id}`,
         method: 'PATCH',
@@ -156,7 +145,7 @@ export const academicManagementApi = baseApi.injectEndpoints({
       invalidatesTags: ['AcademicDepartments'],
     }),
 
-    deleteAcademicDepartment: builder.mutation<unknown, string>({
+    deleteAcademicDepartment: builder.mutation<TResponse<unknown>, string>({
       query: (id: string) => ({
         url: `/academic-departments/${id}`,
         method: 'DELETE',

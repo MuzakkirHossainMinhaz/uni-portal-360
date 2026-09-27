@@ -3,9 +3,15 @@ import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
 import { AttendanceControllers } from './attendance.controller';
-import { AttendanceValidation } from './attendance.validation';
+import { AttendanceValidations } from './attendance.validation';
 
 const router = express.Router();
+router.get(
+  '/sheet',
+  auth(USER_ROLE.faculty),
+  validateRequest(AttendanceValidations.sheetValidationSchema),
+  AttendanceControllers.getFacultyAttendanceSheet,
+);
 
 /**
  * @openapi
@@ -44,7 +50,7 @@ const router = express.Router();
 router.post(
   '/',
   auth(USER_ROLE.faculty),
-  validateRequest(AttendanceValidation.createAttendanceValidationSchema),
+  validateRequest(AttendanceValidations.createAttendanceValidationSchema),
   AttendanceControllers.createAttendance,
 );
 
@@ -58,11 +64,7 @@ router.post(
  *       200:
  *         description: Attendance records retrieved
  */
-router.get(
-  '/my-attendance',
-  auth(USER_ROLE.student),
-  AttendanceControllers.getMyAttendance,
-);
+router.get('/my-attendance', auth(USER_ROLE.student), AttendanceControllers.getMyAttendance);
 
 /**
  * @openapi
@@ -74,11 +76,7 @@ router.get(
  *       200:
  *         description: Report retrieved
  */
-router.get(
-  '/admin/report',
-  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
-  AttendanceControllers.getAttendanceReport,
-);
+router.get('/admin/report', auth(USER_ROLE.admin, USER_ROLE.superAdmin), AttendanceControllers.getAttendanceReport);
 
 /**
  * @openapi
@@ -119,4 +117,3 @@ router.get(
 );
 
 export const AttendanceRoutes = router;
-

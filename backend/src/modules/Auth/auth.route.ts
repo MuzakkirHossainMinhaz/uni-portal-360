@@ -1,36 +1,46 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { authForPasswordChange } from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
 import { AuthControllers } from './auth.controller';
-import { AuthValidation } from './auth.validation';
+import { AuthValidations } from './auth.validation';
 
 const router = express.Router();
 
-router.post('/login', validateRequest(AuthValidation.loginValidationSchema), AuthControllers.loginUser);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: 'Too many login attempts. Please try again later',
+});
+
+router.post('/login', loginLimiter, validateRequest(AuthValidations.loginValidationSchema), AuthControllers.loginUser);
 
 router.post(
   '/change-password',
   authForPasswordChange(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
-  validateRequest(AuthValidation.changePasswordValidationSchema),
+  validateRequest(AuthValidations.changePasswordValidationSchema),
   AuthControllers.changePassword,
 );
 
 router.post(
   '/refresh-token',
-  validateRequest(AuthValidation.refreshTokenValidationSchema),
+  validateRequest(AuthValidations.refreshTokenValidationSchema),
   AuthControllers.refreshToken,
 );
 
 router.post(
   '/forget-password',
-  validateRequest(AuthValidation.forgetPasswordValidationSchema),
+  validateRequest(AuthValidations.forgetPasswordValidationSchema),
   AuthControllers.forgetPassword,
 );
 
 router.post(
   '/reset-password',
-  validateRequest(AuthValidation.forgetPasswordValidationSchema),
+  validateRequest(AuthValidations.resetPasswordValidationSchema),
   AuthControllers.resetPassword,
 );
 

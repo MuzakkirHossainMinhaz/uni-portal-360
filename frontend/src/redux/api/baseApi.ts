@@ -1,7 +1,8 @@
-import { BaseQueryFn, FetchArgs, createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn, FetchArgs } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { toast } from 'sonner';
 import { logout, requirePasswordChange } from '../features/auth/authSlice';
-import { RootState } from '../store';
+import type { RootState } from '../store';
 
 type ErrorWithMessage = {
   data?: {

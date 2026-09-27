@@ -1,3 +1,4 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
@@ -16,7 +17,10 @@ const createSubmission = catchAsync(async (req, res) => {
 });
 
 const getAllSubmissions = catchAsync(async (req, res) => {
-  const result = await SubmissionServices.getAllSubmissions(req.query);
+  const result = await SubmissionServices.getAllSubmissions(req.query, {
+    userId: req.user.userId,
+    role: req.user.role,
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -27,9 +31,8 @@ const getAllSubmissions = catchAsync(async (req, res) => {
 });
 
 const gradeSubmission = catchAsync(async (req, res) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const result = await SubmissionServices.gradeSubmission(id, req.body);
+  const id = getRouteParam(req, 'id');
+  const result = await SubmissionServices.gradeSubmission(id, req.body, req.user.userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -40,9 +43,8 @@ const gradeSubmission = catchAsync(async (req, res) => {
 });
 
 const updateSubmission = catchAsync(async (req, res) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const result = await SubmissionServices.updateSubmission(id, req.body);
+  const id = getRouteParam(req, 'id');
+  const result = await SubmissionServices.updateSubmission(id, req.body, req.user.userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

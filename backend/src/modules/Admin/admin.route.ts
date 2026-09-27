@@ -4,7 +4,7 @@ import checkPermission from '../../middlewares/checkPermission';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
 import { AdminControllers } from './admin.controller';
-import { updateAdminValidationSchema } from './admin.validation';
+import { AdminValidations } from './admin.validation';
 
 const router = express.Router();
 
@@ -16,10 +16,15 @@ router.patch(
   '/:id',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   checkPermission('updateAdmin'),
-  validateRequest(updateAdminValidationSchema),
+  validateRequest(AdminValidations.updateAdminValidationSchema),
   AdminControllers.updateAdmin,
 );
 
-router.delete('/:id', auth(USER_ROLE.superAdmin, USER_ROLE.admin), checkPermission('deleteAdmin'), AdminControllers.deleteAdmin);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  checkPermission('deleteAdmin'),
+  AdminControllers.deleteAdmin,
+);
 
 export const AdminRoutes = router;

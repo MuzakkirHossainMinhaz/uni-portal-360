@@ -1,5 +1,5 @@
-import { TAcademicSemester } from '../AcademicSemester/academicSemester.interface';
-import { TUserRole } from './user.interface';
+import type { TAcademicSemester } from '../AcademicSemester/academicSemester.interface';
+import type { TUserRole } from './user.interface';
 import { User } from './user.model';
 import { UserIdCounter } from './userIdCounter.model';
 
@@ -36,8 +36,7 @@ const nextId = async (role: TUserRole, prefix: string) => {
   return `${prefix}${String(counter.sequence).padStart(4, '0')}`;
 };
 
-export const generateStudentId = (semester: TAcademicSemester) =>
-  nextId('student', `${semester.year}${semester.code}`);
+export const generateStudentId = (semester: TAcademicSemester) => nextId('student', `${semester.year}${semester.code}`);
 
 export const generateFacultyId = () => nextId('faculty', 'F-');
 

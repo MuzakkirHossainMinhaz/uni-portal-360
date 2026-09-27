@@ -1,8 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { baseApi } from './api/baseApi';
-import authReducer from './features/auth/authSlice';
+import authReducer, { logout, setUser } from './features/auth/authSlice';
+
+const authListener = createListenerMiddleware();
+authListener.startListening({
+  matcher: isAnyOf(logout, setUser),
+  effect: (_action, api) => {
+    api.dispatch(baseApi.util.resetApiState());
+  },
+});
 
 const persistConfig = {
   key: 'auth',
@@ -21,7 +29,9 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(baseApi.middleware),
+    })
+      .prepend(authListener.middleware)
+      .concat(baseApi.middleware),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

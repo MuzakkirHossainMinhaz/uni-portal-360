@@ -11,12 +11,14 @@ const updateEnrolledCourseMarksValidationZodSchema = z.object({
     semesterRegistration: z.string(),
     offeredCourse: z.string(),
     student: z.string(),
-    courseMarks: z.object({
-      classTest1: z.number().optional(),
-      midTerm: z.number().optional(),
-      classTest2: z.number().optional(),
-      finalTerm: z.number().optional(),
-    }),
+    courseMarks: z
+      .object({
+        classTest1: z.number().min(0).max(10).optional(),
+        midTerm: z.number().min(0).max(30).optional(),
+        classTest2: z.number().min(0).max(10).optional(),
+        finalTerm: z.number().min(0).max(50).optional(),
+      })
+      .refine((marks) => Object.keys(marks).length > 0, 'Provide at least one mark'),
   }),
 });
 

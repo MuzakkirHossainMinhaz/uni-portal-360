@@ -1,13 +1,15 @@
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
+import { getPagination } from '../../utils/pagination';
 import { User } from '../User/user.model';
-import { TNotification } from './notification.interface';
+import type { TNotification } from './notification.interface';
 import { Notification } from './notification.model';
 
 const createNotification = async (payload: TNotification) => {
   const result = await Notification.create(payload);
   return result;
 };
+const createNotifications = (payloads: TNotification[]) => Notification.insertMany(payloads);
 
 const getUserNotifications = async (userId: string, query: Record<string, unknown>) => {
   const user = await User.findOne({ id: userId });
@@ -15,9 +17,7 @@ const getUserNotifications = async (userId: string, query: Record<string, unknow
     throw new AppError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  const limit = Number(query.limit) || 20;
-  const page = Number(query.page) || 1;
-  const skip = (page - 1) * limit;
+  const { limit, page, skip } = getPagination(query, 20);
 
   const result = await Notification.find({ userId: user._id, isDeleted: false })
     .sort({ createdAt: -1 })
@@ -92,6 +92,7 @@ const deleteNotification = async (id: string, userId: string) => {
 };
 
 export const NotificationServices = {
+  createNotifications,
   createNotification,
   getUserNotifications,
   markAsRead,

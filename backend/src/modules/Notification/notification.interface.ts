@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import type { Types } from 'mongoose';
 
 export type TNotificationType = 'RESULT_PUBLISHED' | 'ASSIGNMENT_DUE' | 'SYSTEM_ANNOUNCEMENT' | 'GENERAL';
 export type TNotificationPriority = 'HIGH' | 'MEDIUM' | 'LOW';

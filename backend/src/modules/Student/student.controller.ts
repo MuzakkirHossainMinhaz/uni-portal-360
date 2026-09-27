@@ -1,12 +1,13 @@
-import { RequestHandler } from 'express';
+import { getRouteParam } from '../../utils/getRouteParam';
+import type { RequestHandler } from 'express';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { StudentServices } from './student.service';
 
 const getSingleStudent = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await StudentServices.getSingleStudentFromDB(id as string, {
+  const id = getRouteParam(req, 'id');
+  const result = await StudentServices.getSingleStudent(id, {
     userId: req.user.userId,
     role: req.user.role,
   });
@@ -14,44 +15,44 @@ const getSingleStudent = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Student is retrieved successfully',
+    message: 'Student retrieved successfully',
     data: result,
   });
 });
 
 const getAllStudents: RequestHandler = catchAsync(async (req, res) => {
-  const result = await StudentServices.getAllStudentsFromDB(req.query);
+  const result = await StudentServices.getAllStudents(req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Student are retrieved successfully',
+    message: 'Student retrieved successfully',
     meta: result.meta,
-    data: result.result,
+    data: result.data,
   });
 });
 
 const updateStudent = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const id = getRouteParam(req, 'id');
   const { student } = req.body;
-  const result = await StudentServices.updateStudentIntoDB(id as string, student);
+  const result = await StudentServices.updateStudent(id, student);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Student is updated successfully',
+    message: 'Student updated successfully',
     data: result,
   });
 });
 
 const deleteStudent = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await StudentServices.deleteStudentFromDB(id as string);
+  const id = getRouteParam(req, 'id');
+  const result = await StudentServices.deleteStudent(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Student is deleted successfully',
+    message: 'Student deleted successfully',
     data: result,
   });
 });

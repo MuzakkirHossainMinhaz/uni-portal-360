@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { selectCurrentUser, selectUserPermissions } from '../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
 

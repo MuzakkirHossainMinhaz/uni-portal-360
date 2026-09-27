@@ -14,6 +14,7 @@ const UniSelect = ({ label, name, options, disabled, mode, required }: TSelectPr
   return (
     <Controller
       name={name}
+      rules={{ required: required ? `${label} is required` : false }}
       render={({ field, fieldState: { error } }) => (
         <Form.Item label={label} required={required}>
           <Select mode={mode} style={{ width: '100%' }} {...field} options={options} size="large" disabled={disabled} />

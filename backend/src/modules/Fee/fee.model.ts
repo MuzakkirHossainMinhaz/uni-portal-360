@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TFee } from './fee.interface';
+import type { TFee } from './fee.interface';
 
 const feeSchema = new Schema<TFee>(
   {

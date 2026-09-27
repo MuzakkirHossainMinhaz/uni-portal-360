@@ -3,14 +3,14 @@ import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
 import { AcademicFacultyControllers } from './academicFaculty.controller';
-import { AcademicFacultyValidation } from './academicFaculty.validation';
+import { AcademicFacultyValidations } from './academicFaculty.validation';
 
 const router = express.Router();
 
 router.post(
   '/',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
-  validateRequest(AcademicFacultyValidation.createAcademicFacultyValidationSchema),
+  validateRequest(AcademicFacultyValidations.createAcademicFacultyValidationSchema),
   AcademicFacultyControllers.createAcademicFaculty,
 );
 
@@ -29,7 +29,7 @@ router.get(
 router.patch(
   '/:facultyId',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
-  validateRequest(AcademicFacultyValidation.updateAcademicFacultyValidationSchema),
+  validateRequest(AcademicFacultyValidations.updateAcademicFacultyValidationSchema),
   AcademicFacultyControllers.updateAcademicFaculty,
 );
 

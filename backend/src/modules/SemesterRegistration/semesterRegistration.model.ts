@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { SemesterRegistrationStatus } from './semesterRegistration.constant';
-import { TSemesterRegistration } from './semesterRegistration.interface';
+import type { TSemesterRegistration } from './semesterRegistration.interface';
 
 const semesterRegistrationSchema = new mongoose.Schema<TSemesterRegistration>(
   {

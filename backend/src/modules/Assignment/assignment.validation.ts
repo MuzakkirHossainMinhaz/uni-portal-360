@@ -11,20 +11,21 @@ const createAssignmentValidationSchema = z.object({
     description: z.string({
       error: 'Description is required',
     }),
-    deadline: z.string({
-      error: 'Deadline is required',
-    }).refine((date) => new Date(date).toString() !== 'Invalid Date', {
-      message: 'Invalid deadline date',
-    }),
+    deadline: z
+      .string({
+        error: 'Deadline is required',
+      })
+      .refine((date) => new Date(date).toString() !== 'Invalid Date', {
+        message: 'Invalid deadline date',
+      }),
   }),
 });
 
 const updateAssignmentValidationSchema = z.object({
   body: z.object({
     title: z.string().optional(),
-    offeredCourse: z.string().optional(),
     description: z.string().optional(),
-    deadline: z.string().optional(),
+    deadline: z.iso.datetime({ offset: true }).optional(),
   }),
 });
 

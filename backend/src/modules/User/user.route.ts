@@ -1,33 +1,18 @@
-import express, { NextFunction, Request, Response } from 'express';
-import httpStatus from 'http-status';
-import AppError from '../../errors/AppError';
+import express from 'express';
+import parseMultipartData from '../../middlewares/parseMultipartData';
+
 import auth from '../../middlewares/auth';
 import checkPermission from '../../middlewares/checkPermission';
 import validateRequest from '../../middlewares/validateRequest';
 import { upload } from '../../utils/sendImageToCloudinary';
-import { createAdminValidationSchema } from '../Admin/admin.validation';
-import { createFacultyValidationSchema } from '../Faculty/faculty.validation';
-import { createStudentValidationSchema } from '../Student/student.validation';
+import { AdminValidations } from '../Admin/admin.validation';
+import { FacultyValidations } from '../Faculty/faculty.validation';
+import { StudentValidations } from '../Student/student.validation';
 import { USER_ROLE } from './user.constant';
 import { UserControllers } from './user.controller';
-import { UserValidation } from './user.validation';
+import { UserValidations } from './user.validation';
 
 const router = express.Router();
-
-const parseMultipartData = (req: Request, _res: Response, next: NextFunction) => {
-  const rawData = req.body?.data;
-
-  if (typeof rawData !== 'string') {
-    return next(new AppError(httpStatus.BAD_REQUEST, 'Invalid form data'));
-  }
-
-  try {
-    req.body = JSON.parse(rawData);
-    next();
-  } catch {
-    next(new AppError(httpStatus.BAD_REQUEST, 'Invalid form data'));
-  }
-};
 
 // The directory includes bootstrap users without a role-specific profile.
 router.get('/', auth(USER_ROLE.superAdmin, USER_ROLE.admin), UserControllers.getAccounts);
@@ -39,7 +24,7 @@ router.post(
   checkPermission('createStudent'),
   upload.single('file'),
   parseMultipartData,
-  validateRequest(createStudentValidationSchema),
+  validateRequest(StudentValidations.createStudentValidationSchema),
   UserControllers.createStudent,
 );
 
@@ -49,7 +34,7 @@ router.post(
   checkPermission('createFaculty'),
   upload.single('file'),
   parseMultipartData,
-  validateRequest(createFacultyValidationSchema),
+  validateRequest(FacultyValidations.createFacultyValidationSchema),
   UserControllers.createFaculty,
 );
 
@@ -59,14 +44,14 @@ router.post(
   checkPermission('createAdmin'),
   upload.single('file'),
   parseMultipartData,
-  validateRequest(createAdminValidationSchema),
+  validateRequest(AdminValidations.createAdminValidationSchema),
   UserControllers.createAdmin,
 );
 
 router.post(
   '/change-status/:id',
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
-  validateRequest(UserValidation.changeStatusValidationSchema),
+  validateRequest(UserValidations.changeStatusValidationSchema),
   UserControllers.changeStatus,
 );
 

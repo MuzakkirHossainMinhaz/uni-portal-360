@@ -4,13 +4,13 @@ import config from '../config';
 export const sendEmail = async (to: string, html: string) => {
   let transporter;
 
-  const isProduction = config.NODE_ENV === 'PRODUCTION';
+  const isProduction = config.NODE_ENV?.toLowerCase() === 'production';
 
   if (isProduction) {
     transporter = nodemailer.createTransport({
       host: config.smtp_host,
       port: Number(config.smtp_port) || 587,
-      secure: true,
+      secure: Number(config.smtp_port) === 465,
       auth: {
         user: config.smtp_user,
         pass: config.smtp_pass,

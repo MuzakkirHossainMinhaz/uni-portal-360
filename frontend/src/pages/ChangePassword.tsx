@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Button, Col, Row, Typography } from 'antd';
 import UniForm from '../components/form/UniForm';
 import UniInput from '../components/form/UniInput';
-import { FieldValues, SubmitHandler } from 'react-hook-form';
+import type { FieldValues, SubmitHandler } from 'react-hook-form';
 import { useChangePasswordMutation } from '../redux/features/admin/userManagement.api';
 import { useAppDispatch } from '../redux/hooks';
 import { logout } from '../redux/features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { logger } from '../utils/logger';
 
 const { Title, Paragraph } = Typography;
 
@@ -30,7 +31,7 @@ const ChangePassword = () => {
       dispatch(logout());
       navigate('/login');
     } catch (error) {
-      console.error('Password change failed', error);
+      logger.error('Password change failed', error);
       toast.error('Could not change password. Please check your current password and try again.');
     } finally {
       setIsSubmitting(false);

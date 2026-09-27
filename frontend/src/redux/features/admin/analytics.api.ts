@@ -1,25 +1,22 @@
-import { TMeta, TResponseRedux } from '../../../types';
+import { toPage } from '../../api/api.utils';
+import type { TMeta, TPaginatedResponse, TResponse } from '../../../types';
+
 import { baseApi } from '../../api/baseApi';
 
 type DashboardStats = {
   totalStudents: number;
-  totalFaculties: number;
+  totalFaculty: number;
   totalCourses: number;
   totalEnrollments: number;
 };
 
 type EnrollmentTrendPoint = {
-  date: string;
+  _id: string;
   count: number;
 };
 
 type DashboardResponse = {
   data?: DashboardStats;
-  meta?: TMeta;
-};
-
-type EnrollmentTrendsResponse = {
-  data?: EnrollmentTrendPoint[];
   meta?: TMeta;
 };
 
@@ -30,21 +27,18 @@ const analyticsApi = baseApi.injectEndpoints({
         url: '/analytics/dashboard-stats',
         method: 'GET',
       }),
-      transformResponse: (response: TResponseRedux<DashboardStats>) => ({
+      transformResponse: (response: TResponse<DashboardStats>) => ({
         data: response.data,
         meta: response.meta,
       }),
     }),
-    getEnrollmentTrends: builder.query<EnrollmentTrendsResponse, Record<string, string> | undefined>({
+    getEnrollmentTrends: builder.query<TPaginatedResponse<EnrollmentTrendPoint>, Record<string, string> | undefined>({
       query: (params) => ({
         url: '/analytics/enrollment-trends',
         method: 'GET',
         params,
       }),
-      transformResponse: (response: TResponseRedux<EnrollmentTrendPoint[]>) => ({
-        data: response.data,
-        meta: response.meta,
-      }),
+      transformResponse: (response: TResponse<EnrollmentTrendPoint[]>) => toPage(response),
     }),
   }),
 });

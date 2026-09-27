@@ -2,14 +2,19 @@ import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import { BaseService } from '../../shared/baseService';
 import { AcademicSemesterSearchableFields, academicSemesterNameCodeMapper } from './academicSemester.constant';
-import { TAcademicSemester } from './academicSemester.interface';
+import type { TAcademicSemester } from './academicSemester.interface';
 import { AcademicSemesterRepository } from './academicSemester.repository';
+import { ensureAcademicRecordUnused } from '../../utils/academicReferences';
 
 const academicSemesterRepository = new AcademicSemesterRepository();
 
 class AcademicSemesterService extends BaseService<TAcademicSemester, TAcademicSemester, Partial<TAcademicSemester>> {
   constructor() {
     super(academicSemesterRepository);
+  }
+  async deleteById(id: string) {
+    await ensureAcademicRecordUnused('academicSemester', id);
+    return super.deleteById(id);
   }
 
   async create(payload: TAcademicSemester): Promise<TAcademicSemester> {
@@ -33,11 +38,11 @@ class AcademicSemesterService extends BaseService<TAcademicSemester, TAcademicSe
 const academicSemesterService = new AcademicSemesterService();
 
 export const AcademicSemesterServices = {
-  createAcademicSemesterIntoDB: (payload: TAcademicSemester) => academicSemesterService.create(payload),
-  getAllAcademicSemestersFromDB: (query: Record<string, unknown>) =>
+  createAcademicSemester: (payload: TAcademicSemester) => academicSemesterService.create(payload),
+  getAllAcademicSemesters: (query: Record<string, unknown>) =>
     academicSemesterService.getAll(query, AcademicSemesterSearchableFields),
-  getSingleAcademicSemesterFromDB: (id: string) => academicSemesterService.getById(id),
-  updateAcademicSemesterIntoDB: (id: string, payload: Partial<TAcademicSemester>) =>
+  getSingleAcademicSemester: (id: string) => academicSemesterService.getById(id),
+  updateAcademicSemester: (id: string, payload: Partial<TAcademicSemester>) =>
     academicSemesterService.updateById(id, payload),
-  deleteAcademicSemesterFromDB: (id: string) => academicSemesterService.deleteById(id),
+  deleteAcademicSemester: (id: string) => academicSemesterService.deleteById(id),
 };

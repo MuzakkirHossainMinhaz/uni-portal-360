@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { AcademicSemester } from '../AcademicSemester/academicSemester.model';
-import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
+import { OfferedCourse } from '../OfferedCourse/offeredCourse.model';
 import { RegistrationStatus } from './semesterRegistration.constant';
-import { TSemesterRegistration } from './semesterRegistration.interface';
+import type { TSemesterRegistration } from './semesterRegistration.interface';
 import { SemesterRegistration } from './semesterRegistration.model';
 
-const createSemesterRegistrationIntoDB = async (payload: TSemesterRegistration) => {
+const createSemesterRegistration = async (payload: TSemesterRegistration) => {
   /**
    * Step1: Check if there any registered semester that is already 'UPCOMING'|'ONGOING'
    * Step2: Check if the semester is exist
@@ -52,7 +52,7 @@ const createSemesterRegistrationIntoDB = async (payload: TSemesterRegistration) 
   return result;
 };
 
-const getAllSemesterRegistrationsFromDB = async (query: Record<string, unknown>) => {
+const getAllSemesterRegistrations = async (query: Record<string, unknown>) => {
   const semesterRegistrationQuery = new QueryBuilder(SemesterRegistration.find().populate('academicSemester'), query)
     .filter()
     .sort()
@@ -62,18 +62,18 @@ const getAllSemesterRegistrationsFromDB = async (query: Record<string, unknown>)
   const result = await semesterRegistrationQuery.modelQuery;
   const meta = await semesterRegistrationQuery.countTotal();
   return {
-    result,
+    data: result,
     meta,
   };
 };
 
-const getSingleSemesterRegistrationsFromDB = async (id: string) => {
+const getSingleSemesterRegistrations = async (id: string) => {
   const result = await SemesterRegistration.findById(id).populate('academicSemester');
 
   return result;
 };
 
-const updateSemesterRegistrationIntoDB = async (id: string, payload: Partial<TSemesterRegistration>) => {
+const updateSemesterRegistration = async (id: string, payload: Partial<TSemesterRegistration>) => {
   /**
    * Step1: Check if the semester is exist
    * Step2: Check if the requested registered semester is exists
@@ -116,11 +116,13 @@ const updateSemesterRegistrationIntoDB = async (id: string, payload: Partial<TSe
       `You can not directly change status from ${currentSemesterStatus} to ${requestedStatus}`,
     );
   }
-  if (currentSemesterStatus === RegistrationStatus.ONGOING &&
-      Object.keys(payload).some((key) => key !== 'status')) {
+  if (currentSemesterStatus === RegistrationStatus.ONGOING && Object.keys(payload).some((key) => key !== 'status')) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Only the status may change for an ongoing semester');
   }
-  if (payload.academicSemester && String(payload.academicSemester) !== String(isSemesterRegistrationExists.academicSemester)) {
+  if (
+    payload.academicSemester &&
+    String(payload.academicSemester) !== String(isSemesterRegistrationExists.academicSemester)
+  ) {
     throw new AppError(httpStatus.BAD_REQUEST, 'The academic semester cannot be changed');
   }
   const startDate = payload.startDate ?? isSemesterRegistrationExists.startDate;
@@ -139,7 +141,7 @@ const updateSemesterRegistrationIntoDB = async (id: string, payload: Partial<TSe
   return result;
 };
 
-const deleteSemesterRegistrationFromDB = async (id: string) => {
+const deleteSemesterRegistration = async (id: string) => {
   /** 
   * Step1: Delete associated offered courses.
   * Step2: Delete semester registraton when the status is 
@@ -202,10 +204,10 @@ const deleteSemesterRegistrationFromDB = async (id: string) => {
   }
 };
 
-export const SemesterRegistrationService = {
-  createSemesterRegistrationIntoDB,
-  getAllSemesterRegistrationsFromDB,
-  getSingleSemesterRegistrationsFromDB,
-  updateSemesterRegistrationIntoDB,
-  deleteSemesterRegistrationFromDB,
+export const SemesterRegistrationServices = {
+  createSemesterRegistration,
+  getAllSemesterRegistrations,
+  getSingleSemesterRegistrations,
+  updateSemesterRegistration,
+  deleteSemesterRegistration,
 };

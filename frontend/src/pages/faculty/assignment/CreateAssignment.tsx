@@ -1,21 +1,14 @@
-import { App, Button, Col, Row, DatePicker, Form } from 'antd';
-import { useGetFacultyCoursesQuery } from '../../../redux/features/faculty/facultyCourses.api';
+import { useRef } from 'react';
+import { Alert, App, Button, Col, Row, DatePicker, Form } from 'antd';
+import { useGetFacultyOfferingsQuery } from '../../../redux/features/faculty/facultyCourses.api';
 import { useCreateAssignmentMutation } from '../../../redux/features/assignment/assignment.api';
+import type { UniFormHandle } from '../../../components/form/UniForm';
 import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniSelect from '../../../components/form/UniSelect';
-import { Controller, SubmitHandler } from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import type { Dayjs } from 'dayjs';
-
-type FacultyCourseItem = {
-  offeredCourse: {
-    _id: string;
-    section: string;
-  };
-  course: {
-    title: string;
-  };
-};
 
 type AssignmentFormValues = {
   title: string;
@@ -26,24 +19,19 @@ type AssignmentFormValues = {
 
 const CreateAssignment = () => {
   const { message } = App.useApp();
-  const { data: facultyCourses, isLoading: isCoursesLoading } = useGetFacultyCoursesQuery(undefined);
+  const formRef = useRef<UniFormHandle>(null);
+  const {
+    data: facultyCourses,
+    isLoading: isCoursesLoading,
+    isError: coursesError,
+  } = useGetFacultyOfferingsQuery(undefined);
   const [createAssignment, { isLoading: isCreating }] = useCreateAssignmentMutation();
 
-  const uniqueCoursesMap = new Map<string, { value: string; label: string }>();
-  if (facultyCourses?.data) {
-    facultyCourses.data.forEach((item) => {
-      const source = item as unknown as FacultyCourseItem;
-      const course = source.course;
-      const offeredCourse = source.offeredCourse;
-      if (!uniqueCoursesMap.has(offeredCourse._id)) {
-        uniqueCoursesMap.set(offeredCourse._id, {
-          value: offeredCourse._id,
-          label: `${course.title} (${offeredCourse.section})`,
-        });
-      }
-    });
-  }
-  const courseOptions = Array.from(uniqueCoursesMap.values());
+  const courseOptions =
+    facultyCourses?.data.map((item) => ({
+      value: item._id,
+      label: item.course.title + ' (Section ' + item.section + ')',
+    })) ?? [];
 
   const onSubmit: SubmitHandler<AssignmentFormValues> = async (data) => {
     const key = 'assignmentCreate';
@@ -57,6 +45,7 @@ const CreateAssignment = () => {
       };
 
       await createAssignment(assignmentData).unwrap();
+      formRef.current?.reset();
       message.success({ content: 'Assignment created successfully', key, duration: 2 });
     } catch {
       message.error({ content: 'Something went wrong', key, duration: 2 });
@@ -66,31 +55,39 @@ const CreateAssignment = () => {
   return (
     <Row justify="center">
       <Col span={24}>
-        <UniForm<AssignmentFormValues> onSubmit={onSubmit}>
+        {coursesError && <Alert type="error" message="Could not load assigned courses" />}
+        <UniForm<AssignmentFormValues> ref={formRef} onSubmit={onSubmit} resetOnSubmit={false}>
           <Row gutter={20}>
             <Col span={24} md={12} lg={8}>
-              <UniInput type="text" name="title" label="Assignment Title" />
+              <UniInput type="text" name="title" label="Assignment Title" required />
             </Col>
             <Col span={24} md={12} lg={8}>
               <UniSelect
                 options={courseOptions}
                 name="offeredCourse"
                 label="Course"
+                required
                 disabled={isCoursesLoading}
               />
             </Col>
             <Col span={24} md={12} lg={8}>
-                <Controller
-                    name="deadline"
-                    render={({ field }) => (
-                      <Form.Item label="Deadline">
-                        <DatePicker {...field} style={{ width: '100%' }} showTime />
-                      </Form.Item>
-                    )}
-                />
+              <Controller
+                name="deadline"
+                rules={{ required: 'Deadline is required' }}
+                render={({ field, fieldState: { error } }) => (
+                  <Form.Item
+                    label="Deadline"
+                    required
+                    validateStatus={error ? 'error' : undefined}
+                    help={error?.message}
+                  >
+                    <DatePicker {...field} style={{ width: '100%' }} showTime />
+                  </Form.Item>
+                )}
+              />
             </Col>
             <Col span={24}>
-              <UniInput type="text" name="description" label="Description" />
+              <UniInput type="text" name="description" label="Description" required />
             </Col>
           </Row>
           <Button htmlType="submit" type="primary" loading={isCreating}>

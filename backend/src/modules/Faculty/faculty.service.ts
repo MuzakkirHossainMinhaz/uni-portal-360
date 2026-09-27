@@ -5,10 +5,10 @@ import AppError from '../../errors/AppError';
 import { User } from '../User/user.model';
 import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
 import { FacultySearchableFields } from './faculty.constant';
-import { TFaculty } from './faculty.interface';
+import type { TFaculty } from './faculty.interface';
 import { Faculty } from './faculty.model';
 
-const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
+const getAllFaculties = async (query: Record<string, unknown>) => {
   const facultyQuery = new QueryBuilder(Faculty.find().populate('academicDepartment academicFaculty'), {
     sort: '-_id',
     ...query,
@@ -25,17 +25,17 @@ const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
   const meta = await facultyQuery.countTotal();
   return {
     meta,
-    result,
+    data: result,
   };
 };
 
-const getSingleFacultyFromDB = async (id: string) => {
+const getSingleFaculty = async (id: string) => {
   const result = await Faculty.findById(id).populate('academicDepartment academicFaculty');
 
   return result;
 };
 
-const updateFacultyIntoDB = async (id: string, payload: Partial<TFaculty>) => {
+const updateFaculty = async (id: string, payload: Partial<TFaculty>) => {
   const { name, ...remainingFacultyData } = payload;
 
   const modifiedUpdatedData: Record<string, unknown> = {
@@ -84,7 +84,7 @@ const updateFacultyIntoDB = async (id: string, payload: Partial<TFaculty>) => {
   }
 };
 
-const deleteFacultyFromDB = async (id: string) => {
+const deleteFaculty = async (id: string) => {
   const session = await mongoose.startSession();
 
   try {
@@ -120,8 +120,8 @@ const deleteFacultyFromDB = async (id: string) => {
 };
 
 export const FacultyServices = {
-  getAllFacultiesFromDB,
-  getSingleFacultyFromDB,
-  updateFacultyIntoDB,
-  deleteFacultyFromDB,
+  getAllFaculties,
+  getSingleFaculty,
+  updateFaculty,
+  deleteFaculty,
 };

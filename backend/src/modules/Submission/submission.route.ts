@@ -1,4 +1,5 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import parseMultipartData from '../../middlewares/parseMultipartData';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { upload } from '../../utils/sendImageToCloudinary';
@@ -12,17 +13,14 @@ router.post(
   '/submit',
   auth(USER_ROLE.student),
   upload.single('file'),
-  (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
-    next();
-  },
+  parseMultipartData,
   validateRequest(SubmissionValidations.createSubmissionValidationSchema),
   SubmissionControllers.createSubmission,
 );
 
 router.get(
   '/',
-  auth(USER_ROLE.faculty, USER_ROLE.admin),
+  auth(USER_ROLE.faculty, USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.student),
   SubmissionControllers.getAllSubmissions,
 );
 

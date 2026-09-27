@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TPermission, TRole, TRolePermission } from './rbac.interface';
+import type { TPermission, TRole, TRolePermission } from './rbac.interface';
 
 // Role Schema
 const roleSchema = new Schema<TRole>(

@@ -1,5 +1,5 @@
 import { Breadcrumb, Space, Typography } from 'antd';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useThemeMode } from '../../theme/ThemeProvider';
 

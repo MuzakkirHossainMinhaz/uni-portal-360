@@ -6,7 +6,7 @@ export const useDatePickerPopupWidth = () => {
 
   const measure = useCallback(() => {
     const width = wrapperRef.current?.querySelector('.ant-picker')?.getBoundingClientRect().width;
-    if (width) setPopupWidth((previous) => previous === width ? previous : width);
+    if (width) setPopupWidth((previous) => (previous === width ? previous : width));
   }, []);
 
   useLayoutEffect(() => {

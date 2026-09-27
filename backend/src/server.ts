@@ -1,10 +1,10 @@
-import { Server } from 'http';
+import type { Server } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './config';
 import seedSuperAdmin from './config/db';
 import { AuditLogCleanup } from './modules/AuditLog/auditLog.cleanup';
-import { RBACService } from './modules/RBAC/rbac.service';
+import { RBACServices } from './modules/RBAC/rbac.service';
 import { logger } from './utils/logger';
 
 let server: Server;
@@ -14,7 +14,7 @@ async function main() {
     await mongoose.connect(config.database_url as string);
 
     await seedSuperAdmin();
-    await RBACService.seedRBAC(); // Seed RBAC roles and permissions
+    await RBACServices.seedRBAC(); // Seed RBAC roles and permissions
 
     // Initialize scheduled tasks
     AuditLogCleanup.initAuditLogCleanup();

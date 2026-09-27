@@ -1,86 +1,69 @@
-import { TMeta, TResponseRedux } from '../../../types';
+import { toQueryParams, toPage } from '../../api/api.utils';
+import type { TPaginatedResponse, TResponse } from '../../../types';
+
 import { baseApi } from '../../api/baseApi';
 
-type FeeStudent = {
+export type FeeStudent = {
   _id: string;
   id: string;
   fullName: string;
 };
 
-type FeeSemester = {
+export type FeeSemester = {
   _id: string;
   name: string;
   year: string;
 };
 
-type AdminFeeItem = {
+export type FeeItem = {
   _id: string;
   student: FeeStudent;
   academicSemester: FeeSemester;
   amount: number;
   type: string;
-  status: 'Paid' | 'Pending' | 'Overdue';
+  status: 'PAID' | 'PENDING' | 'OVERDUE' | 'PARTIAL';
   dueDate: string;
+  description?: string;
   transactionId?: string;
   paidDate?: string;
 };
 
-type CreateFeePayload = {
+export type CreateFeePayload = {
   student: string;
   academicSemester: string;
   type: string;
   amount: number;
   dueDate: string;
-};
-
-type PaginatedFees = {
-  data?: AdminFeeItem[];
-  meta?: TMeta;
+  description?: string;
 };
 
 const feeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllFees: builder.query<PaginatedFees, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            if (args[key]) params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/fees',
-          method: 'GET',
-          params: params,
-        };
-      },
-      providesTags: ['Fee'],
-      transformResponse: (response: TResponseRedux<AdminFeeItem[]>) => ({
-        data: response.data,
-        meta: response.meta,
+    getAllFees: builder.query<TPaginatedResponse<FeeItem>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/fees',
+        method: 'GET',
+        params: toQueryParams(args),
       }),
-    }),
-    getMyFees: builder.query<PaginatedFees, Record<string, string> | undefined>({
-      query: (args) => {
-        const params = new URLSearchParams();
-        if (args) {
-          Object.keys(args).forEach((key) => {
-            if (args[key]) params.append(key, args[key]);
-          });
-        }
-        return {
-          url: '/fees/my-fees',
-          method: 'GET',
-          params: params,
-        };
-      },
       providesTags: ['Fee'],
-      transformResponse: (response: TResponseRedux<AdminFeeItem[]>) => ({
-        data: response.data,
-        meta: response.meta,
-      }),
+      transformResponse: (response: TResponse<FeeItem[]>) => toPage(response),
     }),
-    createFee: builder.mutation<AdminFeeItem, CreateFeePayload>({
+    getMyFees: builder.query<TPaginatedResponse<FeeItem>, Record<string, string> | undefined>({
+      query: (args) => ({
+        url: '/fees/my-fees',
+        method: 'GET',
+        params: toQueryParams(args),
+      }),
+      providesTags: ['Fee'],
+      transformResponse: (response: TResponse<FeeItem[]>) => toPage(response),
+    }),
+    getMyFeeSummary: builder.query<{ unpaidAmount: number; unpaidCount: number }, void>({
+      query: () => ({ url: '/fees/my-fees/summary' }),
+      transformResponse: (response: TResponse<{ unpaidAmount: number; unpaidCount: number }>) =>
+        response.data ?? { unpaidAmount: 0, unpaidCount: 0 },
+      providesTags: ['Fee'],
+    }),
+    createFee: builder.mutation<TResponse<unknown>, CreateFeePayload>({
       query: (data) => ({
         url: '/fees',
         method: 'POST',
@@ -88,15 +71,33 @@ const feeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Fee'],
     }),
-    payFee: builder.mutation<AdminFeeItem, { id: string; transactionId: string }>({
-      query: ({ id, transactionId }) => ({
+    updateFee: builder.mutation<
+      TResponse<unknown>,
+      { id: string; data: Partial<Pick<CreateFeePayload, 'type' | 'amount' | 'dueDate' | 'description'>> }
+    >({
+      query: ({ id, data }) => ({ url: `/fees/${id}`, method: 'PATCH', body: data }),
+      invalidatesTags: ['Fee'],
+    }),
+    deleteFee: builder.mutation<TResponse<unknown>, string>({
+      query: (id) => ({ url: `/fees/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Fee'],
+    }),
+    payFee: builder.mutation<TResponse<unknown>, string>({
+      query: (id) => ({
         url: `/fees/${id}/pay`,
         method: 'PATCH',
-        body: { transactionId },
       }),
       invalidatesTags: ['Fee'],
     }),
   }),
 });
 
-export const { useGetAllFeesQuery, useGetMyFeesQuery, useCreateFeeMutation, usePayFeeMutation } = feeApi;
+export const {
+  useGetAllFeesQuery,
+  useGetMyFeesQuery,
+  useGetMyFeeSummaryQuery,
+  useCreateFeeMutation,
+  useUpdateFeeMutation,
+  useDeleteFeeMutation,
+  usePayFeeMutation,
+} = feeApi;

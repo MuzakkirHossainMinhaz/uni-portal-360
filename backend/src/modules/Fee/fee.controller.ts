@@ -1,3 +1,4 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
@@ -40,21 +41,32 @@ const getMyFees = catchAsync(async (req, res) => {
 });
 
 const payFee = catchAsync(async (req, res) => {
-    const idParam = req.params.id;
-    const id = Array.isArray(idParam) ? idParam[0] : idParam;
-    const result = await FeeServices.payFee(id, req.body);
+  const id = getRouteParam(req, 'id');
+  const result = await FeeServices.payFee(id, req.user.userId);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Simulated payment recorded', data: result });
+});
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Fee paid successfully',
-        data: result,
-    });
+const getMyFeeSummary = catchAsync(async (req, res) => {
+  const result = await FeeServices.getMyFeeSummary(req.user.userId);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Fee summary retrieved', data: result });
+});
+
+const updateFee = catchAsync(async (req, res) => {
+  const result = await FeeServices.updateFee(getRouteParam(req, 'id'), req.body);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Fee updated successfully', data: result });
+});
+
+const deleteFee = catchAsync(async (req, res) => {
+  const result = await FeeServices.deleteFee(getRouteParam(req, 'id'));
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Fee voided successfully', data: result });
 });
 
 export const FeeControllers = {
   createFee,
   getAllFees,
   getMyFees,
+  getMyFeeSummary,
   payFee,
+  updateFee,
+  deleteFee,
 };

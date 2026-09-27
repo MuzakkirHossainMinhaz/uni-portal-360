@@ -3,7 +3,8 @@ import { Alert, App, Button, Card, Col, Flex, Modal, Popconfirm, Row, Select, Sp
 import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
-import UniForm, { UniFormHandle } from '../../../components/form/UniForm';
+import type { UniFormHandle } from '../../../components/form/UniForm';
+import UniForm from '../../../components/form/UniForm';
 import UniInput from '../../../components/form/UniInput';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import {
@@ -13,7 +14,7 @@ import {
   useUpdateAdminMutation,
 } from '../../../redux/features/admin/userManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
-import { TAdmin } from '../../../types';
+import type { TAdmin } from '../../../types';
 import { logger } from '../../../utils/logger';
 
 const { Title } = Typography;
@@ -398,34 +399,34 @@ const Admin = () => {
           defaultValues={
             editingAdmin
               ? {
-                firstName: editingAdmin.name?.firstName || '',
-                middleName: editingAdmin.name?.middleName || '',
-                lastName: editingAdmin.name?.lastName || '',
-                designation: editingAdmin.designation || '',
-                gender: editingAdmin.gender || '',
-                dateOfBirth: editingAdmin.dateOfBirth?.slice(0, 10) || '',
-                email: editingAdmin.email,
-                contactNo: editingAdmin.contactNo || '',
-                emergencyContactNo: editingAdmin.emergencyContactNo || '',
-                bloodGroup: editingAdmin.bloodGroup || '',
-                presentAddress: editingAdmin.presentAddress || '',
-                permanentAddress: editingAdmin.permanentAddress || '',
-              }
+                  firstName: editingAdmin.name?.firstName || '',
+                  middleName: editingAdmin.name?.middleName || '',
+                  lastName: editingAdmin.name?.lastName || '',
+                  designation: editingAdmin.designation || '',
+                  gender: editingAdmin.gender || undefined,
+                  dateOfBirth: editingAdmin.dateOfBirth?.slice(0, 10) || '',
+                  email: editingAdmin.email,
+                  contactNo: editingAdmin.contactNo || '',
+                  emergencyContactNo: editingAdmin.emergencyContactNo || '',
+                  bloodGroup: editingAdmin.bloodGroup || '',
+                  presentAddress: editingAdmin.presentAddress || '',
+                  permanentAddress: editingAdmin.permanentAddress || '',
+                }
               : {
-                firstName: '',
-                middleName: '',
-                lastName: '',
-                email: '',
-                password: '',
-                designation: '',
-                gender: '',
-                bloodGroup: '',
-                contactNo: '',
-                emergencyContactNo: '',
-                presentAddress: '',
-                permanentAddress: '',
-                dateOfBirth: '',
-              }
+                  firstName: '',
+                  middleName: '',
+                  lastName: '',
+                  email: '',
+                  password: '',
+                  designation: '',
+                  gender: undefined,
+                  bloodGroup: '',
+                  contactNo: '',
+                  emergencyContactNo: '',
+                  presentAddress: '',
+                  permanentAddress: '',
+                  dateOfBirth: '',
+                }
           }
         >
           <Row gutter={[16, 0]}>

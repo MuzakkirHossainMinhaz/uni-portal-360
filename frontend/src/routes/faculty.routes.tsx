@@ -1,11 +1,12 @@
-import FacultyDashboard from '../pages/faculty/FacultyDashboard';
-import MyCourses from '../pages/faculty/MyCourses';
-import MyStudents from '../pages/faculty/MyStudents';
-import CreateAssignment from '../pages/faculty/assignment/CreateAssignment';
-import FacultyAssignments from '../pages/faculty/assignment/FacultyAssignments';
-import FacultyAttendance from '../pages/faculty/attendance/FacultyAttendance';
-import FacultyGradebook from '../pages/faculty/gradebook/FacultyGradebook';
-import FacultySubmissions from '../pages/faculty/submission/FacultySubmissions';
+import { lazy } from 'react';
+const FacultyDashboard = lazy(() => import('../pages/faculty/FacultyDashboard'));
+const MyCourses = lazy(() => import('../pages/faculty/MyCourses'));
+const MyStudents = lazy(() => import('../pages/faculty/MyStudents'));
+const CreateAssignment = lazy(() => import('../pages/faculty/assignment/CreateAssignment'));
+const FacultyAssignments = lazy(() => import('../pages/faculty/assignment/FacultyAssignments'));
+const FacultyAttendance = lazy(() => import('../pages/faculty/attendance/FacultyAttendance'));
+const FacultyGradebook = lazy(() => import('../pages/faculty/gradebook/FacultyGradebook'));
+const FacultySubmissions = lazy(() => import('../pages/faculty/submission/FacultySubmissions'));
 
 export const facultyPaths = [
   {

@@ -1,3 +1,4 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import { logger } from '../../utils/logger';
@@ -29,14 +30,14 @@ const createStudent = catchAsync(async (req, res) => {
 
   logger.info('Create student request received');
 
-  const result = await UserServices.createStudentIntoDB(req.file, password, studentData);
+  const result = await UserServices.createStudent(req.file, password, studentData);
 
   logger.info('Student created successfully', { studentId: result[0]?.id });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Student is created successfully',
+    message: 'Student created successfully',
     data: result,
   });
 });
@@ -46,14 +47,14 @@ const createFaculty = catchAsync(async (req, res) => {
 
   logger.info('Create faculty request received');
 
-  const result = await UserServices.createFacultyIntoDB(req.file, password, facultyData);
+  const result = await UserServices.createFaculty(req.file, password, facultyData);
 
   logger.info('Faculty created successfully', { facultyId: result[0]?.id });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Faculty is created successfully',
+    message: 'Faculty created successfully',
     data: result,
   });
 });
@@ -63,7 +64,7 @@ const createAdmin = catchAsync(async (req, res) => {
 
   logger.info('Create admin request received');
 
-  const result = await UserServices.createAdminIntoDB(req.file, password, adminData);
+  const result = await UserServices.createAdmin(req.file, password, adminData);
 
   logger.info('Admin created successfully', {
     adminId: result[0]?.id,
@@ -72,7 +73,7 @@ const createAdmin = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Admin is created successfully',
+    message: 'Admin created successfully',
     data: result,
   });
 });
@@ -84,15 +85,15 @@ const getMe = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'User is retrieved successfully',
+    message: 'User retrieved successfully',
     data: result,
   });
 });
 
 const changeStatus = catchAsync(async (req, res) => {
-  const id = req.params.id;
+  const id = getRouteParam(req, 'id');
 
-  const result = await UserServices.changeStatus(id as string, req.body, {
+  const result = await UserServices.changeStatus(id, req.body, {
     userId: req.user.userId,
     role: req.user.role,
   });
@@ -100,7 +101,7 @@ const changeStatus = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Status is updated successfully',
+    message: 'Status updated successfully',
     data: result,
   });
 });

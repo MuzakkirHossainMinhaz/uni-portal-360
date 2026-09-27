@@ -4,140 +4,98 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { Course } from '../Course/course.model';
 import { Faculty } from '../Faculty/faculty.model';
-import { OfferedCourse } from '../OfferedCourse/OfferedCourse.model';
+import { OfferedCourse } from '../OfferedCourse/offeredCourse.model';
 import { SemesterRegistration } from '../SemesterRegistration/semesterRegistration.model';
 import { Student } from '../Student/student.model';
-import { TEnrolledCourse } from './enrolledCourse.interface';
+import type { TEnrolledCourse } from './enrolledCourse.interface';
 import EnrolledCourse from './enrolledCourse.model';
+import { hasTimeConflict } from '../OfferedCourse/offeredCourse.utils';
 import { calculateGradeAndPoints } from './enrolledCourse.utils';
 
-const createEnrolledCourseIntoDB = async (userId: string, payload: TEnrolledCourse) => {
-  /**
-   * Step1: Check if the offered cousres is exists
-   * Step2: Check if the student is already enrolled
-   * Step3: Check if the max credits exceed
-   * Step4: Create an enrolled course
-   */
-
-  const { offeredCourse } = payload;
-
-  const isOfferedCourseExists = await OfferedCourse.findById(offeredCourse);
-
-  if (!isOfferedCourseExists) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Offered course not found !');
-  }
-
-  if (isOfferedCourseExists.maxCapacity <= 0) {
-    throw new AppError(httpStatus.BAD_GATEWAY, 'Room is full !');
-  }
-
-  const student = await Student.findOne({ id: userId }, { _id: 1 });
-
-  if (!student) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Student not found !');
-  }
-  const isStudentAlreadyEnrolled = await EnrolledCourse.findOne({
-    semesterRegistration: isOfferedCourseExists?.semesterRegistration,
-    offeredCourse,
-    student: student._id,
-  });
-
-  if (isStudentAlreadyEnrolled) {
-    throw new AppError(httpStatus.CONFLICT, 'Student is already enrolled !');
-  }
-
-  // check total credits exceeds maxCredit
-  const course = await Course.findById(isOfferedCourseExists.course);
-  const currentCredit = course?.credits;
-
-  const semesterRegistration = await SemesterRegistration.findById(isOfferedCourseExists.semesterRegistration).select(
-    'maxCredit',
-  );
-
-  const maxCredit = semesterRegistration?.maxCredit;
-
-  const enrolledCourses = await EnrolledCourse.aggregate([
-    {
-      $match: {
-        semesterRegistration: isOfferedCourseExists.semesterRegistration,
-        student: student._id,
-      },
-    },
-    {
-      $lookup: {
-        from: 'courses',
-        localField: 'course',
-        foreignField: '_id',
-        as: 'enrolledCourseData',
-      },
-    },
-    {
-      $unwind: '$enrolledCourseData',
-    },
-    {
-      $group: {
-        _id: null,
-        totalEnrolledCredits: { $sum: '$enrolledCourseData.credits' },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalEnrolledCredits: 1,
-      },
-    },
-  ]);
-
-  //  total enrolled credits + new enrolled course credit > maxCredit
-  const totalCredits = enrolledCourses.length > 0 ? enrolledCourses[0].totalEnrolledCredits : 0;
-
-  if (totalCredits && maxCredit && totalCredits + currentCredit > maxCredit) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'You have exceeded maximum number of credits !');
-  }
-
+const createEnrolledCourse = async (userId: string, payload: TEnrolledCourse) => {
   const session = await mongoose.startSession();
-
   try {
-    session.startTransaction();
-
-    const result = await EnrolledCourse.create(
-      [
-        {
-          semesterRegistration: isOfferedCourseExists.semesterRegistration,
-          academicSemester: isOfferedCourseExists.academicSemester,
-          academicFaculty: isOfferedCourseExists.academicFaculty,
-          academicDepartment: isOfferedCourseExists.academicDepartment,
-          offeredCourse: offeredCourse,
-          course: isOfferedCourseExists.course,
+    return await session.withTransaction(async () => {
+      // Serialize registrations for one student so concurrent requests cannot exceed the credit limit.
+      const student = await Student.findOneAndUpdate(
+        { id: userId, isDeleted: false },
+        { $inc: { __v: 1 } },
+        { session, returnDocument: 'after' },
+      );
+      if (!student) throw new AppError(httpStatus.NOT_FOUND, 'Student not found');
+      const offering = await OfferedCourse.findById(payload.offeredCourse).session(session);
+      if (!offering) throw new AppError(httpStatus.NOT_FOUND, 'Offered course not found');
+      const registration = await SemesterRegistration.findById(offering.semesterRegistration).session(session);
+      if (!registration || registration.status !== 'ONGOING')
+        throw new AppError(httpStatus.BAD_REQUEST, 'Registration is not open');
+      if (
+        String(student.academicDepartment) !== String(offering.academicDepartment) ||
+        String(student.academicFaculty) !== String(offering.academicFaculty)
+      ) {
+        throw new AppError(httpStatus.FORBIDDEN, 'This course is not offered to your department');
+      }
+      const course = await Course.findById(offering.course).session(session);
+      if (!course || course.isDeleted) throw new AppError(httpStatus.NOT_FOUND, 'Course not found');
+      const enrollments = await EnrolledCourse.find({
+        student: student._id,
+        semesterRegistration: registration._id,
+        isEnrolled: true,
+      }).session(session);
+      if (enrollments.some((item) => String(item.course) === String(course._id)))
+        throw new AppError(httpStatus.CONFLICT, 'You are already enrolled in this course');
+      const enrolledCourses = await Course.find({ _id: { $in: enrollments.map((item) => item.course) } }).session(
+        session,
+      );
+      const credits = enrolledCourses.reduce((sum, item) => sum + item.credits, 0);
+      if (credits + course.credits > registration.maxCredit)
+        throw new AppError(httpStatus.BAD_REQUEST, 'Maximum semester credits exceeded');
+      const prerequisites = course.preRequisiteCourses
+        .filter((item) => !item.isDeleted)
+        .map((item) => String(item.course));
+      if (prerequisites.length) {
+        const completed = await EnrolledCourse.find({
           student: student._id,
-          faculty: isOfferedCourseExists.faculty,
-          isEnrolled: true,
-        },
-      ],
-      { session },
-    );
-
-    if (!result) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to enroll in this cousre !');
-    }
-
-    const maxCapacity = isOfferedCourseExists.maxCapacity;
-    await OfferedCourse.findByIdAndUpdate(offeredCourse, {
-      maxCapacity: maxCapacity - 1,
+          course: { $in: prerequisites },
+          isCompleted: true,
+          gradePoints: { $gt: 0 },
+        }).session(session);
+        const passed = new Set(completed.map((item) => String(item.course)));
+        if (prerequisites.some((id) => !passed.has(id)))
+          throw new AppError(httpStatus.BAD_REQUEST, 'Complete the prerequisite courses first');
+      }
+      const schedules = await OfferedCourse.find({
+        _id: { $in: enrollments.map((item) => item.offeredCourse) },
+      }).session(session);
+      if (hasTimeConflict(schedules, offering))
+        throw new AppError(httpStatus.CONFLICT, 'This course conflicts with your schedule');
+      const reserved = await OfferedCourse.findOneAndUpdate(
+        { _id: offering._id, maxCapacity: { $gt: 0 } },
+        { $inc: { maxCapacity: -1 } },
+        { session, returnDocument: 'after' },
+      );
+      if (!reserved) throw new AppError(httpStatus.CONFLICT, 'This section is full');
+      return EnrolledCourse.create(
+        [
+          {
+            semesterRegistration: offering.semesterRegistration,
+            academicSemester: offering.academicSemester,
+            academicFaculty: offering.academicFaculty,
+            academicDepartment: offering.academicDepartment,
+            offeredCourse: offering._id,
+            course: offering.course,
+            student: student._id,
+            faculty: offering.faculty,
+            isEnrolled: true,
+          },
+        ],
+        { session },
+      );
     });
-
-    await session.commitTransaction();
+  } finally {
     await session.endSession();
-
-    return result;
-  } catch (err) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw err;
   }
 };
-
-const getAllEnrolledCoursesFromDB = async (facultyId: string, query: Record<string, unknown>) => {
+const getAllEnrolledCourses = async (facultyId: string, query: Record<string, unknown>) => {
   const faculty = await Faculty.findOne({ id: facultyId });
 
   if (!faculty) {
@@ -162,11 +120,11 @@ const getAllEnrolledCoursesFromDB = async (facultyId: string, query: Record<stri
 
   return {
     meta,
-    result,
+    data: result,
   };
 };
 
-const getMyEnrolledCoursesFromDB = async (studentId: string, query: Record<string, unknown>) => {
+const getMyEnrolledCourses = async (studentId: string, query: Record<string, unknown>) => {
   const student = await Student.findOne({ id: studentId });
 
   if (!student) {
@@ -189,95 +147,68 @@ const getMyEnrolledCoursesFromDB = async (studentId: string, query: Record<strin
 
   return {
     meta,
-    result,
+    data: result,
   };
 };
 
-const updateEnrolledCourseMarksIntoDB = async (facultyId: string, payload: Partial<TEnrolledCourse>) => {
+const updateEnrolledCourseMarks = async (facultyId: string, payload: Partial<TEnrolledCourse>, role = 'faculty') => {
   const { semesterRegistration, offeredCourse, student, courseMarks } = payload;
-
-  const isSemesterRegistrationExists = await SemesterRegistration.findById(semesterRegistration);
-
-  if (!isSemesterRegistrationExists) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Semester registration not found !');
+  if (!['faculty', 'admin', 'superAdmin'].includes(role)) throw new AppError(httpStatus.FORBIDDEN, 'Access denied');
+  const faculty = role === 'faculty' ? await Faculty.findOne({ id: facultyId }).select('_id') : null;
+  if (role === 'faculty' && !faculty) throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found');
+  const { SemesterResultServices } = await import('../SemesterResult/semesterResult.service');
+  const session = await mongoose.startSession();
+  try {
+    const saved = await session.withTransaction(async () => {
+      const enrollment = await EnrolledCourse.findOne({
+        semesterRegistration,
+        offeredCourse,
+        student,
+        ...(faculty ? { faculty: faculty._id } : {}),
+      }).session(session);
+      if (!enrollment) throw new AppError(httpStatus.NOT_FOUND, 'Enrollment not found for this course');
+      // Serialize grading for a student, including GPA changes in other courses.
+      const profile = await Student.findOneAndUpdate(
+        { _id: student, isDeleted: { $ne: true } },
+        { $inc: { __v: 1 } },
+        { session },
+      );
+      if (!profile) throw new AppError(httpStatus.NOT_FOUND, 'Student not found');
+      const changes: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(courseMarks ?? {})) changes[`courseMarks.${key}`] = value;
+      const publish = courseMarks?.finalTerm !== undefined || enrollment.isCompleted;
+      if (publish) {
+        const marks = { ...enrollment.courseMarks, ...courseMarks };
+        const totalMarks =
+          Math.ceil(marks.classTest1) +
+          Math.ceil(marks.midTerm) +
+          Math.ceil(marks.classTest2) +
+          Math.ceil(marks.finalTerm);
+        Object.assign(changes, calculateGradeAndPoints(totalMarks), { isCompleted: true });
+      }
+      const result = await EnrolledCourse.findByIdAndUpdate(enrollment._id, changes, {
+        session,
+        returnDocument: 'after',
+        runValidators: true,
+      });
+      const semesterResult = publish
+        ? await SemesterResultServices.calculateSemesterGPA(
+            String(student),
+            String(enrollment.academicSemester),
+            session,
+          )
+        : null;
+      return { result, gpa: semesterResult?.gpa };
+    });
+    if (saved.gpa !== undefined) await SemesterResultServices.notifyResultPublished(String(student), saved.gpa);
+    return saved.result;
+  } finally {
+    await session.endSession();
   }
-
-  const isOfferedCourseExists = await OfferedCourse.findById(offeredCourse);
-
-  if (!isOfferedCourseExists) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Offered course not found !');
-  }
-  const isStudentExists = await Student.findById(student);
-
-  if (!isStudentExists) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Student not found !');
-  }
-
-  const faculty = await Faculty.findOne({ id: facultyId }, { _id: 1 });
-
-  if (!faculty) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Faculty not found !');
-  }
-
-  const isCourseBelongToFaculty = await EnrolledCourse.findOne({
-    semesterRegistration,
-    offeredCourse,
-    student,
-    faculty: faculty._id,
-  });
-
-  if (!isCourseBelongToFaculty) {
-    throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden! !');
-  }
-
-  const modifiedData: Record<string, unknown> = {};
-
-  if (courseMarks && Object.keys(courseMarks).length) {
-    for (const [key, value] of Object.entries(courseMarks)) {
-      modifiedData[`courseMarks.${key}`] = value;
-    }
-  }
-
-  if (courseMarks?.finalTerm) {
-    const { classTest1, classTest2, midTerm, finalTerm } = {
-      ...isCourseBelongToFaculty.courseMarks,
-      ...courseMarks,
-    };
-
-    const totalMarks = Math.ceil(classTest1) + Math.ceil(midTerm) + Math.ceil(classTest2) + Math.ceil(finalTerm);
-
-    const result = calculateGradeAndPoints(totalMarks);
-
-    modifiedData.grade = result.grade;
-    modifiedData.gradePoints = result.gradePoints;
-    modifiedData.isCompleted = true;
-  } else {
-    // If updating other marks but not final, check if all marks are present to update grade?
-    // Or just update grade only when finalTerm is submitted?
-    // User requirement: "Automatically calculates and assigns grade based on marks using the configured grade policy"
-    // Usually grade is finalized after final exam.
-    // Let's keep it as is: only calculate grade if finalTerm is provided.
-  }
-
-  const result = await EnrolledCourse.findByIdAndUpdate(isCourseBelongToFaculty._id, modifiedData, {
-    returnDocument: 'after',
-  });
-  
-  // Calculate Semester GPA immediately
-  if (modifiedData.grade && modifiedData.gradePoints) {
-     const { SemesterResultServices } = await import('../SemesterResult/semesterResult.service');
-     await SemesterResultServices.calculateSemesterGPA(
-         isCourseBelongToFaculty.student.toString(), 
-         isCourseBelongToFaculty.academicSemester.toString()
-     );
-  }
-
-  return result;
 };
-
 export const EnrolledCourseServices = {
-  createEnrolledCourseIntoDB,
-  getAllEnrolledCoursesFromDB,
-  getMyEnrolledCoursesFromDB,
-  updateEnrolledCourseMarksIntoDB,
+  createEnrolledCourse,
+  getAllEnrolledCourses,
+  getMyEnrolledCourses,
+  updateEnrolledCourseMarks,
 };

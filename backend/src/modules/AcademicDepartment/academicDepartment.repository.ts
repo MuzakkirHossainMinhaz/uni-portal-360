@@ -1,6 +1,7 @@
-import { Model } from 'mongoose';
-import { BaseRepository, IBaseRepository } from '../../shared/baseRepository';
-import { TAcademicDepartment } from './academicDepartment.interface';
+import type { Model } from 'mongoose';
+import type { IBaseRepository } from '../../shared/baseRepository';
+import { BaseRepository } from '../../shared/baseRepository';
+import type { TAcademicDepartment } from './academicDepartment.interface';
 import { AcademicDepartment } from './academicDepartment.model';
 
 export type IAcademicDepartmentRepository = IBaseRepository<

@@ -45,7 +45,7 @@ describe('faculty access to student profiles', () => {
     (EnrolledCourse.exists as jest.Mock).mockResolvedValue(null);
 
     await expect(
-      StudentServices.getSingleStudentFromDB('student-id', { userId: 'F-0001', role: 'faculty' }),
+      StudentServices.getSingleStudent('student-id', { userId: 'F-0001', role: 'faculty' }),
     ).rejects.toMatchObject({ statusCode: 403 });
     expect(Student.findOne).not.toHaveBeenCalled();
   });
@@ -56,9 +56,13 @@ describe('faculty access to student profiles', () => {
     const query = { select: jest.fn().mockReturnThis(), populate: jest.fn().mockResolvedValue({ id: 'student-id' }) };
     (Student.findOne as jest.Mock).mockReturnValue(query);
 
-    await StudentServices.getSingleStudentFromDB('student-id', { userId: 'F-0001', role: 'faculty' });
+    await StudentServices.getSingleStudent('student-id', { userId: 'F-0001', role: 'faculty' });
 
-    expect(EnrolledCourse.exists).toHaveBeenCalledWith({ student: 'student-id', faculty: 'faculty-id', isEnrolled: true });
+    expect(EnrolledCourse.exists).toHaveBeenCalledWith({
+      student: 'student-id',
+      faculty: 'faculty-id',
+      isEnrolled: true,
+    });
     expect(query.select).toHaveBeenCalledWith('id name academicDepartment academicFaculty');
   });
 });

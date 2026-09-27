@@ -1,5 +1,5 @@
-import { Model } from 'mongoose';
-import { TAcademicDepartment } from '../academicDepartment.interface';
+import type { Model } from 'mongoose';
+import type { TAcademicDepartment } from '../academicDepartment.interface';
 import { AcademicDepartmentRepository } from '../academicDepartment.repository';
 
 describe('AcademicDepartmentRepository', () => {

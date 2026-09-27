@@ -1,18 +1,11 @@
-import { Response } from 'express';
-
-type TMeta = {
-  limit: number;
-  page: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-};
+import type { Response } from 'express';
+import type { TPaginationMeta } from './pagination';
 
 type TResponse<T> = {
   statusCode: number;
   success: boolean;
   message?: string;
-  meta?: TMeta;
+  meta?: TPaginationMeta;
   data: T;
 };
 

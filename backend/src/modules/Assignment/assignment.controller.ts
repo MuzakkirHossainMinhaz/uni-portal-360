@@ -1,3 +1,4 @@
+import { getRouteParam } from '../../utils/getRouteParam';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
@@ -16,20 +17,23 @@ const createAssignment = catchAsync(async (req, res) => {
 });
 
 const getAllAssignments = catchAsync(async (req, res) => {
-  const result = await AssignmentServices.getAllAssignments(req.query);
+  const result = await AssignmentServices.getAllAssignments(req.query, {
+    userId: req.user.userId,
+    role: req.user.role,
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Assignments retrieved successfully',
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
 const getAssignmentById = catchAsync(async (req, res) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const result = await AssignmentServices.getAssignmentById(id);
+  const id = getRouteParam(req, 'id');
+  const result = await AssignmentServices.getAssignmentById(id, { userId: req.user.userId, role: req.user.role });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -40,9 +44,11 @@ const getAssignmentById = catchAsync(async (req, res) => {
 });
 
 const updateAssignment = catchAsync(async (req, res) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const result = await AssignmentServices.updateAssignment(id, req.body);
+  const id = getRouteParam(req, 'id');
+  const result = await AssignmentServices.updateAssignment(id, req.body, {
+    userId: req.user.userId,
+    role: req.user.role,
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -53,9 +59,8 @@ const updateAssignment = catchAsync(async (req, res) => {
 });
 
 const deleteAssignment = catchAsync(async (req, res) => {
-  const idParam = req.params.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
-  const result = await AssignmentServices.deleteAssignment(id);
+  const id = getRouteParam(req, 'id');
+  const result = await AssignmentServices.deleteAssignment(id, { userId: req.user.userId, role: req.user.role });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import type { Types } from 'mongoose';
 
 export type TFeeStatus = 'PENDING' | 'PAID' | 'PARTIAL' | 'OVERDUE';
 export type TFeeType = 'TUITION' | 'LIBRARY' | 'EXAM' | 'HOSTEL' | 'MISC';
