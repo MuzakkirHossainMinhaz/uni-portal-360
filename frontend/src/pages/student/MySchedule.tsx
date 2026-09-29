@@ -7,7 +7,7 @@ const MySchedule = () => {
   const { data, isFetching, isError, refetch } = useGetAllEnrolledCoursesQuery([
     { name: 'page', value: page },
     { name: 'limit', value: 10 },
-    { name: 'isCompleted', value: 'false' },
+    { name: 'current', value: 'true' },
   ]);
   return (
     <>

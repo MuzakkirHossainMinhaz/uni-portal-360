@@ -45,6 +45,7 @@ const updateOfferedCourseValidationSchema = z.object({
   body: z
     .object({
       faculty: z.string().optional(),
+      reassignmentReason: z.string().trim().min(10).max(500).optional(),
       maxCapacity: z.number().int().positive().optional(),
       days: z
         .array(z.enum([...Days] as [string, ...string[]]))

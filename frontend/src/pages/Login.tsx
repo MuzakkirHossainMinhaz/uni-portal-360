@@ -1,6 +1,6 @@
 import { Button, Col, Image, Row, Typography } from 'antd';
 import type { FieldValues } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import UniForm from '../components/form/UniForm';
 import UniInput from '../components/form/UniInput';
@@ -116,6 +116,10 @@ const Login = () => {
             </Button>
           </UniForm>
           <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <Link className="auth-link" to="/reset-password">
+              Forgot your password?
+            </Link>
+            <br />
             <Text style={{ color: '#6b7280', fontSize: 12 }}>
               Use your university credentials. Contact your administrator if you need help.
             </Text>

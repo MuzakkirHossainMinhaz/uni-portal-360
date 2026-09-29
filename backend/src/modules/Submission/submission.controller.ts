@@ -26,13 +26,14 @@ const getAllSubmissions = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Submissions retrieved successfully',
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
 const gradeSubmission = catchAsync(async (req, res) => {
   const id = getRouteParam(req, 'id');
-  const result = await SubmissionServices.gradeSubmission(id, req.body, req.user.userId);
+  const result = await SubmissionServices.gradeSubmission(id, req.body, req.user.userId, req.user.role);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -44,7 +45,7 @@ const gradeSubmission = catchAsync(async (req, res) => {
 
 const updateSubmission = catchAsync(async (req, res) => {
   const id = getRouteParam(req, 'id');
-  const result = await SubmissionServices.updateSubmission(id, req.body, req.user.userId);
+  const result = await SubmissionServices.updateSubmission(id, req.file, req.user.userId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

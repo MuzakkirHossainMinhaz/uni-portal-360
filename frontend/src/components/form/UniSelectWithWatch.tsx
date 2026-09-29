@@ -20,7 +20,7 @@ const UniSelectWithWatch = ({ label, name, options, disabled, mode, onValueChang
 
   useEffect(() => {
     onValueChange(inputValue);
-  }, [inputValue]);
+  }, [inputValue, onValueChange]);
 
   return (
     <Controller

@@ -2,7 +2,11 @@ import { Alert, App, Button, Card, List, Modal, Upload, Typography, Tag, Space }
 import { UploadOutlined, CalendarOutlined, FileTextOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useGetAllAssignmentsQuery } from '../../../redux/features/assignment/assignment.api';
-import { useCreateSubmissionMutation } from '../../../redux/features/submission/submission.api';
+import {
+  useCreateSubmissionMutation,
+  useGetAllSubmissionsQuery,
+  useReplaceSubmissionMutation,
+} from '../../../redux/features/submission/submission.api';
 import PageHeader from '../../../components/layout/PageHeader';
 import dayjs from 'dayjs';
 import type { UploadFile } from 'antd/es/upload/interface';
@@ -21,9 +25,19 @@ const StudentAssignments = () => {
   const [page, setPage] = useState(1);
   const { data: assignments, isLoading, isError } = useGetAllAssignmentsQuery({ page: String(page), limit: '12' });
   const [createSubmission, { isLoading: isSubmitting }] = useCreateSubmissionMutation();
+  const [replaceSubmission, { isLoading: isReplacing }] = useReplaceSubmissionMutation();
+  const visibleAssignmentIds = assignments?.data?.map((item: StudentAssignment) => item._id).join(',');
+  const { data: submissions } = useGetAllSubmissionsQuery(
+    { assignmentIds: visibleAssignmentIds ?? '', limit: '20' },
+    { skip: !visibleAssignmentIds },
+  );
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StudentAssignment | null>(null);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const submissionFor = (assignmentId: string) =>
+    submissions?.data.find(
+      (item) => (typeof item.assignment === 'string' ? item.assignment : item.assignment?._id) === assignmentId,
+    );
 
   const showSubmitModal = (assignment: StudentAssignment) => {
     setSelectedAssignment(assignment);
@@ -54,13 +68,17 @@ const StudentAssignments = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file.originFileObj);
-    formData.append('data', JSON.stringify({ assignment: selectedAssignment._id }));
-
     try {
-      await createSubmission(formData).unwrap();
-      message.success('Assignment submitted successfully');
+      const existing = submissionFor(selectedAssignment._id);
+      if (existing) {
+        await replaceSubmission({ id: existing._id, file: file.originFileObj }).unwrap();
+      } else {
+        const formData = new FormData();
+        formData.append('file', file.originFileObj);
+        formData.append('data', JSON.stringify({ assignment: selectedAssignment._id }));
+        await createSubmission(formData).unwrap();
+      }
+      message.success(existing ? 'Submission replaced' : 'Assignment submitted');
       setIsModalVisible(false);
       setFileList([]);
     } catch {
@@ -101,6 +119,7 @@ const StudentAssignments = () => {
           const deadline = dayjs(item.deadline);
           const isExpired = dayjs().isAfter(deadline);
           const timeLeft = deadline.diff(dayjs(), 'day');
+          const submitted = submissionFor(item._id);
 
           return (
             <List.Item key={item._id}>
@@ -112,11 +131,17 @@ const StudentAssignments = () => {
                   <Button
                     type="primary"
                     onClick={() => showSubmitModal(item)}
-                    disabled={isExpired}
+                    disabled={isExpired || submitted?.isGraded}
                     block
                     style={{ margin: '0 16px' }}
                   >
-                    {isExpired ? 'Deadline Passed' : 'Submit Assignment'}
+                    {submitted?.isGraded
+                      ? 'Graded'
+                      : isExpired
+                        ? 'Deadline Passed'
+                        : submitted
+                          ? 'Replace Submission'
+                          : 'Submit Assignment'}
                   </Button>,
                 ]}
                 extra={isExpired ? <Tag color="error">Closed</Tag> : <Tag color="processing">Active</Tag>}
@@ -125,6 +150,17 @@ const StudentAssignments = () => {
                   <Paragraph ellipsis={{ rows: 3 }} type="secondary">
                     {item.description}
                   </Paragraph>
+                  {submitted && (
+                    <Alert
+                      type={submitted.isGraded ? 'success' : 'info'}
+                      message={
+                        submitted.isGraded
+                          ? `Grade: ${submitted.grade ?? 'Pending'}/100`
+                          : 'Submitted; awaiting grading'
+                      }
+                      description={submitted.feedback || undefined}
+                    />
+                  )}
 
                   <Space orientation="vertical" style={{ width: '100%', marginTop: 16 }}>
                     <Space>
@@ -162,7 +198,7 @@ const StudentAssignments = () => {
           <Button key="back" onClick={handleCancel}>
             Cancel
           </Button>,
-          <Button key="submit" type="primary" loading={isSubmitting} onClick={handleUpload}>
+          <Button key="submit" type="primary" loading={isSubmitting || isReplacing} onClick={handleUpload}>
             Submit
           </Button>,
         ]}

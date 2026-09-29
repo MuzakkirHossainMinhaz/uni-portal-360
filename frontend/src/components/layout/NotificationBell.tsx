@@ -163,6 +163,16 @@ const NotificationBell = () => {
           />
         )}
       </div>
+      <Button
+        type="link"
+        block
+        onClick={() => {
+          navigate('/notifications');
+          setOpen(false);
+        }}
+      >
+        View all notifications
+      </Button>
     </div>
   );
 

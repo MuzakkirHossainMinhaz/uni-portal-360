@@ -1,19 +1,34 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, App, Button, Col, Form, InputNumber, Modal, Row, Select, Space, Table, Tag, TimePicker } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Col,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tag,
+  TimePicker,
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useMemo, useState, type Key } from 'react';
 import { weekDaysOptions } from '../../../constants/global';
 import {
-  useGetAllAcademicDepartmentsQuery,
-  useGetAllAcademicFacultiesQuery,
+  useGetAcademicDepartmentOptionsQuery,
+  useGetAcademicFacultyOptionsQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import {
   useCreateOfferedCourseMutation,
   useDeleteOfferedCourseMutation,
-  useGetAllCoursesQuery,
+  useGetCourseOptionsQuery,
   useGetAllOfferedCoursesQuery,
-  useGetAllRegisteredSemestersQuery,
+  useGetRegisteredSemesterOptionsQuery,
   useGetCourseFacultiesQuery,
   useUpdateOfferedCourseMutation,
 } from '../../../redux/features/admin/courseManagement.api';
@@ -31,6 +46,7 @@ type Values = {
   days: string[];
   startTime: Dayjs;
   endTime: Dayjs;
+  reassignmentReason?: string;
 };
 const errorText = (error: unknown) =>
   (error as { data?: { message?: string } })?.data?.message ?? 'Operation failed. Please try again.';
@@ -59,13 +75,10 @@ const OfferedCourses = () => {
     [page, size],
   );
   const { data, isFetching, error } = useGetAllOfferedCoursesQuery(params);
-  const { data: semesters } = useGetAllRegisteredSemestersQuery([
-    { name: 'status', value: 'UPCOMING' },
-    { name: 'limit', value: 100 },
-  ]);
-  const { data: academicFaculties } = useGetAllAcademicFacultiesQuery([{ name: 'limit', value: 100 }]);
-  const { data: departments } = useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
-  const { data: courses } = useGetAllCoursesQuery([{ name: 'limit', value: 100 }]);
+  const { data: semesters } = useGetRegisteredSemesterOptionsQuery();
+  const { data: academicFaculties } = useGetAcademicFacultyOptionsQuery();
+  const { data: departments } = useGetAcademicDepartmentOptionsQuery();
+  const { data: courses } = useGetCourseOptionsQuery();
   const { data: assigned } = useGetCourseFacultiesQuery(selectedCourse ?? '', { skip: !selectedCourse || !open });
   const [create, { isLoading: creating }] = useCreateOfferedCourseMutation();
   const [update, { isLoading: updating }] = useUpdateOfferedCourseMutation();
@@ -89,6 +102,7 @@ const OfferedCourses = () => {
       days: row.days,
       startTime: dayjs(`2000-01-01T${row.startTime}:00`),
       endTime: dayjs(`2000-01-01T${row.endTime}:00`),
+      reassignmentReason: '',
     });
     setOpen(true);
   };
@@ -103,7 +117,10 @@ const OfferedCourses = () => {
       if (editing) {
         await update({
           id: editing._id,
-          data: { faculty: values.faculty, maxCapacity: values.maxCapacity, days: values.days, startTime, endTime },
+          data:
+            editing.semesterRegistration?.status === 'ONGOING'
+              ? { faculty: values.faculty, reassignmentReason: values.reassignmentReason }
+              : { faculty: values.faculty, maxCapacity: values.maxCapacity, days: values.days, startTime, endTime },
         }).unwrap();
       } else {
         await create({ ...values, startTime, endTime }).unwrap();
@@ -202,6 +219,10 @@ const OfferedCourses = () => {
               }
             />
           </Space>
+        ) : row.semesterRegistration?.status === 'ONGOING' ? (
+          <Button size="small" onClick={() => openEdit(row)}>
+            Transfer faculty
+          </Button>
         ) : (
           '—'
         ),
@@ -273,7 +294,13 @@ const OfferedCourses = () => {
         )}
       </CourseCard>
       <Modal
-        title={editing ? 'Edit Offering' : 'Offer Course'}
+        title={
+          editing?.semesterRegistration?.status === 'ONGOING'
+            ? 'Transfer active course'
+            : editing
+              ? 'Edit Offering'
+              : 'Offer Course'
+        }
         open={open}
         onCancel={() => setOpen(false)}
         footer={null}
@@ -339,25 +366,47 @@ const OfferedCourses = () => {
             </Col>
             <Col xs={24} sm={6}>
               <Form.Item name="maxCapacity" label="Capacity" rules={[{ required: true }]}>
-                <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+                <InputNumber
+                  disabled={editing?.semesterRegistration?.status === 'ONGOING'}
+                  min={1}
+                  precision={0}
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </Col>
             <Col span={24}>
               <Form.Item name="days" label="Days" rules={[{ required: true, type: 'array', min: 1 }]}>
-                <Select mode="multiple" options={weekDaysOptions} />
+                <Select
+                  disabled={editing?.semesterRegistration?.status === 'ONGOING'}
+                  mode="multiple"
+                  options={weekDaysOptions}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item name="startTime" label="Start Time" rules={[{ required: true }]}>
-                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                <TimePicker
+                  disabled={editing?.semesterRegistration?.status === 'ONGOING'}
+                  format="HH:mm"
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item name="endTime" label="End Time" rules={[{ required: true }]}>
-                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                <TimePicker
+                  disabled={editing?.semesterRegistration?.status === 'ONGOING'}
+                  format="HH:mm"
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </Col>
           </Row>
+          {editing?.semesterRegistration?.status === 'ONGOING' && (
+            <Form.Item name="reassignmentReason" label="Transfer reason" rules={[{ required: true }, { min: 10 }]}>
+              <Input.TextArea rows={3} />
+            </Form.Item>
+          )}
           {!editing && !upcomingIds.size && (
             <Alert
               style={{ marginBottom: 16 }}

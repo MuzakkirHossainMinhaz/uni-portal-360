@@ -1,0 +1,17 @@
+# Production release checklist
+
+This application must not handle real money through its development payment simulation. The payment endpoint permits simulation only with an explicit `NODE_ENV=development` or `NODE_ENV=test`; in production or with an unset/unknown environment it returns 503. The production student Pay button is hidden. Integrate a verified provider, webhook authentication, idempotency, reconciliation, refunds and financial audit before enabling online payments.
+
+## Before first deployment
+
+1. Use Node.js 24 LTS and `npm ci` in both `backend/` and `frontend/`. Run `npm run check` at the repository root and `npm run test:smoke` against a **disposable local MongoDB replica set**. The smoke command drops only its randomly named quality database, and refuses nonlocal MongoDB URLs.
+2. Configure `backend/.env.example` values through a secret manager. Use independent random JWT secrets and a unique 12–128 character `BOOTSTRAP_SUPER_ADMIN_PASSWORD` on a new database. Limit access to that secret, log in once and change it. Startup no longer installs the published old password. For any existing deployment, identify and rotate accounts created with the old bootstrap credential; changing source code does not rotate existing hashes.
+3. Use TLS for the frontend and API, set `CORS_ORIGIN` to the actual HTTPS frontend origin, configure trusted proxy hops explicitly, and keep MongoDB reachable only from the API. MongoDB transactions require a replica set. Run `GET /health` from the service environment and require a 200 readiness response before routing traffic.
+4. Configure SMTP and the HTTPS reset link; test forgot/reset email and delivery. Configure Cloudinary and verify authenticated submission downloads with a student, an assigned faculty member and an unrelated account. **Previously uploaded public submission URLs stay public** until those assets are migrated or revoked; inventory and move them before using real student documents.
+5. Take a restorable backup before data migrations. Check existing duplicate academic semesters, orphaned enrollment/faculty references, historical credit mismatches and already published grades before creating new unique indexes or changing academic records. Test backup restoration and retain a rollback plan.
+6. Confirm the institution's academic policies for retakes, rounding, withdrawals, publication dates and correction approval. Published grades are locked for faculty; an Admin correction requires a reason and creates transactional before/after history. An Admin currently performs the approval itself; a separate two-person approval workflow has not been implemented.
+7. Configure monitoring for application errors, failed health checks, database/storage/SMTP failures, and audit-log write errors. Set `AUDIT_RETENTION_DAYS` only after retention approval; if unset, automatic audit deletion is disabled. Review data protection, access logging, incident response and backup retention with the deploying institution.
+
+## Release gate
+
+The CI workflow checks formatting, lint, types, production builds, unit tests and a disposable MongoDB HTTP smoke suite. This is a code quality gate, not a substitute for staging verification. Before real records are loaded, run a role-by-role browser walkthrough on desktop and mobile, keyboard/accessibility checks, staging integration tests for SMTP and Cloudinary, concurrency/load tests, and a restore drill.

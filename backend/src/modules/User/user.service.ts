@@ -1,6 +1,5 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
-import config from '../../config';
 import AppError from '../../errors/AppError';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
@@ -16,6 +15,7 @@ import { User } from './user.model';
 import { generateAdminId, generateFacultyId, generateStudentId } from './user.utils';
 import type { Express } from 'express';
 import { RBACServices } from '../RBAC/rbac.service';
+import { passwordSchema } from '../../utils/passwordPolicy';
 
 const createStudent = async (
   file: Express.Multer.File | undefined,
@@ -25,8 +25,7 @@ const createStudent = async (
   // create a user object
   const userData: Partial<TUser> = {};
 
-  //if password is not given , use default password
-  userData.password = password || (config.default_password as string);
+  userData.password = passwordSchema.parse(password);
 
   //set student role
   userData.role = 'student';
@@ -101,8 +100,7 @@ const createFaculty = async (
   // create a user object
   const userData: Partial<TUser> = {};
 
-  //if password is not given , use deafult password
-  userData.password = password || (config.default_password as string);
+  userData.password = passwordSchema.parse(password);
 
   //set faculty role
   userData.role = 'faculty';
@@ -167,8 +165,7 @@ const createAdmin = async (file: Express.Multer.File | undefined, password: stri
   // create a user object
   const userData: Partial<TUser> = {};
 
-  //if password is not given , use deafult password
-  userData.password = password || (config.default_password as string);
+  userData.password = passwordSchema.parse(password);
 
   //set student role
   userData.role = 'admin';
@@ -219,6 +216,7 @@ const createAdmin = async (file: Express.Multer.File | undefined, password: stri
 };
 
 const getMe = async (userId: string, role: string) => {
+  const account = await User.findOne({ id: userId }).select('id email role status');
   let result = null;
   if (role === 'student') {
     result = await Student.findOne({ id: userId }).populate('user');
@@ -235,7 +233,7 @@ const getMe = async (userId: string, role: string) => {
 
   const permissions = await RBACServices.getRolePermissions(role);
 
-  return { ...result?.toObject(), permissions };
+  return { ...result?.toObject(), account: account?.toObject(), permissions };
 };
 
 const changeStatus = async (id: string, payload: { status: string }, actor: { userId: string; role: string }) => {

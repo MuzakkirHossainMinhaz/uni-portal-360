@@ -1,5 +1,6 @@
 import express from 'express';
 import parseMultipartData from '../../middlewares/parseMultipartData';
+import cleanupUploadedFile from '../../middlewares/cleanupUploadedFile';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { upload } from '../../utils/sendImageToCloudinary';
@@ -13,6 +14,7 @@ router.post(
   '/submit',
   auth(USER_ROLE.student),
   upload.single('file'),
+  cleanupUploadedFile,
   parseMultipartData,
   validateRequest(SubmissionValidations.createSubmissionValidationSchema),
   SubmissionControllers.createSubmission,
@@ -26,7 +28,7 @@ router.get(
 
 router.patch(
   '/:id/grade',
-  auth(USER_ROLE.faculty),
+  auth(USER_ROLE.faculty, USER_ROLE.admin, USER_ROLE.superAdmin),
   validateRequest(SubmissionValidations.updateSubmissionGradeValidationSchema),
   SubmissionControllers.gradeSubmission,
 );
@@ -34,7 +36,8 @@ router.patch(
 router.patch(
   '/:id',
   auth(USER_ROLE.student),
-  validateRequest(SubmissionValidations.updateSubmissionValidationSchema),
+  upload.single('file'),
+  cleanupUploadedFile,
   SubmissionControllers.updateSubmission,
 );
 

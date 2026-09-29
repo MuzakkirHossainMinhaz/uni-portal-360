@@ -9,6 +9,7 @@ export type TOfferedCourse = {
   academicDepartment: Types.ObjectId;
   course: Types.ObjectId;
   faculty: Types.ObjectId;
+  facultyTransfers?: { from: Types.ObjectId; to: Types.ObjectId; reason: string; transferredAt: Date }[];
   maxCapacity: number;
   section: number;
   days: TDays[];

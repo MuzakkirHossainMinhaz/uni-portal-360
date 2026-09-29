@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '../../utils/passwordPolicy';
 
 const createUserNameValidationSchema = z.object({
   firstName: z
@@ -30,7 +31,7 @@ const createLocalGuardianValidationSchema = z.object({
 
 export const createStudentValidationSchema = z.object({
   body: z.object({
-    password: z.string().max(20).optional(),
+    password: passwordSchema,
     student: z.object({
       name: createUserNameValidationSchema,
       gender: z.enum(['male', 'female', 'other']),

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '../../utils/passwordPolicy';
 
 const loginValidationSchema = z.object({
   body: z.object({
@@ -12,7 +13,7 @@ const changePasswordValidationSchema = z.object({
     oldPassword: z.string({
       message: 'Old password is required',
     }),
-    newPassword: z.string({ message: 'Password is required' }),
+    newPassword: passwordSchema,
   }),
 });
 
@@ -37,9 +38,7 @@ const resetPasswordValidationSchema = z.object({
     id: z.string({
       message: 'User id is required!',
     }),
-    newPassword: z.string({
-      message: 'User password is required!',
-    }),
+    newPassword: passwordSchema,
   }),
 });
 

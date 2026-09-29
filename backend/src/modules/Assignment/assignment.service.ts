@@ -1,9 +1,9 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Faculty } from '../Faculty/faculty.model';
 import { OfferedCourse } from '../OfferedCourse/offeredCourse.model';
 import type { TAssignment } from './assignment.interface';
-import { AssignmentRepository } from './assignment.repository';
 import { NotificationServices } from '../Notification/notification.service';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import type { Types } from 'mongoose';
@@ -11,9 +11,6 @@ import type { AcademicActor } from '../../utils/academicAccess';
 import { requireFaculty, requireStudent } from '../../utils/academicAccess';
 import { Assignment } from './assignment.model';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { logger } from '../../utils/logger';
-
-const assignmentRepository = new AssignmentRepository();
 
 const createAssignment = async (userId: string, payload: TAssignment) => {
   const faculty = await Faculty.findOne({ id: userId });
@@ -32,38 +29,36 @@ const createAssignment = async (userId: string, payload: TAssignment) => {
     throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized to create assignments for this course');
   }
 
-  const result = await assignmentRepository.create({
-    ...payload,
-    faculty: faculty._id,
-  });
-
+  const session = await mongoose.startSession();
   try {
-    const enrollments = await EnrolledCourse.find({ offeredCourse: payload.offeredCourse, isEnrolled: true }).populate(
-      'student',
-      'user',
-    );
-    const notifications = enrollments.flatMap((enrollment) => {
-      const student = enrollment.student as { user?: Types.ObjectId } | null;
-      return student?.user
-        ? [
-            {
-              userId: student.user,
-              title: 'New Assignment Created',
-              message: `A new assignment "${payload.title}" has been posted for your course.`,
-              type: 'ASSIGNMENT_DUE' as const,
-              priority: 'MEDIUM' as const,
-              read: false,
-              isDeleted: false,
-              actionUrl: '/student/assignments',
-            },
-          ]
-        : [];
+    return await session.withTransaction(async () => {
+      const [result] = await Assignment.create([{ ...payload, faculty: faculty._id }], { session });
+      const enrollments = await EnrolledCourse.find({ offeredCourse: payload.offeredCourse, isEnrolled: true })
+        .populate('student', 'user')
+        .session(session);
+      const notifications = enrollments.flatMap((enrollment) => {
+        const student = enrollment.student as { user?: Types.ObjectId } | null;
+        return student?.user
+          ? [
+              {
+                userId: student.user,
+                title: 'New Assignment Created',
+                message: `A new assignment "${payload.title}" has been posted for your course.`,
+                type: 'ASSIGNMENT_DUE' as const,
+                priority: 'MEDIUM' as const,
+                read: false,
+                isDeleted: false,
+                actionUrl: '/student/assignments',
+              },
+            ]
+          : [];
+      });
+      if (notifications.length) await NotificationServices.createNotifications(notifications, session);
+      return result;
     });
-    if (notifications.length) await NotificationServices.createNotifications(notifications);
-  } catch (error) {
-    logger.error('Assignment created, but notification delivery failed', error);
+  } finally {
+    await session.endSession();
   }
-  return result;
 };
 
 const assignmentScope = async (actor: AcademicActor): Promise<Record<string, unknown>> => {

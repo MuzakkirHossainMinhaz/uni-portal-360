@@ -1,5 +1,6 @@
 import express from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { createHash } from 'crypto';
 import { authForPasswordChange } from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLE } from '../User/user.constant';
@@ -15,6 +16,10 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: true,
   message: 'Too many login attempts. Please try again later',
+  keyGenerator: (req) =>
+    `${ipKeyGenerator(req.ip ?? 'unknown')}:${createHash('sha256')
+      .update(String(req.body?.id ?? '').toLowerCase())
+      .digest('hex')}`,
 });
 
 router.post('/login', loginLimiter, validateRequest(AuthValidations.loginValidationSchema), AuthControllers.loginUser);
@@ -30,6 +35,12 @@ router.post(
   '/refresh-token',
   validateRequest(AuthValidations.refreshTokenValidationSchema),
   AuthControllers.refreshToken,
+);
+
+router.post(
+  '/logout',
+  authForPasswordChange(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.faculty, USER_ROLE.student),
+  AuthControllers.logoutUser,
 );
 
 router.post(

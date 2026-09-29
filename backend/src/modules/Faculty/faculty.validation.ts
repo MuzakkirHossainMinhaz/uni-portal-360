@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BloodGroup, Gender } from './faculty.constant';
+import { passwordSchema } from '../../utils/passwordPolicy';
 
 const createUserNameValidationSchema = z.object({
   firstName: z
@@ -15,7 +16,7 @@ const createUserNameValidationSchema = z.object({
 
 export const createFacultyValidationSchema = z.object({
   body: z.object({
-    password: z.string().max(20).optional(),
+    password: passwordSchema,
     faculty: z.object({
       designation: z.string(),
       name: createUserNameValidationSchema,

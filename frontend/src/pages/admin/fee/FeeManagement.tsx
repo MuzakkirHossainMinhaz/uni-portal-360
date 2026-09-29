@@ -20,7 +20,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useState } from 'react';
 import { DownloadReceipt } from '../../../components/fee/DownloadReceipt';
 import CourseCard from '../courseManagement/CourseCard';
-import { useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
+import { useGetAcademicSemesterOptionsQuery } from '../../../redux/features/admin/academicManagement.api';
 import { useGetAllStudentsQuery } from '../../../redux/features/admin/userManagement.api';
 import {
   type CreateFeePayload,
@@ -58,7 +58,7 @@ const FeeManagement = () => {
     ],
     { skip: !open || !!editing },
   );
-  const { data: semesters } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }], {
+  const { data: semesters } = useGetAcademicSemesterOptionsQuery(undefined, {
     skip: !open || !!editing,
   });
   const [create, { isLoading: creating }] = useCreateFeeMutation();

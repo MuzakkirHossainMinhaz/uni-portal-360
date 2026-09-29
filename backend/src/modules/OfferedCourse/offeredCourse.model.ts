@@ -34,6 +34,10 @@ const offeredCourseSchema = new mongoose.Schema<TOfferedCourse>(
       required: true,
       ref: 'Faculty',
     },
+    facultyTransfers: {
+      type: [{ from: Schema.Types.ObjectId, to: Schema.Types.ObjectId, reason: String, transferredAt: Date }],
+      default: [],
+    },
     maxCapacity: {
       type: Number,
       required: true,
@@ -61,5 +65,7 @@ const offeredCourseSchema = new mongoose.Schema<TOfferedCourse>(
     timestamps: true,
   },
 );
+
+offeredCourseSchema.index({ semesterRegistration: 1, course: 1, section: 1 }, { unique: true });
 
 export const OfferedCourse = mongoose.model<TOfferedCourse>('OfferedCourse', offeredCourseSchema);

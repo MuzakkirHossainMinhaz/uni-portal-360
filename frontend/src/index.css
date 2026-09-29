@@ -305,3 +305,13 @@ body[data-theme='dark'] .ant-input-affix-wrapper > input.ant-input,
     border-radius: 20px !important;
   }
 }
+/* Keep recovery links legible against both authentication card themes. */
+.auth-link,
+.auth-link:hover {
+  color: #0b5fc0;
+}
+
+body[data-theme='dark'] .auth-link,
+body[data-theme='dark'] .auth-link:hover {
+  color: #93c5fd;
+}

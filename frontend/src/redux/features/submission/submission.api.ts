@@ -14,6 +14,14 @@ const submissionApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Submission'],
     }),
+    replaceSubmission: builder.mutation<TResponse<unknown>, { id: string; file: File }>({
+      query: ({ id, file }) => {
+        const body = new FormData();
+        body.append('file', file);
+        return { url: `/submissions/${id}`, method: 'PATCH', body };
+      },
+      invalidatesTags: ['Submission'],
+    }),
     getAllSubmissions: builder.query<TPaginatedResponse<TSubmission>, Record<string, string> | undefined>({
       query: (args) => ({
         url: '/submissions',
@@ -23,7 +31,10 @@ const submissionApi = baseApi.injectEndpoints({
       providesTags: ['Submission'],
       transformResponse: (response: TResponse<TSubmission[]>) => toPage(response),
     }),
-    gradeSubmission: builder.mutation<TResponse<unknown>, { id: string; data: Partial<TSubmission> }>({
+    gradeSubmission: builder.mutation<
+      TResponse<unknown>,
+      { id: string; data: { grade: number; feedback?: string; correctionReason?: string } }
+    >({
       query: ({ id, data }) => ({
         url: `/submissions/${id}/grade`,
         method: 'PATCH',
@@ -34,4 +45,9 @@ const submissionApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useCreateSubmissionMutation, useGetAllSubmissionsQuery, useGradeSubmissionMutation } = submissionApi;
+export const {
+  useCreateSubmissionMutation,
+  useReplaceSubmissionMutation,
+  useGetAllSubmissionsQuery,
+  useGradeSubmissionMutation,
+} = submissionApi;

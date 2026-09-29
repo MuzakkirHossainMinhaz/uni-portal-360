@@ -5,7 +5,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useMemo, useState, type Key } from 'react';
 import { useDatePickerPopupWidth } from '../../../components/form/useDatePickerPopupWidth';
-import { useGetAllAcademicSemestersQuery } from '../../../redux/features/admin/academicManagement.api';
+import { useGetAcademicSemesterOptionsQuery } from '../../../redux/features/admin/academicManagement.api';
 import {
   useAddRegisteredSemesterMutation,
   useDeleteRegisteredSemesterMutation,
@@ -56,7 +56,7 @@ const Semesters = () => {
     [page, size],
   );
   const { data, isFetching, error } = useGetAllRegisteredSemestersQuery(params);
-  const { data: academic } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }]);
+  const { data: academic } = useGetAcademicSemesterOptionsQuery();
   const [create, { isLoading: creating }] = useAddRegisteredSemesterMutation();
   const [update, { isLoading: updating }] = useUpdateRegisteredSemesterMutation();
   const [remove, { isLoading: deleting }] = useDeleteRegisteredSemesterMutation();

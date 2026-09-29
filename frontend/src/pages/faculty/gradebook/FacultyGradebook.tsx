@@ -8,10 +8,10 @@ import {
 } from '../../../redux/features/faculty/facultyCourses.api';
 
 type CourseMarks = {
-  classTest1: number;
-  midTerm: number;
-  classTest2: number;
-  finalTerm: number;
+  classTest1?: number | null;
+  midTerm?: number | null;
+  classTest2?: number | null;
+  finalTerm?: number | null;
 };
 
 type MarksFormValues = CourseMarks;
@@ -51,7 +51,7 @@ const FacultyGradebook = ({ semesterRegistration, courseId }: { semesterRegistra
       .map((item) => ({ value: item._id, label: item.course.title + ' (Section ' + item.section + ')' })) ?? [];
   const students = enrollmentData;
 
-  const handleUpdateMarks = async (values: MarksFormValues) => {
+  const handleUpdateMarks = async (values: MarksFormValues, publish = false) => {
     if (!editingStudent) {
       return;
     }
@@ -60,21 +60,21 @@ const FacultyGradebook = ({ semesterRegistration, courseId }: { semesterRegistra
       semesterRegistration: editingStudent.semesterRegistration._id,
       offeredCourse: editingStudent.offeredCourse._id,
       student: editingStudent.student._id,
-      courseMarks: {
-        classTest1: Number(values.classTest1),
-        midTerm: Number(values.midTerm),
-        classTest2: Number(values.classTest2),
-        finalTerm: Number(values.finalTerm),
-      },
+      courseMarks: Object.fromEntries(
+        (['classTest1', 'midTerm', 'classTest2', 'finalTerm'] as const)
+          .filter((key) => values[key] !== undefined && values[key] !== null)
+          .map((key) => [key, values[key]]),
+      ),
+      publish,
     };
 
     try {
       await updateMarks(payload).unwrap();
-      message.success('Marks updated successfully');
+      message.success(publish ? 'Results published and locked' : 'Draft marks saved');
       setIsModalVisible(false);
       setEditingStudent(null);
     } catch {
-      message.error('Failed to update marks');
+      message.error('Could not save marks; check completeness and publication status');
     }
   };
 
@@ -129,8 +129,8 @@ const FacultyGradebook = ({ semesterRegistration, courseId }: { semesterRegistra
       title: 'Action',
       key: 'action',
       render: (_: unknown, record: FacultyEnrolledCourse) => (
-        <Button type="primary" onClick={() => showEditModal(record)}>
-          Update Marks
+        <Button type="primary" disabled={record.isCompleted} onClick={() => showEditModal(record)}>
+          {record.isCompleted ? 'Published' : 'Edit Draft'}
         </Button>
       ),
     },
@@ -168,7 +168,7 @@ const FacultyGradebook = ({ semesterRegistration, courseId }: { semesterRegistra
       )}
 
       <Modal title="Update Marks" open={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
-        <Form form={form} onFinish={handleUpdateMarks} layout="vertical">
+        <Form form={form} onFinish={(values) => handleUpdateMarks(values)} layout="vertical">
           <Form.Item label="Class Test 1 (Max 10)" name="classTest1">
             <InputNumber min={0} max={10} style={{ width: '100%' }} />
           </Form.Item>
@@ -182,8 +182,26 @@ const FacultyGradebook = ({ semesterRegistration, courseId }: { semesterRegistra
             <InputNumber min={0} max={50} style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isUpdating} block>
-              Submit
+            <Button htmlType="submit" loading={isUpdating}>
+              Save Draft
+            </Button>{' '}
+            <Button
+              type="primary"
+              loading={isUpdating}
+              onClick={async () => {
+                const values = await form.validateFields();
+                if (
+                  (['classTest1', 'midTerm', 'classTest2', 'finalTerm'] as const).some(
+                    (key) => values[key] === null || values[key] === undefined,
+                  )
+                ) {
+                  message.error('Enter all four marks before publishing');
+                  return;
+                }
+                await handleUpdateMarks(values, true);
+              }}
+            >
+              Publish Results
             </Button>
           </Form.Item>
         </Form>

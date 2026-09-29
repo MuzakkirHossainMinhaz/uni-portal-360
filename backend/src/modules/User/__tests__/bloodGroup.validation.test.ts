@@ -18,6 +18,7 @@ const cases: ValidationCase[] = [
     schema: createAdminValidationSchema,
     payload: {
       body: {
+        password: 'StrongTemporaryPassword2026!',
         admin: {
           designation: 'Registrar',
           name: { firstName: 'Ada', middleName: '', lastName: 'Lovelace' },
@@ -37,6 +38,7 @@ const cases: ValidationCase[] = [
     schema: createFacultyValidationSchema,
     payload: {
       body: {
+        password: 'StrongTemporaryPassword2026!',
         faculty: {
           designation: 'Professor',
           name: { firstName: 'Grace', middleName: '', lastName: 'Hopper' },
@@ -57,6 +59,7 @@ const cases: ValidationCase[] = [
     schema: createStudentValidationSchema,
     payload: {
       body: {
+        password: 'StrongTemporaryPassword2026!',
         student: {
           name: { firstName: 'Katherine', middleName: '', lastName: 'Johnson' },
           gender: 'female',

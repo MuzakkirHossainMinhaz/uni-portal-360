@@ -5,6 +5,23 @@ import { baseApi } from '../../api/baseApi';
 
 const userManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getFacultyOptions: builder.query<{ data: TFaculty[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TFaculty[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({ url: '/faculties', params: { page, limit: 100, sort: '_id' } });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TFaculty[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['Faculties'],
+    }),
     // Student endpoints
     getAllStudents: builder.query<TPaginatedResponse<TStudent>, TQueryParam[] | undefined>({
       query: (args) => ({
@@ -148,6 +165,7 @@ const userManagementApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetFacultyOptionsQuery,
   useGetAllStudentsQuery,
   useGetSingleStudentQuery,
   useAddStudentMutation,

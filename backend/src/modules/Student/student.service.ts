@@ -4,6 +4,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { User } from '../User/user.model';
 import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
+import { AcademicSemester } from '../AcademicSemester/academicSemester.model';
 import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { studentSearchableFields } from './student.constant';
@@ -86,6 +87,13 @@ const updateStudent = async (id: string, payload: Partial<TStudent>) => {
       const department = await AcademicDepartment.findById(payload.academicDepartment).session(session);
       if (!department) throw new AppError(httpStatus.BAD_REQUEST, 'Academic department not found');
       modifiedUpdatedData.academicFaculty = department.academicFaculty;
+    }
+
+    if (
+      payload.admissionSemester &&
+      !(await AcademicSemester.exists({ _id: payload.admissionSemester }).session(session))
+    ) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Admission semester not found');
     }
 
     if (payload.email) {

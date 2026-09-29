@@ -30,7 +30,7 @@ const calculateSemesterGPA = async (
     let totalGradePoints = 0;
     const completedCourses = [];
     for (const enrollment of enrolledCourses) {
-      const credits = (enrollment.course as { credits?: number } | null)?.credits;
+      const credits = enrollment.courseSnapshot?.credits ?? (enrollment.course as { credits?: number } | null)?.credits;
       if (credits && credits > 0) {
         totalCredits += credits;
         totalGradePoints += credits * enrollment.gradePoints;
@@ -55,6 +55,7 @@ const calculateSemesterGPA = async (
     const points = results.reduce((sum, result) => sum + result.totalGradePoints, 0);
     const cgpa = credits ? Number((points / credits).toFixed(2)) : 0;
     await Student.findByIdAndUpdate(studentId, { cgpa }, { session });
+    await notifyResultPublished(studentId, semesterResult.gpa, session);
     if (!externalSession) await session.commitTransaction();
   } catch (error) {
     if (!externalSession) await session.abortTransaction();
@@ -63,26 +64,28 @@ const calculateSemesterGPA = async (
     if (!externalSession) await session.endSession();
   }
 
-  if (!externalSession) await notifyResultPublished(studentId, semesterResult.gpa);
   return semesterResult;
 };
 
-const notifyResultPublished = async (studentId: string, gpa: number) => {
-  // A notification failure must not turn a committed result into an API failure.
+const notifyResultPublished = async (studentId: string, gpa: number, session?: mongoose.ClientSession) => {
   try {
     const student = await Student.findById(studentId).select('user');
     if (student?.user)
-      await NotificationServices.createNotification({
-        userId: student.user,
-        title: 'Results Published',
-        message: `Your semester results have been updated. Your GPA is ${gpa}.`,
-        type: 'RESULT_PUBLISHED',
-        priority: 'HIGH',
-        read: false,
-        isDeleted: false,
-        actionUrl: '/student/results',
-      });
+      await NotificationServices.createNotification(
+        {
+          userId: student.user,
+          title: 'Results Published',
+          message: `Your semester results have been updated. Your GPA is ${gpa}.`,
+          type: 'RESULT_PUBLISHED',
+          priority: 'HIGH',
+          read: false,
+          isDeleted: false,
+          actionUrl: '/student/results',
+        },
+        session,
+      );
   } catch (error) {
+    if (session) throw error;
     logger.error('Results saved, but notification failed', error);
   }
 };

@@ -3,7 +3,7 @@ import type { TPaginatedResponse, TResponse } from '../../../types';
 
 import { baseApi } from '../../api/baseApi';
 
-type Assignment = {
+export type Assignment = {
   _id: string;
   title: string;
   description: string;
@@ -22,6 +22,17 @@ const assignmentApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
+      invalidatesTags: ['Assignment'],
+    }),
+    updateAssignment: builder.mutation<
+      TResponse<unknown>,
+      { id: string; data: { title?: string; description?: string; deadline?: string } }
+    >({
+      query: ({ id, data }) => ({ url: `/assignments/${id}`, method: 'PATCH', body: data }),
+      invalidatesTags: ['Assignment'],
+    }),
+    deleteAssignment: builder.mutation<TResponse<unknown>, string>({
+      query: (id) => ({ url: `/assignments/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Assignment'],
     }),
     getAllAssignments: builder.query<TPaginatedResponse<Assignment>, Record<string, string> | undefined>({
@@ -44,4 +55,10 @@ const assignmentApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useCreateAssignmentMutation, useGetAllAssignmentsQuery, useGetAssignmentByIdQuery } = assignmentApi;
+export const {
+  useCreateAssignmentMutation,
+  useUpdateAssignmentMutation,
+  useDeleteAssignmentMutation,
+  useGetAllAssignmentsQuery,
+  useGetAssignmentByIdQuery,
+} = assignmentApi;

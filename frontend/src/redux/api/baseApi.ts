@@ -1,7 +1,9 @@
 import type { BaseQueryFn, FetchArgs } from '@reduxjs/toolkit/query/react';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { toast } from 'sonner';
-import { logout, requirePasswordChange } from '../features/auth/authSlice';
+import { jwtDecode } from 'jwt-decode';
+import { logout, requirePasswordChange, setUser } from '../features/auth/authSlice';
+import type { TUser } from '../features/auth/authSlice';
 import type { RootState } from '../store';
 
 type ErrorWithMessage = {
@@ -17,7 +19,7 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token;
 
-    if (token) {
+    if (token && !headers.has('authorization')) {
       headers.set('authorization', `${token}`);
     }
 
@@ -25,8 +27,44 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
+let refreshPromise: Promise<Awaited<ReturnType<typeof baseQuery>>> | null = null;
+
 const baseQueryWithAuth: BaseQueryFn<FetchArgs, unknown, unknown> = async (args, api, extraOptions) => {
-  const result = await baseQuery(args, api, extraOptions);
+  let result = await baseQuery(args, api, extraOptions);
+
+  const path = typeof args === 'string' ? args : args.url;
+  const mayRefresh = !['/auth/login', '/auth/refresh-token', '/auth/reset-password', '/auth/forget-password'].includes(
+    path,
+  );
+  if (result.error?.status === 401 && mayRefresh && (api.getState() as RootState).auth.token) {
+    if (!refreshPromise) {
+      refreshPromise = Promise.resolve(baseQuery({ url: '/auth/refresh-token', method: 'POST' }, api, extraOptions));
+    }
+    const inFlight = refreshPromise;
+    try {
+      const refreshResult = await inFlight;
+      const accessToken = (refreshResult.data as { data?: { accessToken?: string } } | undefined)?.data?.accessToken;
+      if (accessToken) {
+        const previous = (api.getState() as RootState).auth.user;
+        const decoded = jwtDecode<TUser>(accessToken);
+        api.dispatch(
+          setUser({
+            user: {
+              ...decoded,
+              permissions: previous?.permissions,
+              needsPasswordChange: previous?.needsPasswordChange,
+            },
+            token: accessToken,
+          }),
+        );
+        result = await baseQuery(args, api, extraOptions);
+      }
+    } catch {
+      // A malformed or revoked refresh token falls through to the normal sign-out path.
+    } finally {
+      if (refreshPromise === inFlight) refreshPromise = null;
+    }
+  }
 
   if (result?.error?.status === 404) {
     const error = result.error as ErrorWithMessage;

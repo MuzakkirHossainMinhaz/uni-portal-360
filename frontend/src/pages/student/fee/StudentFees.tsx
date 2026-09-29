@@ -53,7 +53,7 @@ const StudentFees = () => {
       render: (_, item) =>
         item.status === 'PAID' ? (
           <DownloadReceipt fee={item} />
-        ) : item.status === 'PENDING' || item.status === 'OVERDUE' ? (
+        ) : !import.meta.env.PROD && (item.status === 'PENDING' || item.status === 'OVERDUE') ? (
           <Button
             type="primary"
             size="small"
@@ -69,7 +69,7 @@ const StudentFees = () => {
             Simulate payment
           </Button>
         ) : (
-          '—'
+          'Payment unavailable'
         ),
     },
   ];
@@ -80,7 +80,11 @@ const StudentFees = () => {
       <Alert
         type="info"
         showIcon
-        message="Payments on this portal are simulated. No money is transferred."
+        message={
+          import.meta.env.PROD
+            ? 'Online payment is not available yet. Contact the bursar for payment instructions.'
+            : 'Payments on this portal are simulated. No money is transferred.'
+        }
         style={{ marginBottom: 20 }}
       />
       <Row gutter={16} style={{ marginBottom: 24 }}>

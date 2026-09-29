@@ -187,6 +187,7 @@ const seedRBAC = async () => {
     }
   } catch (error) {
     logger.error('Error seeding RBAC', error);
+    throw error;
   }
 };
 

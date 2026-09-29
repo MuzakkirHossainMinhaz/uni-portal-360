@@ -5,6 +5,7 @@ import { AcademicSemesterSearchableFields, academicSemesterNameCodeMapper } from
 import type { TAcademicSemester } from './academicSemester.interface';
 import { AcademicSemesterRepository } from './academicSemester.repository';
 import { ensureAcademicRecordUnused } from '../../utils/academicReferences';
+import { AcademicSemester } from './academicSemester.model';
 
 const academicSemesterRepository = new AcademicSemesterRepository();
 
@@ -30,6 +31,13 @@ class AcademicSemesterService extends BaseService<TAcademicSemester, TAcademicSe
     }
     if (payload.name && payload.code && academicSemesterNameCodeMapper[payload.name] !== payload.code) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Invalid semester name/code combination');
+    }
+    const current = await AcademicSemester.findById(id);
+    if (!current) throw new AppError(httpStatus.NOT_FOUND, 'Academic semester not found');
+    const name = payload.name ?? current.name;
+    const year = payload.year ?? current.year;
+    if (await AcademicSemester.exists({ name, year, _id: { $ne: id } })) {
+      throw new AppError(httpStatus.CONFLICT, 'Academic semester already exists');
     }
     return super.updateById(id, payload);
   }

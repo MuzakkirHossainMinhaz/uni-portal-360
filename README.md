@@ -8,6 +8,9 @@ The project is split into:
 - `backend/` – REST API (Node.js, Express, MongoDB, TypeScript)
 - `frontend/` – React SPA (Vite, TypeScript, Redux Toolkit, Ant Design)
 
+Review [PRODUCTION.md](PRODUCTION.md) before deploying with real student records.
+The [remediation status](REMEDIATION.md) maps the review findings to code changes and release gates.
+
 ---
 
 ## 1. Getting Started
@@ -16,11 +19,11 @@ The project is split into:
 
 Make sure you have:
 
-- **Node.js** ≥ 18
+- **Node.js 24 LTS**
 - **npm** (comes with Node)
-- A running **MongoDB** instance or cloud connection string
+- A running **MongoDB replica set** or Atlas connection string (transactions require a replica set)
 
-Optional (for email and file uploads, if you want them fully functional):
+Required for production password recovery and document uploads:
 
 - SMTP credentials (for password reset emails)
 - Cloudinary account (for image uploads)
@@ -44,7 +47,7 @@ Replace `<your-repo-url>` with your own repository URL.
 
    ```bash
    cd backend
-   npm install
+   npm ci
    ```
 
 2. **Create environment file**
@@ -55,16 +58,17 @@ Replace `<your-repo-url>` with your own repository URL.
    NODE_ENV=development
    PORT=5000
 
-   DATABASE_URL=mongodb://localhost:27017/uni-portal-360
+   DATABASE_URL=mongodb://localhost:27017/uni-portal-360?replicaSet=rs0
 
    JWT_ACCESS_SECRET=your_access_secret
-   JWT_ACCESS_EXPIRES_IN=1d
+   JWT_ACCESS_EXPIRES_IN=15m
    JWT_REFRESH_SECRET=your_refresh_secret
-   JWT_REFRESH_EXPIRES_IN=365d
+   JWT_REFRESH_EXPIRES_IN=7d
 
    BCRYPT_SALT_ROUNDS=10
 
    RESET_PASS_UI_LINK=http://localhost:5173/reset-password
+   BOOTSTRAP_SUPER_ADMIN_PASSWORD= # set a unique random value before first startup
 
    # Optional integrations (email, cloud storage)
    SMTP_HOST=smtp.your-provider.com
@@ -77,7 +81,7 @@ Replace `<your-repo-url>` with your own repository URL.
    CLOUDINARY_API_SECRET=your_api_secret
    ```
 
-   The exact variable names may differ slightly from the above, but this matches how the backend reads configuration (via `backend/src/config`).
+   See `backend/.env.example` for the complete set of variables. Use distinct, random JWT secrets and a unique bootstrap password. Production startup validates the required integration settings.
 
 3. **Run the backend in development mode**
 
@@ -87,12 +91,12 @@ Replace `<your-repo-url>` with your own repository URL.
 
    This will:
    - Connect to MongoDB
-   - Seed a **super admin** user (via `seedSuperAdmin`)
+   - Seed a **super admin** user only when absent, using `BOOTSTRAP_SUPER_ADMIN_PASSWORD` and requiring a first-login change
    - Seed **RBAC roles and permissions**
    - Start the API at (for example) `http://localhost:5000/api/v1`
    - Serve API docs at `http://localhost:5000/docs`
 
-4. **Production build (optional)**
+4. **Production build**
 
    ```bash
    npm run build
@@ -109,7 +113,7 @@ Replace `<your-repo-url>` with your own repository URL.
 
    ```bash
    cd frontend
-   npm install
+   npm ci
    ```
 
 2. **Run the frontend in development mode**
@@ -335,7 +339,7 @@ Uni Portal 360 models a modern university’s core processes. Below is a high‑
 - **Student Fee View**
   - Students can:
     - See all fee items (pending/overdue/paid)
-    - Record a simulated payment; the server generates its transaction ID and checks fee ownership.
+    - Record a simulated payment only in local development. Production payment is disabled until a verified provider is integrated.
     - View an unpaid dues summary across all fee pages.
 
 - **PDF Receipt**

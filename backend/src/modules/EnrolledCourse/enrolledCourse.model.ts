@@ -8,25 +8,25 @@ const courseMarksSchema = new Schema<TEnrolledCourseMarks>(
       type: Number,
       min: 0,
       max: 10,
-      default: 0,
+      default: null,
     },
     midTerm: {
       type: Number,
       min: 0,
       max: 30,
-      default: 0,
+      default: null,
     },
     classTest2: {
       type: Number,
       min: 0,
       max: 10,
-      default: 0,
+      default: null,
     },
     finalTerm: {
       type: Number,
       min: 0,
       max: 50,
-      default: 0,
+      default: null,
     },
   },
   {
@@ -65,6 +65,12 @@ const enrolledCourseSchema = new Schema<TEnrolledCourse>({
     ref: 'Course',
     required: true,
   },
+  courseSnapshot: {
+    title: String,
+    prefix: String,
+    code: Number,
+    credits: Number,
+  },
   student: {
     type: Schema.Types.ObjectId,
     ref: 'Student',
@@ -97,6 +103,22 @@ const enrolledCourseSchema = new Schema<TEnrolledCourse>({
   isCompleted: {
     type: Boolean,
     default: false,
+  },
+  enteredMarks: { type: [String], default: [] },
+  publishedAt: { type: Date },
+  gradeCorrections: {
+    type: [
+      {
+        approvedBy: { type: String, required: true },
+        reason: { type: String, required: true },
+        previousMarks: { type: Schema.Types.Mixed, required: true },
+        newMarks: { type: Schema.Types.Mixed, required: true },
+        previousGrade: { type: String, required: true },
+        newGrade: { type: String, required: true },
+        correctedAt: { type: Date, required: true },
+      },
+    ],
+    default: [],
   },
 });
 

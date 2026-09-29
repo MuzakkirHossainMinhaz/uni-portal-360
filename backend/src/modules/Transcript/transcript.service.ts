@@ -15,14 +15,17 @@ type PopulatedFaculty = {
 type PopulatedSemester = {
   name?: string;
   year?: string;
+  startMonth?: string;
 };
 
 type CompletedCourse = {
   course: {
     code?: string;
+    prefix?: string;
     title: string;
     credits: number;
-  };
+  } | null;
+  courseSnapshot?: { code: number; prefix: string; title: string; credits: number };
   gradePoints: number;
   grade: string;
 };
@@ -54,7 +57,30 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
         path: 'course',
       },
     })
-    .sort({ 'academicSemester.year': 1, 'academicSemester.startMonth': 1 });
+    .sort({ createdAt: 1 });
+
+  const monthOrder = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  semesterResults.sort((a, b) => {
+    const left = a.academicSemester as PopulatedSemester | null;
+    const right = b.academicSemester as PopulatedSemester | null;
+    return (
+      Number(left?.year ?? 0) - Number(right?.year ?? 0) ||
+      monthOrder.indexOf(left?.startMonth ?? '') - monthOrder.indexOf(right?.startMonth ?? '')
+    );
+  });
 
   if (!semesterResults.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'No academic records found for this student');
@@ -106,12 +132,12 @@ const generateTranscriptContent = async (doc: PDFKit.PDFDocument, studentId: str
         yPosition = 50;
       }
 
-      const courseDetails = enrolledCourse.course;
+      const courseDetails = enrolledCourse.courseSnapshot ?? enrolledCourse.course;
 
       doc
-        .text(courseDetails.code || 'N/A', col1, yPosition)
-        .text(courseDetails.title.substring(0, 45) || 'N/A', col2, yPosition)
-        .text(courseDetails.credits.toString(), col3, yPosition)
+        .text(courseDetails ? `${courseDetails.prefix ?? ''}${courseDetails.code ?? ''}` : 'N/A', col1, yPosition)
+        .text(courseDetails?.title?.substring(0, 45) || 'N/A', col2, yPosition)
+        .text(courseDetails?.credits?.toString() ?? 'N/A', col3, yPosition)
         .text(enrolledCourse.gradePoints.toString(), col4, yPosition)
         .text(enrolledCourse.grade, col5, yPosition);
 

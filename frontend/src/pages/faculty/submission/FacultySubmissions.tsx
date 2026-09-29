@@ -20,8 +20,9 @@ type GradeFormValues = {
 const FacultySubmissions = () => {
   const { message } = App.useApp();
   const { assignmentId } = useParams();
-  const submissionsQuery = assignmentId ? { assignment: assignmentId } : undefined;
-  const { data: submissions, isLoading } = useGetAllSubmissionsQuery(submissionsQuery);
+  const [page, setPage] = useState(1);
+  const submissionsQuery = { ...(assignmentId ? { assignment: assignmentId } : {}), page: String(page), limit: '10' };
+  const { data: submissions, isLoading, refetch } = useGetAllSubmissionsQuery(submissionsQuery);
   const [gradeSubmission, { isLoading: isGrading }] = useGradeSubmissionMutation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<TSubmission | null>(null);
@@ -82,12 +83,30 @@ const FacultySubmissions = () => {
       title: 'File',
       dataIndex: 'fileUrl',
       key: 'fileUrl',
-      render: (url: string) => (
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          <Button icon={<DownloadOutlined />} size="small">
-            View File
-          </Button>
-        </a>
+      render: (_url: string, record: TSubmission) => (
+        <Button
+          icon={<DownloadOutlined />}
+          size="small"
+          onClick={async () => {
+            const preview = window.open('about:blank', '_blank');
+            if (!preview) {
+              message.error('Allow a new tab to view the submission');
+              return;
+            }
+            preview.opener = null;
+            try {
+              const fresh = await refetch().unwrap();
+              const current = fresh.data.find((item) => item._id === record._id);
+              if (!current?.fileUrl) throw new Error('File unavailable');
+              preview.location.href = current.fileUrl;
+            } catch {
+              preview.close();
+              message.error('Could not refresh the private file link');
+            }
+          }}
+        >
+          View File
+        </Button>
       ),
     },
     {
@@ -132,7 +151,7 @@ const FacultySubmissions = () => {
           columns={columns}
           loading={isLoading}
           rowKey="_id"
-          pagination={{ pageSize: 10 }}
+          pagination={{ current: page, pageSize: 10, total: submissions?.meta?.total, onChange: setPage }}
         />
       </Card>
 

@@ -36,10 +36,13 @@ const acdemicSemesterSchema = new Schema<TAcademicSemester>(
   },
 );
 
+acdemicSemesterSchema.index({ year: 1, name: 1 }, { unique: true });
+
 acdemicSemesterSchema.pre('save', async function () {
   const isSemesterExists = await AcademicSemester.findOne({
     year: this.year,
     name: this.name,
+    _id: { $ne: this._id },
   });
 
   if (isSemesterExists) {

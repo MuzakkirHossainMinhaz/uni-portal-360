@@ -7,6 +7,8 @@ import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.mod
 import { FacultySearchableFields } from './faculty.constant';
 import type { TFaculty } from './faculty.interface';
 import { Faculty } from './faculty.model';
+import { OfferedCourse } from '../OfferedCourse/offeredCourse.model';
+import { SemesterRegistration } from '../SemesterRegistration/semesterRegistration.model';
 
 const getAllFaculties = async (query: Record<string, unknown>) => {
   const facultyQuery = new QueryBuilder(Faculty.find().populate('academicDepartment academicFaculty'), {
@@ -85,6 +87,12 @@ const updateFaculty = async (id: string, payload: Partial<TFaculty>) => {
 };
 
 const deleteFaculty = async (id: string) => {
+  const activeRegistrations = await SemesterRegistration.find({ status: { $in: ['UPCOMING', 'ONGOING'] } }).distinct(
+    '_id',
+  );
+  if (await OfferedCourse.exists({ faculty: id, semesterRegistration: { $in: activeRegistrations } })) {
+    throw new AppError(httpStatus.CONFLICT, 'Reassign active offered courses before archiving this faculty member');
+  }
   const session = await mongoose.startSession();
 
   try {

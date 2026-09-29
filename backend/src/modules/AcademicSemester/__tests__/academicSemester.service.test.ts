@@ -1,6 +1,7 @@
 import { AcademicSemesterRepository } from '../academicSemester.repository';
 import { AcademicSemesterServices } from '../academicSemester.service';
 import type { TAcademicSemester } from '../academicSemester.interface';
+import { AcademicSemester } from '../academicSemester.model';
 
 const semester: TAcademicSemester = {
   name: 'Autumn',
@@ -33,6 +34,8 @@ describe('AcademicSemesterServices', () => {
 
   it('passes a valid update to the repository', async () => {
     const update = jest.spyOn(AcademicSemesterRepository.prototype, 'updateById').mockResolvedValue(semester);
+    jest.spyOn(AcademicSemester, 'findById').mockResolvedValue(semester as never);
+    jest.spyOn(AcademicSemester, 'exists').mockResolvedValue(null);
 
     await AcademicSemesterServices.updateAcademicSemester('semester-id', {
       name: 'Autumn',

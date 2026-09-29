@@ -43,6 +43,17 @@ const getMyEnrolledCourses = catchAsync(async (req, res) => {
   });
 });
 
+const getAdminEnrolledCourses = catchAsync(async (req, res) => {
+  const result = await EnrolledCourseServices.getAdminEnrolledCourses(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Published enrollments retrieved',
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
 const updateEnrolledCourseMarks = catchAsync(async (req, res) => {
   const facultyId = req.user.userId;
   const result = await EnrolledCourseServices.updateEnrolledCourseMarks(facultyId, req.body, req.user.role);
@@ -59,5 +70,6 @@ export const EnrolledCourseControllers = {
   createEnrolledCourse,
   getAllEnrolledCourses,
   getMyEnrolledCourses,
+  getAdminEnrolledCourses,
   updateEnrolledCourseMarks,
 };

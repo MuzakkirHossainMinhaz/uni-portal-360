@@ -20,7 +20,7 @@ const authorize = (allowPasswordChange: boolean, requiredRoles: TUserRole[]) => 
     // checking if the given token is valid
     const decoded = jwt.verify(token, config.jwt_access_secret as string) as JwtPayload;
 
-    const { role, userId, iat } = decoded;
+    const { role, userId } = decoded;
     if (decoded.purpose || decoded.aud) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid session token');
     }
@@ -46,7 +46,7 @@ const authorize = (allowPasswordChange: boolean, requiredRoles: TUserRole[]) => 
       throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
     }
 
-    if (user.passwordChangedAt && User.isJWTIssuedBeforePasswordChanged(user.passwordChangedAt, iat as number)) {
+    if ((decoded.sessionVersion ?? 0) !== (user.sessionVersion ?? 0)) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
     }
 

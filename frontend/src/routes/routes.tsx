@@ -1,8 +1,11 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '../App';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import ChangePassword from '../pages/ChangePassword';
 import Login from '../pages/Login';
+import ResetPassword from '../pages/ResetPassword';
+import Notifications from '../pages/Notifications';
+import Profile from '../pages/Profile';
 import { routeGenerator } from '../utils/routesGenerator';
 import { adminPaths } from './admin.routes';
 import { facultyPaths } from './faculty.routes';
@@ -11,7 +14,7 @@ import { studentPaths } from './student.routes';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: <Navigate to="/login" replace />,
   },
   {
     path: '/admin',
@@ -44,6 +47,9 @@ const router = createBrowserRouter([
     path: '/login',
     element: <Login />,
   },
+  { path: '/reset-password', element: <ResetPassword /> },
+  { path: '/notifications', element: <App />, children: [{ index: true, element: <Notifications /> }] },
+  { path: '/profile', element: <App />, children: [{ index: true, element: <Profile /> }] },
   {
     path: '/change-password',
     element: (
@@ -52,6 +58,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
 export default router;

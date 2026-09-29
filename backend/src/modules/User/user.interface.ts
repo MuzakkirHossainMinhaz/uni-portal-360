@@ -7,6 +7,7 @@ export interface TUser {
   password: string;
   needsPasswordChange: boolean;
   passwordChangedAt?: Date;
+  sessionVersion?: number;
   role: TUserRole;
   status: 'in-progress' | 'blocked';
   isDeleted: boolean;

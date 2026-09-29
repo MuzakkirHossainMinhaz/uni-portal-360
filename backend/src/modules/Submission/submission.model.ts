@@ -31,6 +31,17 @@ const submissionSchema = new Schema<TSubmission>(
       type: Boolean,
       default: false,
     },
+    gradeCorrections: [
+      {
+        approvedBy: { type: String, required: true },
+        reason: { type: String, required: true },
+        previousGrade: { type: Number, required: true },
+        newGrade: { type: Number, required: true },
+        previousFeedback: String,
+        newFeedback: String,
+        correctedAt: { type: Date, required: true },
+      },
+    ],
   },
   {
     timestamps: true,

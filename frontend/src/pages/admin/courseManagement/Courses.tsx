@@ -8,11 +8,12 @@ import {
   useAddFacultiesMutation,
   useDeleteCourseMutation,
   useGetAllCoursesQuery,
+  useGetCourseOptionsQuery,
   useGetCourseFacultiesQuery,
   useRemoveFacultiesMutation,
   useUpdateCourseMutation,
 } from '../../../redux/features/admin/courseManagement.api';
-import { useGetAllFacultiesQuery } from '../../../redux/features/admin/userManagement.api';
+import { useGetFacultyOptionsQuery } from '../../../redux/features/admin/userManagement.api';
 import { selectCurrentUser, selectUserPermissions } from '../../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../../redux/hooks';
 import type { TCourse } from '../../../types';
@@ -27,7 +28,7 @@ const FacultyAssignment = ({ course, onClose }: { course: TCourse; onClose: () =
   const { message } = App.useApp();
   const [selection, setSelection] = useState<string[]>([]);
   const { data, isLoading } = useGetCourseFacultiesQuery(course._id);
-  const { data: facultyData } = useGetAllFacultiesQuery([{ name: 'limit', value: 100 }]);
+  const { data: facultyData } = useGetFacultyOptionsQuery();
   const [assign, { isLoading: assigning }] = useAddFacultiesMutation();
   const [remove, { isLoading: removing }] = useRemoveFacultiesMutation();
   const assigned = data?.faculties ?? [];
@@ -113,7 +114,7 @@ const Courses = () => {
     [page, size, search],
   );
   const { data, isFetching, error } = useGetAllCoursesQuery(params);
-  const { data: courseOptions } = useGetAllCoursesQuery([{ name: 'limit', value: 100 }]);
+  const { data: courseOptions } = useGetCourseOptionsQuery();
   const [create, { isLoading: creating }] = useAddCourseMutation();
   const [update, { isLoading: updating }] = useUpdateCourseMutation();
   const [remove, { isLoading: deleting }] = useDeleteCourseMutation();

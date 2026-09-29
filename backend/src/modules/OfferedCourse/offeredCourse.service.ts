@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { AcademicDepartment } from '../AcademicDepartment/academicDepartment.model';
@@ -11,6 +12,8 @@ import type { TOfferedCourse } from './offeredCourse.interface';
 import { OfferedCourse } from './offeredCourse.model';
 import { hasTimeConflict } from './offeredCourse.utils';
 import { getPagination } from '../../utils/pagination';
+import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
+import { Assignment } from '../Assignment/assignment.model';
 
 const createOfferedCourse = async (payload: TOfferedCourse) => {
   const {
@@ -85,27 +88,38 @@ const createOfferedCourse = async (payload: TOfferedCourse) => {
   if (isSameOfferedCourseExistsWithSameRegisteredSemesterWithSameSection) {
     throw new AppError(httpStatus.BAD_REQUEST, `Offered course with same section is already exist!`);
   }
-  const assignedSchedules = await OfferedCourse.find({
-    semesterRegistration,
-    faculty,
-    days: { $in: days },
-  }).select('days startTime endTime');
-
   const newSchedule = {
     days,
     startTime,
     endTime,
   };
 
-  if (hasTimeConflict(assignedSchedules, newSchedule)) {
-    throw new AppError(httpStatus.CONFLICT, `This faculty is not available at that time ! Choose other time or day`);
+  const session = await mongoose.startSession();
+  try {
+    return await session.withTransaction(async () => {
+      // Every write to this faculty's timetable contends on one document.
+      const lockedFaculty = await Faculty.findOneAndUpdate(
+        { _id: faculty, isDeleted: false },
+        { $inc: { __v: 1 } },
+        { session },
+      );
+      if (!lockedFaculty) throw new AppError(httpStatus.NOT_FOUND, 'Faculty no longer available');
+      const assignedSchedules = await OfferedCourse.find({
+        semesterRegistration,
+        faculty,
+        days: { $in: days },
+      })
+        .select('days startTime endTime')
+        .session(session);
+      if (hasTimeConflict(assignedSchedules, newSchedule)) {
+        throw new AppError(httpStatus.CONFLICT, 'This faculty is not available at that time or day');
+      }
+      const [result] = await OfferedCourse.create([{ ...payload, academicSemester }], { session });
+      return result;
+    });
+  } finally {
+    await session.endSession();
   }
-
-  const result = await OfferedCourse.create({
-    ...payload,
-    academicSemester,
-  });
-  return result;
 };
 
 const getAllOfferedCourses = async (query: Record<string, unknown>, facultyUserId?: string) => {
@@ -144,6 +158,8 @@ const getMyOfferedCourses = async (userId: string, query: Record<string, unknown
   }
   const currentOngoingRegistrationSemester = await SemesterRegistration.findOne({
     status: 'ONGOING',
+    startDate: { $lte: new Date() },
+    endDate: { $gte: new Date() },
   });
 
   if (!currentOngoingRegistrationSemester) {
@@ -324,8 +340,11 @@ const getSingleOfferedCourse = async (id: string) => {
 
 const updateOfferedCourse = async (
   id: string,
-  payload: Partial<Pick<TOfferedCourse, 'faculty' | 'maxCapacity' | 'days' | 'startTime' | 'endTime'>>,
+  payload: Partial<Pick<TOfferedCourse, 'faculty' | 'maxCapacity' | 'days' | 'startTime' | 'endTime'>> & {
+    reassignmentReason?: string;
+  },
 ) => {
+  const { reassignmentReason, ...updates } = payload;
   const isOfferedCourseExists = await OfferedCourse.findById(id);
 
   if (!isOfferedCourseExists) {
@@ -348,10 +367,20 @@ const updateOfferedCourse = async (
   const semesterRegistration = isOfferedCourseExists.semesterRegistration;
   const semesterRegistrationStatus = await SemesterRegistration.findById(semesterRegistration);
 
-  if (semesterRegistrationStatus?.status !== 'UPCOMING') {
+  const activeTransfer =
+    semesterRegistrationStatus?.status === 'ONGOING' &&
+    payload.faculty &&
+    String(payload.faculty) !== String(isOfferedCourseExists.faculty);
+  if (semesterRegistrationStatus?.status !== 'UPCOMING' && !activeTransfer) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `You can not update this offered course as it is ${semesterRegistrationStatus?.status}`,
+    );
+  }
+  if (activeTransfer && (!reassignmentReason || Object.keys(updates).some((key) => key !== 'faculty'))) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Active course transfers require a reason and may only change the faculty member',
     );
   }
   if (String(isFacultyExists.academicDepartment) !== String(isOfferedCourseExists.academicDepartment)) {
@@ -360,28 +389,70 @@ const updateOfferedCourse = async (
   if (!(await CourseFaculty.exists({ course: isOfferedCourseExists.course, faculties: faculty }))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Assign this faculty member to the course first');
   }
-  const assignedSchedules = await OfferedCourse.find({
-    semesterRegistration,
-    faculty,
-    days: { $in: days },
-    _id: { $ne: id },
-  }).select('days startTime endTime');
-
   const newSchedule = {
     days,
     startTime,
     endTime,
   };
-
-  if (hasTimeConflict(assignedSchedules, newSchedule)) {
-    throw new AppError(httpStatus.CONFLICT, `This faculty is not available at that time ! Choose other time or day`);
+  const session = await mongoose.startSession();
+  try {
+    return await session.withTransaction(async () => {
+      // Serialize all schedule writes for the destination faculty, including course creation.
+      const lockedFaculty = await Faculty.findOneAndUpdate(
+        { _id: faculty, isDeleted: false },
+        { $inc: { __v: 1 } },
+        { session },
+      );
+      if (!lockedFaculty) throw new AppError(httpStatus.CONFLICT, 'Faculty assignment changed; retry');
+      const current = await OfferedCourse.findById(id).session(session);
+      const registration = await SemesterRegistration.findById(semesterRegistration).select('status').session(session);
+      const assignedSchedules = await OfferedCourse.find({
+        semesterRegistration,
+        faculty,
+        days: { $in: days },
+        _id: { $ne: id },
+      })
+        .select('days startTime endTime')
+        .session(session);
+      if (
+        !current ||
+        !registration ||
+        (activeTransfer ? registration.status !== 'ONGOING' : registration.status !== 'UPCOMING')
+      ) {
+        throw new AppError(httpStatus.CONFLICT, 'Course or semester changed; retry');
+      }
+      if (hasTimeConflict(assignedSchedules, newSchedule)) {
+        throw new AppError(httpStatus.CONFLICT, 'This faculty is not available at that time or day');
+      }
+      const change = activeTransfer
+        ? {
+            $set: { faculty },
+            $inc: { __v: 1 },
+            $push: {
+              facultyTransfers: {
+                from: current.faculty,
+                to: faculty,
+                reason: reassignmentReason,
+                transferredAt: new Date(),
+              },
+            },
+          }
+        : { $set: updates, $inc: { __v: 1 } };
+      const result = await OfferedCourse.findOneAndUpdate(
+        { _id: id, __v: current.__v, faculty: current.faculty },
+        change,
+        { session, returnDocument: 'after', runValidators: true },
+      );
+      if (!result) throw new AppError(httpStatus.CONFLICT, 'Course assignment changed; retry');
+      if (activeTransfer) {
+        await EnrolledCourse.updateMany({ offeredCourse: id }, { $set: { faculty } }, { session });
+        await Assignment.updateMany({ offeredCourse: id }, { $set: { faculty } }, { session });
+      }
+      return result;
+    });
+  } finally {
+    await session.endSession();
   }
-
-  const result = await OfferedCourse.findByIdAndUpdate(id, payload, {
-    returnDocument: 'after',
-    runValidators: true,
-  });
-  return result;
 };
 
 const deleteOfferedCourse = async (id: string) => {

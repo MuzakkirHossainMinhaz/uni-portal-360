@@ -13,7 +13,7 @@ const loginUser = catchAsync(async (req, res) => {
     secure: config.NODE_ENV?.toLowerCase() === 'production',
     httpOnly: true,
     sameSite: config.NODE_ENV?.toLowerCase() === 'production' ? 'none' : 'lax',
-    maxAge: 1000 * 60 * 60 * 24 * 365,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
   sendResponse(res, {
@@ -52,6 +52,16 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
+const logoutUser = catchAsync(async (req, res) => {
+  await AuthServices.logoutUser(req.user.userId, req.user.sessionVersion);
+  res.clearCookie('refreshToken', {
+    secure: config.NODE_ENV?.toLowerCase() === 'production',
+    httpOnly: true,
+    sameSite: config.NODE_ENV?.toLowerCase() === 'production' ? 'none' : 'lax',
+  });
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Signed out', data: null });
+});
+
 const forgetPassword = catchAsync(async (req, res) => {
   const userId = req.body.id;
   const result = await AuthServices.forgetPassword(userId);
@@ -83,6 +93,7 @@ export const AuthControllers = {
   loginUser,
   changePassword,
   refreshToken,
+  logoutUser,
   forgetPassword,
   resetPassword,
 };

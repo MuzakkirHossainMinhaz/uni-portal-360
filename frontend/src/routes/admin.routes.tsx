@@ -14,6 +14,8 @@ const AccountsAndRoles = lazy(() => import('../pages/admin/userManagement/Accoun
 const Admin = lazy(() => import('../pages/admin/userManagement/Admin'));
 const Faculty = lazy(() => import('../pages/admin/userManagement/Faculty'));
 const Student = lazy(() => import('../pages/admin/userManagement/Student'));
+const GradeCorrections = lazy(() => import('../pages/admin/GradeCorrections'));
+const AssignmentGradeCorrections = lazy(() => import('../pages/admin/AssignmentGradeCorrections'));
 
 export const adminPaths = [
   {
@@ -90,6 +92,8 @@ export const adminPaths = [
   { path: 'create-course', element: <Navigate to="/admin/courses" replace /> },
   { path: 'offer-course', element: <Navigate to="/admin/offered-courses" replace /> },
   { name: 'Attendance', path: 'attendance', element: <AdminAttendanceDashboard /> },
+  { name: 'Grade Corrections', path: 'grade-corrections', element: <GradeCorrections /> },
+  { name: 'Assignment Corrections', path: 'assignment-corrections', element: <AssignmentGradeCorrections /> },
   {
     name: 'Fee Management',
     children: [

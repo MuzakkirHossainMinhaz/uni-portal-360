@@ -14,7 +14,7 @@ router.post(
   FeeControllers.createFee,
 );
 
-router.get('/', auth(USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.faculty), FeeControllers.getAllFees);
+router.get('/', auth(USER_ROLE.admin, USER_ROLE.superAdmin), FeeControllers.getAllFees);
 
 router.get('/my-fees', auth(USER_ROLE.student), FeeControllers.getMyFees);
 

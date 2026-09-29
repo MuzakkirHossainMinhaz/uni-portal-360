@@ -8,7 +8,7 @@ import UniInput from '../../../components/form/UniInput';
 import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
-import { useGetAllAcademicDepartmentsQuery } from '../../../redux/features/admin/academicManagement.api';
+import { useGetAcademicDepartmentOptionsQuery } from '../../../redux/features/admin/academicManagement.api';
 import {
   useAddFacultyMutation,
   useDeleteFacultyMutation,
@@ -89,7 +89,7 @@ const Faculty = () => {
   const [createFaculty] = useAddFacultyMutation();
   const [updateFaculty] = useUpdateFacultyMutation();
   const [deleteFaculty] = useDeleteFacultyMutation();
-  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
+  const { data: departmentsData } = useGetAcademicDepartmentOptionsQuery();
 
   const faculties = facultiesData?.data ?? [];
   const departments = departmentsData?.data ?? [];
@@ -433,7 +433,7 @@ const Faculty = () => {
             </Col>
             {!editingFaculty ? (
               <Col span={12}>
-                <UniInput type="password" name="password" label="Password (optional)" />
+                <UniInput type="password" name="password" label="Temporary password (12–128 characters)" required />
               </Col>
             ) : null}
             <Col span={editingFaculty ? 12 : 24}>

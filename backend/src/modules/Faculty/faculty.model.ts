@@ -106,11 +106,11 @@ facultySchema.virtual('fullName').get(function () {
 
 // filter out deleted documents
 facultySchema.pre('find', function () {
-  this.find({ isDeleted: { $ne: true } });
+  if (!this.getOptions().includeDeleted) this.find({ isDeleted: { $ne: true } });
 });
 
 facultySchema.pre('findOne', function () {
-  this.find({ isDeleted: { $ne: true } });
+  if (!this.getOptions().includeDeleted) this.find({ isDeleted: { $ne: true } });
 });
 
 facultySchema.pre('aggregate', function () {

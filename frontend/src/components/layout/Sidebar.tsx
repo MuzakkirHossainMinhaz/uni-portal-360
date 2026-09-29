@@ -1,15 +1,15 @@
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, Typography } from 'antd';
-import { useState } from 'react';
-import type { TUser } from '../../redux/features/auth/authSlice';
-import { useCurrentToken } from '../../redux/features/auth/authSlice';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { selectCurrentUser } from '../../redux/features/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
 import { adminPaths } from '../../routes/admin.routes';
 import { facultyPaths } from '../../routes/faculty.routes';
 import { studentPaths } from '../../routes/student.routes';
 import { useThemeMode } from '../../theme/ThemeProvider';
+import type { TUserPath } from '../../types/sidebar.type';
 import { sidebarItemsGenerator } from '../../utils/sidebarItemsGenerator';
-import { verifyToken } from '../../utils/verifyToken';
 
 const { Sider } = Layout;
 
@@ -23,32 +23,39 @@ const userRole = {
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
-  const token = useAppSelector(useCurrentToken);
+  const role = useAppSelector(selectCurrentUser)?.role;
+  const location = useLocation();
   const { mode } = useThemeMode();
 
-  let user;
-
-  if (token) {
-    user = verifyToken(token);
-  }
-
   let sidebarItems;
+  let paths: TUserPath[] = studentPaths;
 
-  switch ((user as TUser)!.role) {
+  switch (role) {
     case userRole.SUPER_ADMIN:
     case userRole.ADMIN:
       sidebarItems = sidebarItemsGenerator(adminPaths, userRole.ADMIN);
+      paths = adminPaths;
       break;
     case userRole.FACULTY:
       sidebarItems = sidebarItemsGenerator(facultyPaths, userRole.FACULTY);
+      paths = facultyPaths;
       break;
     case userRole.STUDENT:
       sidebarItems = sidebarItemsGenerator(studentPaths, userRole.STUDENT);
+      paths = studentPaths;
       break;
 
     default:
       break;
   }
+  const pathSegment = location.pathname.split('/')[2];
+  const selected =
+    paths.find((item) => item.path?.split('/')[0] === pathSegment)?.name ??
+    paths.flatMap((item) => item.children ?? []).find((child) => child.path?.split('/')[0] === pathSegment)?.name;
+  const parent = paths.find((item) => item.children?.some((child) => child.name === selected))?.name;
+  useEffect(() => {
+    if (parent) setOpenKeys([parent]);
+  }, [parent]);
 
   return (
     <Sider
@@ -127,7 +134,7 @@ const Sidebar = () => {
       <Menu
         theme={mode === 'dark' ? 'dark' : 'light'}
         mode="inline"
-        defaultSelectedKeys={['dashboard']}
+        selectedKeys={selected ? [selected] : []}
         openKeys={openKeys}
         onOpenChange={(keys) => {
           // Keep only the last opened key (accordion behavior)

@@ -2,12 +2,13 @@ import { Suspense } from 'react';
 import { DesktopOutlined, LogoutOutlined, MoonOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Avatar, Button, Dropdown, Layout, Space, Spin } from 'antd';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { logout, selectCurrentUser } from '../../redux/features/auth/authSlice';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { useThemeMode } from '../../theme/ThemeProvider';
 import NotificationBell from './NotificationBell';
 import Sidebar from './Sidebar';
+import { useLogoutSessionMutation } from '../../redux/features/auth/auth.api';
 
 const { Header, Content } = Layout;
 
@@ -15,9 +16,15 @@ const MainLayout = () => {
   const dispatch = useAppDispatch();
   const { mode, setPreference } = useThemeMode();
   const currentUser = useAppSelector(selectCurrentUser);
+  const navigate = useNavigate();
+  const [logoutSession] = useLogoutSessionMutation();
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    try {
+      await logoutSession().unwrap();
+    } finally {
+      dispatch(logout());
+    }
   };
 
   const themeItems: MenuProps['items'] = [
@@ -46,6 +53,7 @@ const MainLayout = () => {
       key: 'profile',
       label: 'Profile',
       icon: <UserOutlined />,
+      onClick: () => navigate('/profile'),
     },
     {
       type: 'divider' as const,

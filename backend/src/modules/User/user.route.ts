@@ -1,5 +1,6 @@
 import express from 'express';
 import parseMultipartData from '../../middlewares/parseMultipartData';
+import cleanupUploadedFile from '../../middlewares/cleanupUploadedFile';
 
 import auth from '../../middlewares/auth';
 import checkPermission from '../../middlewares/checkPermission';
@@ -23,6 +24,7 @@ router.post(
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   checkPermission('createStudent'),
   upload.single('file'),
+  cleanupUploadedFile,
   parseMultipartData,
   validateRequest(StudentValidations.createStudentValidationSchema),
   UserControllers.createStudent,
@@ -33,6 +35,7 @@ router.post(
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   checkPermission('createFaculty'),
   upload.single('file'),
+  cleanupUploadedFile,
   parseMultipartData,
   validateRequest(FacultyValidations.createFacultyValidationSchema),
   UserControllers.createFaculty,
@@ -43,6 +46,7 @@ router.post(
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   checkPermission('createAdmin'),
   upload.single('file'),
+  cleanupUploadedFile,
   parseMultipartData,
   validateRequest(AdminValidations.createAdminValidationSchema),
   UserControllers.createAdmin,

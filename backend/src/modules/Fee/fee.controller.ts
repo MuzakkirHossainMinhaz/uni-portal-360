@@ -5,7 +5,7 @@ import sendResponse from '../../utils/sendResponse';
 import { FeeServices } from './fee.service';
 
 const createFee = catchAsync(async (req, res) => {
-  const result = await FeeServices.createFee(req.body);
+  const result = await FeeServices.createFee(req.body, req.user.userId);
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -52,12 +52,12 @@ const getMyFeeSummary = catchAsync(async (req, res) => {
 });
 
 const updateFee = catchAsync(async (req, res) => {
-  const result = await FeeServices.updateFee(getRouteParam(req, 'id'), req.body);
+  const result = await FeeServices.updateFee(getRouteParam(req, 'id'), req.body, req.user.userId);
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Fee updated successfully', data: result });
 });
 
 const deleteFee = catchAsync(async (req, res) => {
-  const result = await FeeServices.deleteFee(getRouteParam(req, 'id'));
+  const result = await FeeServices.deleteFee(getRouteParam(req, 'id'), req.user.userId);
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Fee voided successfully', data: result });
 });
 

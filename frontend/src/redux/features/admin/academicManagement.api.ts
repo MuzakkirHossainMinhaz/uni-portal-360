@@ -15,6 +15,60 @@ type DepartmentPayload = { name: string; description?: string; academicFaculty: 
 
 export const academicManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAcademicSemesterOptions: builder.query<{ data: TAcademicSemester[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TAcademicSemester[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({ url: '/academic-semesters', params: { page, limit: 100, sort: '_id' } });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TAcademicSemester[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['AcademicSemesters'],
+    }),
+    getAcademicFacultyOptions: builder.query<{ data: TAcademicFaculty[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TAcademicFaculty[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({ url: '/academic-faculties', params: { page, limit: 100, sort: '_id' } });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TAcademicFaculty[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['AcademicFaculties'],
+    }),
+    getAcademicDepartmentOptions: builder.query<{ data: TAcademicDepartment[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TAcademicDepartment[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({
+            url: '/academic-departments',
+            params: { page, limit: 100, sort: '_id' },
+          });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TAcademicDepartment[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['AcademicDepartments'],
+    }),
     // Academic Semester endpoints
     getAllAcademicSemesters: builder.query<TPaginatedResponse<TAcademicSemester>, TQueryParam[] | undefined>({
       query: (args) => ({
@@ -156,6 +210,9 @@ export const academicManagementApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetAcademicSemesterOptionsQuery,
+  useGetAcademicFacultyOptionsQuery,
+  useGetAcademicDepartmentOptionsQuery,
   useGetAllAcademicSemestersQuery,
   useGetSingleAcademicSemesterQuery,
   useCreateAcademicSemesterMutation,

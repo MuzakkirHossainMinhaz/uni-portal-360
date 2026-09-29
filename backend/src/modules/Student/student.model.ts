@@ -167,11 +167,11 @@ studentSchema.virtual('fullName').get(function () {
 
 // Query Middleware
 studentSchema.pre('find', function () {
-  this.find({ isDeleted: { $ne: true } });
+  if (!this.getOptions().includeDeleted) this.find({ isDeleted: { $ne: true } });
 });
 
 studentSchema.pre('findOne', function () {
-  this.find({ isDeleted: { $ne: true } });
+  if (!this.getOptions().includeDeleted) this.find({ isDeleted: { $ne: true } });
 });
 
 studentSchema.pre('aggregate', function () {

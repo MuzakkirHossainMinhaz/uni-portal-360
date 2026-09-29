@@ -4,12 +4,14 @@ import { getPagination } from '../../utils/pagination';
 import { User } from '../User/user.model';
 import type { TNotification } from './notification.interface';
 import { Notification } from './notification.model';
+import type mongoose from 'mongoose';
 
-const createNotification = async (payload: TNotification) => {
-  const result = await Notification.create(payload);
-  return result;
+const createNotification = async (payload: TNotification, session?: mongoose.ClientSession) => {
+  if (session) return (await Notification.create([payload], { session }))[0];
+  return Notification.create(payload);
 };
-const createNotifications = (payloads: TNotification[]) => Notification.insertMany(payloads);
+const createNotifications = (payloads: TNotification[], session?: mongoose.ClientSession) =>
+  Notification.insertMany(payloads, { session });
 
 const getUserNotifications = async (userId: string, query: Record<string, unknown>) => {
   const user = await User.findOne({ id: userId });

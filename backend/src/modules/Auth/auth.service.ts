@@ -33,6 +33,7 @@ const loginUser = async (payload: TLoginUser) => {
   const jwtPayload = {
     userId: user.id,
     role: user.role,
+    sessionVersion: user.sessionVersion ?? 0,
   };
 
   const accessToken = createToken(
@@ -80,17 +81,23 @@ const changePassword = async (userData: JwtPayload, payload: { oldPassword: stri
   //hash new password
   const newHashedPassword = await bcrypt.hash(payload.newPassword, Number(config.bcrypt_salt_rounds));
 
-  await User.findOneAndUpdate(
+  const updated = await User.findOneAndUpdate(
     {
       id: userData.userId,
       role: userData.role,
+      password: user.password,
+      isDeleted: false,
+      status: { $ne: 'blocked' },
+      sessionVersion: (user.sessionVersion ?? 0) === 0 ? { $in: [null, 0] } : user.sessionVersion,
     },
     {
       password: newHashedPassword,
       needsPasswordChange: false,
       passwordChangedAt: new Date(),
+      $inc: { sessionVersion: 1 },
     },
   );
+  if (!updated) throw new AppError(httpStatus.CONFLICT, 'Session changed; sign in and retry');
 
   return null;
 };
@@ -98,7 +105,8 @@ const changePassword = async (userData: JwtPayload, payload: { oldPassword: stri
 const refreshToken = async (token: string) => {
   const decoded = verifyToken(token, config.jwt_refresh_secret as string);
 
-  const { userId, iat } = decoded;
+  const { userId } = decoded;
+  if (decoded.purpose || decoded.aud) throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid refresh token');
   const user = await User.isUserExistsByCustomId(userId);
 
   if (!user) {
@@ -115,13 +123,14 @@ const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked ! !');
   }
 
-  if (user.passwordChangedAt && User.isJWTIssuedBeforePasswordChanged(user.passwordChangedAt, iat as number)) {
+  if ((decoded.sessionVersion ?? 0) !== (user.sessionVersion ?? 0)) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
   }
 
   const jwtPayload = {
     userId: user.id,
     role: user.role,
+    sessionVersion: user.sessionVersion ?? 0,
   };
 
   const accessToken = createToken(
@@ -158,7 +167,12 @@ const forgetPassword = async (userId: string) => {
   };
 
   const resetToken = jwt.sign(
-    { ...jwtPayload, purpose: 'password-reset', passwordVersion: user.passwordChangedAt?.getTime() ?? 0 },
+    {
+      ...jwtPayload,
+      purpose: 'password-reset',
+      passwordVersion: user.passwordChangedAt?.getTime() ?? 0,
+      sessionVersion: user.sessionVersion ?? 0,
+    },
     config.jwt_access_secret as string,
     { expiresIn: '10m', audience: 'password-reset' },
   );
@@ -192,7 +206,8 @@ const resetPassword = async (payload: { id: string; newPassword: string }, token
   if (
     payload.id !== decoded.userId ||
     decoded.purpose !== 'password-reset' ||
-    decoded.passwordVersion !== (user.passwordChangedAt?.getTime() ?? 0)
+    decoded.passwordVersion !== (user.passwordChangedAt?.getTime() ?? 0) ||
+    decoded.sessionVersion !== (user.sessionVersion ?? 0)
   ) {
     throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
   }
@@ -205,14 +220,23 @@ const resetPassword = async (payload: { id: string; newPassword: string }, token
       id: decoded.userId,
       role: decoded.role,
       passwordChangedAt: user.passwordChangedAt ?? null,
+      sessionVersion: (user.sessionVersion ?? 0) === 0 ? { $in: [null, 0] } : user.sessionVersion,
     },
     {
       password: newHashedPassword,
       needsPasswordChange: false,
       passwordChangedAt: new Date(),
+      $inc: { sessionVersion: 1 },
     },
   );
   if (!updated) throw new AppError(httpStatus.CONFLICT, 'This reset link has already been used');
+};
+
+const logoutUser = async (userId: string, sessionVersion: number) => {
+  await User.updateOne(
+    { id: userId, sessionVersion: sessionVersion === 0 ? { $in: [null, 0] } : sessionVersion },
+    { $inc: { sessionVersion: 1 } },
+  );
 };
 
 export const AuthServices = {
@@ -221,4 +245,5 @@ export const AuthServices = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  logoutUser,
 };

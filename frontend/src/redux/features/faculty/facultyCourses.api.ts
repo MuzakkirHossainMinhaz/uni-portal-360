@@ -10,8 +10,14 @@ export type FacultyEnrolledCourse = {
   offeredCourse: { _id: string; section: number };
   semesterRegistration: { _id: string };
   course: { title: string };
-  courseMarks: { classTest1: number; classTest2: number; midTerm: number; finalTerm: number };
+  courseMarks: {
+    classTest1: number | null;
+    classTest2: number | null;
+    midTerm: number | null;
+    finalTerm: number | null;
+  };
   grade?: string;
+  isCompleted: boolean;
 };
 
 const facultyCoursesApi = baseApi.injectEndpoints({

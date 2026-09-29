@@ -30,6 +30,43 @@ type OfferedPayload = {
 
 export const courseManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getRegisteredSemesterOptions: builder.query<{ data: TSemester[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TSemester[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({
+            url: '/semester-registrations',
+            params: { page, limit: 100, status: 'UPCOMING', sort: '_id' },
+          });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TSemester[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['semester'],
+    }),
+    getCourseOptions: builder.query<{ data: TCourse[] }, void>({
+      async queryFn(_arg, _api, _options, fetchWithBQ) {
+        const data: TCourse[] = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext) {
+          const response = await fetchWithBQ({ url: '/courses', params: { page, limit: 100, sort: '_id' } });
+          if (response.error) return { error: response.error };
+          const result = response.data as TResponse<TCourse[]>;
+          data.push(...(result.data ?? []));
+          hasNext = result.meta?.hasNext ?? false;
+          page += 1;
+        }
+        return { data: { data } };
+      },
+      providesTags: ['courses'],
+    }),
     getAllRegisteredSemesters: builder.query<TPaginatedResponse<TSemester>, TQueryParam[] | undefined>({
       query: (args) => ({ url: '/semester-registrations', params: toQueryParams(args) }),
       transformResponse: (response: TResponse<TSemester[]>) => toPage(response),
@@ -96,7 +133,12 @@ export const courseManagementApi = baseApi.injectEndpoints({
     }),
     updateOfferedCourse: builder.mutation<
       TResponse<unknown>,
-      { id: string; data: Partial<Pick<OfferedPayload, 'faculty' | 'maxCapacity' | 'days' | 'startTime' | 'endTime'>> }
+      {
+        id: string;
+        data: Partial<Pick<OfferedPayload, 'faculty' | 'maxCapacity' | 'days' | 'startTime' | 'endTime'>> & {
+          reassignmentReason?: string;
+        };
+      }
     >({
       query: ({ id, data }) => ({ url: `/offered-courses/${id}`, method: 'PATCH', body: data }),
       invalidatesTags: ['offeredCourse'],
@@ -109,6 +151,8 @@ export const courseManagementApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetRegisteredSemesterOptionsQuery,
+  useGetCourseOptionsQuery,
   useGetAllRegisteredSemestersQuery,
   useAddRegisteredSemesterMutation,
   useUpdateRegisteredSemesterMutation,

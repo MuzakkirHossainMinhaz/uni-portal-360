@@ -9,8 +9,8 @@ import UniDatePicker from '../../../components/form/UniDatePicker';
 import UniSelect from '../../../components/form/UniSelect';
 import { bloodGroupOptions, genderOptions } from '../../../constants/global';
 import {
-  useGetAllAcademicDepartmentsQuery,
-  useGetAllAcademicSemestersQuery,
+  useGetAcademicDepartmentOptionsQuery,
+  useGetAcademicSemesterOptionsQuery,
 } from '../../../redux/features/admin/academicManagement.api';
 import {
   useAddStudentMutation,
@@ -91,8 +91,8 @@ const Student = () => {
   const [createStudent] = useAddStudentMutation();
   const [updateStudent] = useUpdateStudentMutation();
   const [deleteStudent] = useDeleteStudentMutation();
-  const { data: departmentsData } = useGetAllAcademicDepartmentsQuery([{ name: 'limit', value: 100 }]);
-  const { data: semestersData } = useGetAllAcademicSemestersQuery([{ name: 'limit', value: 100 }]);
+  const { data: departmentsData } = useGetAcademicDepartmentOptionsQuery();
+  const { data: semestersData } = useGetAcademicSemesterOptionsQuery();
 
   const students = studentsData?.data ?? [];
   const departments = departmentsData?.data ?? [];
@@ -421,7 +421,7 @@ const Student = () => {
             </Col>
             {!editingStudent ? (
               <Col span={12}>
-                <UniInput type="password" name="password" label="Password (optional)" />
+                <UniInput type="password" name="password" label="Temporary password (12–128 characters)" required />
               </Col>
             ) : null}
             <Col span={editingStudent ? 12 : 8}>

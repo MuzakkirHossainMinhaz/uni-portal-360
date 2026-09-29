@@ -21,9 +21,9 @@ You do not need to know much about Node, React, or MongoDB to follow this – ju
 
 ### 1.1 Prerequisites
 
-- Node.js 18 or newer
+- Node.js 24 LTS
 - npm (comes with Node)
-- MongoDB running locally or a MongoDB Atlas connection string
+- A MongoDB replica set running locally or in Atlas (transactions require a replica set)
 
 ### 1.2 Clone and Install
 
@@ -36,7 +36,7 @@ cd uni-portal-360
 
 ```bash
 cd backend
-npm install
+npm ci
 ```
 
 Create a `.env` file in `backend/`:
@@ -44,24 +44,26 @@ Create a `.env` file in `backend/`:
 ```env
 NODE_ENV=development
 PORT=5000
+CORS_ORIGIN=http://localhost:5173
+BOOTSTRAP_SUPER_ADMIN_PASSWORD=replace-with-a-unique-long-passphrase
 
 BCRYPT_SALT_ROUNDS=10
 
-DATABASE_URL=mongodb://localhost:27017/uni-portal-360
+DATABASE_URL=mongodb://localhost:27017/uni-portal-360?replicaSet=rs0
 
 JWT_ACCESS_SECRET=dev_access_secret
-JWT_ACCESS_EXPIRES_IN=1d
+JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_SECRET=dev_refresh_secret
-JWT_REFRESH_EXPIRES_IN=365d
+JWT_REFRESH_EXPIRES_IN=7d
 
 CLOUDINARY_CLOUD_NAME=put_your_coudinary_cloud_name
 CLOUDINARY_API_KEY=put_your_coudinary_api_key
 CLOUDINARY_API_SECRET=put_your_coudinary_api_secret
 
-RESET_PASS_UI_LINK=http://localhost:3000/reset-password
+RESET_PASS_UI_LINK=http://localhost:5173/reset-password
 ```
 
-You can change values later, but these are good defaults for local testing.
+Use a unique bootstrap passphrase and copy any other needed settings from `backend/.env.example`. Configure SMTP to test email-based recovery.
 
 Start the backend:
 
@@ -73,10 +75,10 @@ What happens on first start:
 
 - Connects to MongoDB
 - Seeds **RBAC roles and permissions**
-- Seeds a **Super Admin** user using `backend/src/db/index.ts`:
+- Seeds a **Super Admin** user using `backend/src/config/db.ts` only when no Super Admin exists:
   - ID: `SA-0001`
   - Email: `superadmin@uni-portal-360.com`
-  - Password: `123456`
+  - Password: the unique `BOOTSTRAP_SUPER_ADMIN_PASSWORD` supplied in `backend/.env`; the first login requires a change
 
 #### Frontend
 
@@ -84,11 +86,11 @@ In another terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000`.
+The frontend runs on `http://localhost:5173`.
 
 ---
 
@@ -96,12 +98,12 @@ The frontend runs on `http://localhost:3000`.
 
 Open the browser at:
 
-- `http://localhost:3000`
+- `http://localhost:5173`
 
 Log in with:
 
 - **User ID**: `SA-0001`
-- **Password**: `123456`
+- **Password**: your unique `BOOTSTRAP_SUPER_ADMIN_PASSWORD`; set a new password immediately when prompted
 
 If you see a dashboard with admin-style cards and menus, the basic auth, RBAC, and frontend–backend connection are working.
 
@@ -130,7 +132,7 @@ What happens:
 - Backend creates a `User` with role `admin` and generated ID like `A-0001`.
 - Backend creates an `Admin` profile linked to that user.
 
-Note: If the form asks for a password and you leave it blank, the backend uses `DEFAULT_PASS` from `.env` (`config.default_password`).
+Each new account requires a unique temporary password of 12–128 characters. Share it securely with the account owner; they must replace it on first login.
 
 Record the generated **Admin ID** (e.g., `A-0001`) and email – you will use them later to log in.
 
@@ -259,7 +261,7 @@ Record the **Student ID** (e.g., `2026010001`).
 2. On the login page, use:
    - User ID: the generated student ID (e.g., `2026010001`)
    - Password:
-     - If you did not set a custom password, use the backend `DEFAULT_PASS` from `.env`.
+     - Use the unique temporary password assigned during account creation, then change it when prompted.
 3. Confirm that you land on a **Student Dashboard**.
 
 ### 6.3 Enroll the Student in the Offered Course
@@ -415,8 +417,8 @@ First, an Admin must create a fee.
 1. Log back in as **Student**.
 2. Go to **My Fees**.
 3. You should see the newly created fee with status `Pending` or `Overdue`.
-4. Click **Pay Now**.
-5. After the simulated payment, confirm:
+4. In a local development environment only, click **Pay Now**. Production disables this action until a verified payment provider is integrated.
+5. After the local simulated payment, confirm:
    - Status changes to `PAID`/`Paid`.
    - Pending dues total is updated.
 6. Click **Download Receipt**.

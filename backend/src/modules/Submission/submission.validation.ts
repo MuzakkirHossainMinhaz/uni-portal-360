@@ -19,17 +19,11 @@ const updateSubmissionGradeValidationSchema = z.object({
       .min(0)
       .max(100),
     feedback: z.string().optional(),
-  }),
-});
-
-const updateSubmissionValidationSchema = z.object({
-  body: z.object({
-    fileUrl: z.url().refine((url) => url.startsWith('https://'), 'Use an HTTPS file URL'),
+    correctionReason: z.string().trim().min(10).max(1000).optional(),
   }),
 });
 
 export const SubmissionValidations = {
   createSubmissionValidationSchema,
   updateSubmissionGradeValidationSchema,
-  updateSubmissionValidationSchema,
 };

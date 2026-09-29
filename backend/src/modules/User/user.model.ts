@@ -28,6 +28,7 @@ const userSchema = new Schema<TUser, UserModel>(
     passwordChangedAt: {
       type: Date,
     },
+    sessionVersion: { type: Number, default: 0 },
     role: {
       type: String,
       enum: Object.values(USER_ROLE),

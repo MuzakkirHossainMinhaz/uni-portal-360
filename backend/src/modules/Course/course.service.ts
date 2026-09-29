@@ -8,6 +8,7 @@ import { Course, CourseFaculty } from './course.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { OfferedCourse } from '../OfferedCourse/offeredCourse.model';
 import { SemesterRegistration } from '../SemesterRegistration/semesterRegistration.model';
+import EnrolledCourse from '../EnrolledCourse/enrolledCourse.model';
 
 const assertPrerequisites = async (courseIds: string[], ownId?: string) => {
   if (new Set(courseIds).size !== courseIds.length || courseIds.includes(ownId ?? '')) {
@@ -15,6 +16,22 @@ const assertPrerequisites = async (courseIds: string[], ownId?: string) => {
   }
   if (courseIds.length !== (await Course.countDocuments({ _id: { $in: courseIds }, isDeleted: { $ne: true } }))) {
     throw new AppError(httpStatus.BAD_REQUEST, 'One or more prerequisite courses do not exist');
+  }
+  if (ownId) {
+    const seen = new Set<string>();
+    let frontier = courseIds;
+    while (frontier.length) {
+      if (frontier.includes(ownId)) throw new AppError(httpStatus.BAD_REQUEST, 'Prerequisites cannot form a cycle');
+      const next = frontier.filter((item) => !seen.has(item));
+      if (!next.length) break;
+      next.forEach((item) => seen.add(item));
+      const courses = await Course.find({ _id: { $in: next } }).select('preRequisiteCourses');
+      frontier = courses.flatMap((item) =>
+        item.preRequisiteCourses
+          .filter((prerequisite) => !prerequisite.isDeleted)
+          .map((prerequisite) => String(prerequisite.course)),
+      );
+    }
   }
 };
 
@@ -51,6 +68,15 @@ const getSingleCourse = async (id: string) => {
 };
 
 const updateCourse = async (id: string, payload: Partial<TCourse>) => {
+  if (
+    (payload.title !== undefined ||
+      payload.prefix !== undefined ||
+      payload.code !== undefined ||
+      payload.credits !== undefined) &&
+    (await EnrolledCourse.exists({ course: id }))
+  ) {
+    throw new AppError(httpStatus.CONFLICT, 'Course identity and credits cannot change after enrollment');
+  }
   if (payload.preRequisiteCourses) {
     const selected = payload.preRequisiteCourses.filter((item) => !item.isDeleted).map((item) => String(item.course));
     await assertPrerequisites(selected, id);
@@ -117,7 +143,10 @@ const assignFacultiesWithCourse = async (id: string, faculties: string[]) => {
 };
 
 const getFacultiesWithCourse = async (courseId: string) => {
-  const result = await CourseFaculty.findOne({ course: courseId }).populate('faculties');
+  const result = await CourseFaculty.findOne({ course: courseId }).populate(
+    'faculties',
+    'id name designation academicDepartment academicFaculty',
+  );
   return result;
 };
 

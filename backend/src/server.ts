@@ -1,7 +1,7 @@
 import type { Server } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
-import config from './config';
+import config, { validateRuntimeConfig } from './config';
 import seedSuperAdmin from './config/db';
 import { AuditLogCleanup } from './modules/AuditLog/auditLog.cleanup';
 import { RBACServices } from './modules/RBAC/rbac.service';
@@ -11,6 +11,7 @@ let server: Server;
 
 async function main() {
   try {
+    validateRuntimeConfig();
     await mongoose.connect(config.database_url as string);
 
     await seedSuperAdmin();
@@ -24,10 +25,22 @@ async function main() {
     });
   } catch (err) {
     logger.error('Error starting application', err);
+    process.exitCode = 1;
+    await mongoose.disconnect();
   }
 }
 
 main();
+
+const shutdown = (signal: string) => {
+  logger.info(`Received ${signal}; shutting down`);
+  if (server) server.close(() => void mongoose.disconnect().finally(() => process.exit(0)));
+  else void mongoose.disconnect().finally(() => process.exit(0));
+  setTimeout(() => process.exit(1), 10000).unref();
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (err) => {
   logger.error('Unhandled rejection detected, shutting down', err);

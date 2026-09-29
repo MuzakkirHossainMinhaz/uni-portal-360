@@ -7,6 +7,7 @@ import { requireFacultyCourse, requireStudent } from '../../utils/academicAccess
 import QueryBuilder from '../../builder/QueryBuilder';
 import type { TAttendance } from './attendance.interface';
 import { AttendanceRepository } from './attendance.repository';
+import { SemesterRegistration } from '../SemesterRegistration/semesterRegistration.model';
 
 const attendanceRepository = new AttendanceRepository();
 
@@ -25,6 +26,14 @@ const createAttendance = async (
 
   if (!isOfferedCourseExists) {
     throw new AppError(httpStatus.NOT_FOUND, 'Offered Course not found or does not belong to the faculty');
+  }
+  const attendanceDate = new Date(date);
+  if (Number.isNaN(attendanceDate.getTime()) || attendanceDate > new Date()) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Attendance date must be a valid past or current date');
+  }
+  const registration = await SemesterRegistration.findById(isOfferedCourseExists.semesterRegistration).select('status');
+  if (!registration || registration.status === 'ENDED') {
+    throw new AppError(httpStatus.CONFLICT, 'Attendance is closed for this semester');
   }
 
   const session = await mongoose.startSession();

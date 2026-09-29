@@ -9,7 +9,7 @@ import {
   useCreateAcademicDepartmentMutation,
   useDeleteAcademicDepartmentMutation,
   useGetAllAcademicDepartmentsQuery,
-  useGetAllAcademicFacultiesQuery,
+  useGetAcademicFacultyOptionsQuery,
   useUpdateAcademicDepartmentMutation,
 } from '../../../redux/features/admin/academicManagement.api';
 import { useThemeMode } from '../../../theme/ThemeProvider';
@@ -40,7 +40,7 @@ const AcademicDepartment = () => {
   const [createAcademicDepartment] = useCreateAcademicDepartmentMutation();
   const [updateAcademicDepartment] = useUpdateAcademicDepartmentMutation();
   const [deleteAcademicDepartment] = useDeleteAcademicDepartmentMutation();
-  const { data: facultiesData } = useGetAllAcademicFacultiesQuery([{ name: 'limit', value: 100 }]);
+  const { data: facultiesData } = useGetAcademicFacultyOptionsQuery();
 
   const departments = departmentsData?.data ?? [];
   const faculties = facultiesData?.data ?? [];

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node ./dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings 0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
     "prettier": "npm run format",
@@ -15,10 +16,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:smoke": "npm run build && node scripts/quality-smoke.cjs",
-    "prepare": "husky install",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss}\"",
-    "check": "npm run format:check && npm run lint && npm run build"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run build"
   },
   "keywords": [],
   "author": "github.com/MuzakkirHossainMinhaz",
@@ -40,11 +40,10 @@
     "hpp": "^0.2.3",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.3",
-    "lint-staged": "^16.2.7",
     "mongoose": "^9.2.1",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.1",
+    "nodemailer": "^10.0.12",
     "pdfkit": "^0.17.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
@@ -68,18 +67,11 @@
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
-    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "prettier": "^3.8.1",
     "ts-jest": "^29.2.5",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0"
-  },
-  "lint-staged": {
-    "*.{ts,js,json}": [
-      "eslint --fix",
-      "prettier --write"
-    ]
   }
 }

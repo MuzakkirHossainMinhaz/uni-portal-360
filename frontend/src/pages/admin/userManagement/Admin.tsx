@@ -444,7 +444,7 @@ const Admin = () => {
             </Col>
             {!editingAdmin ? (
               <Col span={12}>
-                <UniInput type="password" name="password" label="Password (optional)" />
+                <UniInput type="password" name="password" label="Temporary password (12–128 characters)" required />
               </Col>
             ) : null}
             <Col span={12}>
